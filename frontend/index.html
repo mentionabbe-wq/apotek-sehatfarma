@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
   :root{
     --navy:#0c2840; --navy-700:#143a56;
@@ -469,8 +470,8 @@
       <div class="toolbar">
         <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg><input id="obatSearch" placeholder="Cari nama / kode obat…"></div>
         <select id="catFilter" class="btn-ghost" style="padding:9px 12px;border-radius:10px"><option value="">Semua Kategori</option></select>
-        <button class="btn btn-ghost" onclick="downloadContohObat()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Contoh CSV</button>
-        <button class="btn btn-ghost" onclick="$('#importObatFile').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>Import CSV</button>
+        <button class="btn btn-ghost" onclick="downloadContohObat()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Contoh Excel</button>
+        <button class="btn btn-ghost" onclick="$('#importObatFile').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>Import Excel</button>
         <button class="btn btn-ghost" style="margin-left:auto" onclick="openPriceSettings()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12V8H6a2 2 0 0 1 0-4h12v4M4 6v12a2 2 0 0 0 2 2h14v-4"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>Margin &amp; Harga</button>
         <button class="btn btn-primary" onclick="openObatModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Tambah Obat</button>
       </div>
@@ -665,7 +666,7 @@
 <div class="print-area" id="printArea"></div>
 <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importBackup(this)">
 <input type="file" id="logoFile" accept="image/*" style="display:none" onchange="handleLogoUpload(this)">
-<input type="file" id="importObatFile" accept=".csv,.txt" style="display:none" onchange="importObatCSV(this)">
+<input type="file" id="importObatFile" accept=".xlsx,.xls" style="display:none" onchange="importObatExcel(this)">
 <div class="toast-wrap" id="toastWrap"></div>
 
 <script>
@@ -2745,75 +2746,67 @@ async function saveSetAkunWithLogin(){
 
 initApp();
 
-/* ---- Import Obat CSV ---- */
+/* ---- Import Obat Excel ---- */
 function downloadContohObat(){
-  const bom='﻿';
-  const header='Kode,Nama Obat,Kategori,Satuan Kecil,Satuan Besar,Isi per Besar,Harga Beli,Harga Jual,Stok,Stok Min,Expired (YYYY-MM-DD)\n';
-  const contoh=[
-    'PCT001,Paracetamol 500mg,Tablet,tablet,strip,10,1500,3000,100,20,2026-12-31',
-    'AMX001,Amoxicillin 500mg,Kapsul,kapsul,strip,10,2500,5000,50,10,2027-06-30',
-    'VIT001,Vitamin C 1000mg,Suplemen,tablet,botol,100,500,2000,200,30,2027-03-31',
-  ].join('\n')+'\n';
-  const blob=new Blob([bom+header+contoh],{type:'text/csv;charset=utf-8'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download='contoh-import-obat.csv';
-  a.click();URL.revokeObjectURL(a.href);
-  toast('File contoh CSV diunduh','ok');
+  if(!window.XLSX){toast('Library Excel belum siap, coba lagi sebentar','warn');return;}
+  const rows=[
+    ['Kode','Nama Obat','Kategori','Satuan Kecil','Satuan Besar','Isi per Besar','Harga Beli','Harga Jual','Stok','Stok Min','Expired (YYYY-MM-DD)'],
+    ['PCT001','Paracetamol 500mg','Tablet','tablet','strip',10,1500,3000,100,20,'2026-12-31'],
+    ['AMX001','Amoxicillin 500mg','Kapsul','kapsul','strip',10,2500,5000,50,10,'2027-06-30'],
+    ['VIT001','Vitamin C 1000mg','Suplemen','tablet','botol',100,500,2000,200,30,'2027-03-31'],
+  ];
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[8,25,12,12,12,10,12,12,8,8,20].map(w=>({wch:w}));
+  XLSX.utils.book_append_sheet(wb,ws,'Data Obat');
+  XLSX.writeFile(wb,'contoh-import-obat.xlsx');
+  toast('File contoh Excel diunduh','ok');
 }
-function _parseCSVLine(line){
-  const res=[];let cur='',inQ=false;
-  for(const c of line){
-    if(c==='"'){inQ=!inQ;}
-    else if(c===','&&!inQ){res.push(cur.trim());cur='';}
-    else{cur+=c;}
-  }
-  res.push(cur.trim());
-  return res;
-}
-async function importObatCSV(input){
-  const file=input.files[0];if(!file){return;}
+async function importObatExcel(input){
+  const file=input.files[0];if(!file)return;
+  if(!window.XLSX){toast('Library Excel belum siap, coba lagi sebentar','warn');input.value='';return;}
   const reader=new FileReader();
-  reader.onload=async()=>{
+  reader.onload=async(e)=>{
     try{
-      const text=reader.result.replace(/^﻿/,'');
-      const lines=text.split(/\r?\n/).filter(l=>l.trim());
-      if(lines.length<2){toast('File CSV kosong atau tidak valid','warn');return;}
-      const hdr=_parseCSVLine(lines[0]).map(h=>h.toLowerCase().trim());
+      const data=new Uint8Array(e.target.result);
+      const wb=XLSX.read(data,{type:'array'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+      if(rows.length<2){toast('File Excel kosong atau tidak valid','warn');return;}
+      const hdr=rows[0].map(h=>String(h||'').toLowerCase().trim());
       const col=k=>hdr.findIndex(h=>h.includes(k));
       const iKode=col('kode'),iNama=col('nama'),iKat=col('kategori'),
             iSatK=col('satuan kecil'),iSatB=col('satuan besar'),iIsi=col('isi per'),
             iHB=col('harga beli'),iHJ=col('harga jual'),
             iStok=col('stok'),iMin=col('stok min'),iExp=col('expired');
-      if(iNama<0){toast('Kolom "Nama Obat" tidak ditemukan di CSV','warn');return;}
+      if(iNama<0){toast('Kolom "Nama Obat" tidak ditemukan','warn');return;}
       let added=0,updated=0;
-      for(let i=1;i<lines.length;i++){
-        const c=_parseCSVLine(lines[i]);
-        if(c.length<2)continue;
-        const nama=(c[iNama]||'').trim();if(!nama)continue;
-        const kode=(iKode>=0?c[iKode]:'')||'';
+      for(let i=1;i<rows.length;i++){
+        const c=rows[i];
+        const nama=String(c[iNama]||'').trim();if(!nama)continue;
+        const kode=String(iKode>=0?c[iKode]||'':'').trim();
         const existing=OBAT.find(o=>(kode&&o.kode===kode)||(o.nama.toLowerCase()===nama.toLowerCase()));
         const data={
           nama,kode,
-          kategori:(iKat>=0?c[iKat]:'')||'Lainnya',
-          satuanKecil:(iSatK>=0?c[iSatK]:'')||'tablet',
-          satuanBesar:(iSatB>=0?c[iSatB]:'')||'',
+          kategori:String(iKat>=0?c[iKat]||'':'').trim()||'Lainnya',
+          satuanKecil:String(iSatK>=0?c[iSatK]||'':'').trim()||'tablet',
+          satuanBesar:String(iSatB>=0?c[iSatB]||'':'').trim()||'',
           isiPerBesar:iIsi>=0?+c[iIsi]||0:0,
           beli:iHB>=0?+c[iHB]||0:0,
           jual:iHJ>=0?+c[iHJ]||0:0,
           stok:iStok>=0?+c[iStok]||0:0,
           min:iMin>=0?+c[iMin]||10:10,
-          exp:(iExp>=0?c[iExp]:'')||'',
+          exp:iExp>=0?String(c[iExp]||'').trim():'',
         };
         if(existing){Object.assign(existing,data);updated++;}
         else{data.id='o'+Date.now()+Math.random().toString(36).slice(2,6);OBAT.push(data);added++;}
       }
       await saveObat();renderAll();
-      toast(`Import selesai: ${added} obat baru ditambah, ${updated} diperbarui`,'ok');
-    }catch(e){toast('Gagal import: '+e.message,'error');}
+      toast(`Import selesai: ${added} obat baru, ${updated} diperbarui`,'ok');
+    }catch(err){toast('Gagal import: '+err.message,'error');}
     input.value='';
   };
-  reader.readAsText(file,'UTF-8');
+  reader.readAsArrayBuffer(file);
 }
 </script>
 </body>
