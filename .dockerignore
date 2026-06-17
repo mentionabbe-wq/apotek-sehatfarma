@@ -1,0 +1,4 @@
+backend/
+*.bat
+.git
+.gitignore

@@ -1,0 +1,8 @@
+services:
+  apotek:
+    build: .
+    image: apotek-sehatfarma
+    container_name: apotek-app
+    ports:
+      - "8080:80"
+    restart: unless-stopped
