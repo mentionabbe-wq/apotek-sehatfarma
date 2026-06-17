@@ -1,4 +1,5 @@
-backend/
 *.bat
 .git
 .gitignore
+backend/node_modules
+backend/data

@@ -1,0 +1,18 @@
+FROM node:20-alpine
+
+RUN apk add --no-cache python3 make g++
+
+WORKDIR /app
+
+COPY package.json .
+RUN npm install --production
+
+COPY . .
+RUN mkdir -p data
+
+ENV PORT=3000
+ENV JWT_SECRET=apotek-sehatfarma-secret-ganti-di-produksi
+
+EXPOSE 3000
+
+CMD ["node", "server.js"]
