@@ -172,6 +172,12 @@ function initDatabase() {
       key TEXT PRIMARY KEY,
       value TEXT DEFAULT ''
     );
+
+    CREATE TABLE IF NOT EXISTS store (
+      key TEXT PRIMARY KEY,
+      value TEXT DEFAULT 'null',
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
   `);
 
   // Migration: add columns to existing tables
@@ -190,14 +196,16 @@ function initDatabase() {
   addCol('transaksi', 'laba', 'REAL DEFAULT 0');
   addCol('pembelian', 'inv', 'TEXT');
   addCol('pembelian', 'supplier_nama', 'TEXT DEFAULT ""');
+  addCol('pengguna', 'menus', 'TEXT DEFAULT "[]"');
 
   // Default users
   const userCount = db.prepare('SELECT COUNT(*) as c FROM pengguna').get();
   if (userCount.c === 0) {
-    db.prepare('INSERT INTO pengguna (username,password,nama,role) VALUES (?,?,?,?)')
-      .run('admin', bcrypt.hashSync('admin123', 10), 'Administrator', 'admin');
-    db.prepare('INSERT INTO pengguna (username,password,nama,role) VALUES (?,?,?,?)')
-      .run('kasir', bcrypt.hashSync('kasir123', 10), 'Kasir Utama', 'kasir');
+    db.prepare('INSERT INTO pengguna (username,password,nama,role,menus) VALUES (?,?,?,?,?)')
+      .run('admin', bcrypt.hashSync('admin123', 10), 'Administrator', 'admin', '["all"]');
+    db.prepare('INSERT INTO pengguna (username,password,nama,role,menus) VALUES (?,?,?,?,?)')
+      .run('kasir', bcrypt.hashSync('kasir123', 10), 'Kasir Utama', 'kasir',
+        JSON.stringify(['dashboard','kasir','obat','stok','laporan']));
   }
 
   // Default klasifikasi

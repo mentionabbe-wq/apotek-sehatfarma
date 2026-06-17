@@ -646,6 +646,34 @@
 <div class="toast-wrap" id="toastWrap"></div>
 
 <script>
+/* ===== API LAYER ===== */
+const API_URL = window.APOTEK_API || '';
+let _jwt = localStorage.getItem('apotek:jwt') || '';
+
+async function apiFetch(path, opts = {}) {
+  const res = await fetch(API_URL + path, {
+    method: opts.method || 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(_jwt ? { 'Authorization': 'Bearer ' + _jwt } : {})
+    },
+    ...(opts.body !== undefined ? { body: JSON.stringify(opts.body) } : {})
+  });
+  if (res.status === 401) {
+    _jwt = '';
+    localStorage.removeItem('apotek:jwt');
+    sessionStorage.removeItem('apotek:loggedIn');
+    sessionStorage.removeItem('apotek:loggedRole');
+    sessionStorage.removeItem('apotek:userId');
+    try { $('#loginScreen').classList.add('show'); $('#app').style.display = 'none'; } catch {}
+    throw new Error('Sesi berakhir, silakan login kembali');
+  }
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'API Error');
+  return data;
+}
+/* ==================== */
+
 const KEY_OBAT='apotek:obat', KEY_TX='apotek:transaksi', KEY_BELI='apotek:pembelian',
       KEY_CTR='apotek:counter', KEY_CTRB='apotek:counterBeli', KEY_SET='apotek:pengaturan',
       KEY_OPN='apotek:opname', KEY_CTRO='apotek:counterOpname',
@@ -698,8 +726,22 @@ function barcodeSVG(data,h,unit){
   return `<svg class="bc" viewBox="0 0 ${tw.toFixed(2)} ${h}" width="${tw.toFixed(2)}" height="${h}" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges"><rect width="${tw.toFixed(2)}" height="${h}" fill="#fff"/><g fill="#000">${rects}</g></svg>`;
 }
 
-async function sget(k){try{const r=localStorage.getItem(k);return r?JSON.parse(r):null;}catch(e){return null;}}
-async function sset(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){toast('Gagal menyimpan data','err');}}
+async function sget(k){
+  if(_jwt){
+    try{
+      const res=await apiFetch('/api/store/'+encodeURIComponent(k));
+      const v=res.data;
+      if(v!==null)try{localStorage.setItem(k,JSON.stringify(v));}catch{}
+      return v;
+    }catch{}
+  }
+  try{const r=localStorage.getItem(k);return r?JSON.parse(r):null;}catch{return null;}
+}
+async function sset(k,v){
+  try{localStorage.setItem(k,JSON.stringify(v));}catch{}
+  if(!_jwt)return;
+  try{await apiFetch('/api/store/'+encodeURIComponent(k),{method:'PUT',body:{value:v}});}catch{}
+}
 const saveObat=()=>sset(KEY_OBAT,OBAT), saveTx=()=>sset(KEY_TX,TX), saveBeliData=()=>sset(KEY_BELI,BELI);
 const saveCtr=()=>sset(KEY_CTR,CTR), saveCtrB=()=>sset(KEY_CTRB,CTRB), saveSet=()=>sset(KEY_SET,SET);
 const saveOpn=()=>sset(KEY_OPN,OPN), saveCtrO=()=>sset(KEY_CTRO,CTRO);
@@ -2295,10 +2337,22 @@ function defaultUsers(){
   return [{id:'u_admin',username:'admin',password:'admin123',role:'Admin',menus:ALL_MENU_KEYS}];
 }
 async function getUsers(){
-  const u=await sget(KEY_USERS);
-  return (u&&u.length)?u.map(usr=>({...usr,menus:usr.menus||ALL_MENU_KEYS})):defaultUsers();
+  try{
+    const res=await apiFetch('/api/pengguna');
+    return res.data.map(u=>({
+      id:'u'+u.id, backendId:u.id,
+      username:u.username, nama:u.nama||u.username,
+      password:'••••',
+      role:u.role==='admin'?'Admin':(u.role?u.role.charAt(0).toUpperCase()+u.role.slice(1):'Kasir'),
+      menus:(u.menus&&u.menus!=='[]')?JSON.parse(u.menus):ALL_MENU_KEYS,
+      aktif:u.aktif
+    }));
+  }catch{
+    const u=localStorage.getItem(KEY_USERS);
+    return (u?JSON.parse(u):null)||defaultUsers();
+  }
 }
-async function saveUsers(u){USERS=u;await sset(KEY_USERS,u);}
+async function saveUsers(u){USERS=u;}
 
 /* --- Render user list di panel settings --- */
 function renderUserList(){
@@ -2371,20 +2425,21 @@ async function saveUserForm(id){
   if(!id&&!pass){toast('Password wajib diisi untuk akun baru','warn');return;}
   if(pass&&pass!==pass2){toast('Konfirmasi password tidak cocok','warn');return;}
   if(pass&&pass.length<4){toast('Password minimal 4 karakter','warn');return;}
-  const duplicate=USERS.find(u=>u.username===username&&u.id!==id);
-  if(duplicate){toast('Username sudah dipakai','warn');return;}
   const menus=role==='Admin'?ALL_MENU_KEYS:[...$('#menuCheckGrid').querySelectorAll('input:checked')].map(cb=>cb.value);
   if(role!=='Admin'&&menus.length===0){toast('Pilih minimal satu menu','warn');return;}
-  if(id){
-    const u=USERS.find(x=>x.id===id);
-    u.username=username;u.role=role;u.menus=menus;
-    if(pass)u.password=pass;
-    toast('Pengguna diperbarui','ok');
-  } else {
-    USERS.push({id:'u'+Math.random().toString(36).slice(2,9),username,password:pass,role,menus});
-    toast('Pengguna ditambahkan','ok');
-  }
-  await saveUsers(USERS);closeModal();renderSettings();
+  try{
+    const payload={username,nama:username,role:role==='Admin'?'admin':'kasir',menus:JSON.stringify(menus)};
+    if(pass)payload.password=pass;
+    if(id){
+      const u=USERS.find(x=>x.id===id);
+      await apiFetch('/api/pengguna/'+u.backendId,{method:'PUT',body:payload});
+      toast('Pengguna diperbarui','ok');
+    }else{
+      await apiFetch('/api/pengguna',{method:'POST',body:payload});
+      toast('Pengguna ditambahkan','ok');
+    }
+    USERS=await getUsers();closeModal();renderSettings();
+  }catch(e){toast(e.message,'err');}
 }
 
 function confirmDeleteUser(id){
@@ -2399,8 +2454,11 @@ function confirmDeleteUser(id){
   showModal();
 }
 async function deleteUser(id){
-  USERS=USERS.filter(u=>u.id!==id);
-  await saveUsers(USERS);closeModal();renderSettings();toast('Pengguna dihapus','ok');
+  try{
+    const u=USERS.find(x=>x.id===id);
+    await apiFetch('/api/pengguna/'+u.backendId,{method:'DELETE'});
+    USERS=await getUsers();closeModal();renderSettings();toast('Pengguna dihapus','ok');
+  }catch(e){toast(e.message,'err');}
 }
 
 /* --- Terapkan akses menu sesuai akun yang login --- */
@@ -2438,22 +2496,36 @@ async function doLogin(){
   const pass=$('#loginPass').value;
   $('#loginErr').textContent='';
   if(!user||!pass){$('#loginErr').textContent='Username dan password wajib diisi';return;}
-  USERS=await getUsers();
-  const found=USERS.find(u=>u.username===user&&u.password===pass);
-  if(!found){$('#loginErr').textContent='Username atau password salah';$('#loginPass').value='';$('#loginPass').focus();return;}
-  sessionStorage.setItem('apotek:loggedIn',found.username);
-  sessionStorage.setItem('apotek:loggedRole',found.role||'Kasir');
-  $('#loginScreen').classList.remove('show');
-  $('#loginUser').value='';$('#loginPass').value='';
-  await init();
-  applyMenuAccess();
+  try{
+    const res=await fetch(API_URL+'/api/auth/login',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({username:user,password:pass})
+    });
+    const data=await res.json();
+    if(!res.ok){$('#loginErr').textContent=data.message||'Username atau password salah';$('#loginPass').value='';$('#loginPass').focus();return;}
+    _jwt=data.data.token;
+    localStorage.setItem('apotek:jwt',_jwt);
+    sessionStorage.setItem('apotek:loggedIn',data.data.user.username);
+    sessionStorage.setItem('apotek:loggedRole',data.data.user.role==='admin'?'Admin':'Kasir');
+    sessionStorage.setItem('apotek:userId',String(data.data.user.id));
+    USERS=await getUsers();
+    $('#loginScreen').classList.remove('show');
+    $('#loginUser').value='';$('#loginPass').value='';
+    await init();
+    applyMenuAccess();
+  }catch(e){
+    $('#loginErr').textContent=e.message||'Tidak dapat terhubung ke server';
+  }
 }
 
 function doLogout(){
   if(!confirm('Yakin ingin keluar dari aplikasi?'))return;
+  _jwt='';
+  localStorage.removeItem('apotek:jwt');
   sessionStorage.removeItem('apotek:loggedIn');
   sessionStorage.removeItem('apotek:loggedRole');
-  // Reset semua nav agar tidak bocor ke sesi berikutnya
+  sessionStorage.removeItem('apotek:userId');
   $$('.nav a[data-view]').forEach(a=>a.style.display='');
   $$('.nav-label').forEach(l=>l.style.display='');
   applyLoginBranding(SET);
@@ -2478,17 +2550,32 @@ function applyLoginBranding(s){
 }
 
 async function initApp(){
-  const loggedIn=sessionStorage.getItem('apotek:loggedIn');
-  const s=await sget(KEY_SET);
-  applyLoginBranding(s);
-  USERS=await getUsers();
-  if(loggedIn){
-    $('#loginScreen').classList.remove('show');
-    await init();
-    applyMenuAccess();
-  } else {
-    setTimeout(()=>$('#loginUser').focus(),150);
+  // Tampilkan branding dari cache lokal dulu (sebelum API tersedia)
+  const cached=(()=>{try{const r=localStorage.getItem(KEY_SET);return r?JSON.parse(r):null;}catch{return null;}})();
+  applyLoginBranding(cached);
+  if(_jwt){
+    try{
+      const meRes=await fetch(API_URL+'/api/auth/me',{headers:{'Authorization':'Bearer '+_jwt}});
+      if(meRes.ok){
+        const md=await meRes.json();
+        sessionStorage.setItem('apotek:loggedIn',md.data.username);
+        sessionStorage.setItem('apotek:loggedRole',md.data.role==='admin'?'Admin':'Kasir');
+        sessionStorage.setItem('apotek:userId',String(md.data.id));
+        USERS=await getUsers();
+        $('#loginScreen').classList.remove('show');
+        await init();
+        applyMenuAccess();
+        return;
+      }
+    }catch{}
+    // Token tidak valid — hapus
+    _jwt='';
+    localStorage.removeItem('apotek:jwt');
   }
+  // Belum login — isi USERS dari cache lokal agar applyMenuAccess tidak error
+  const u=localStorage.getItem(KEY_USERS);
+  USERS=((u?JSON.parse(u):null)||defaultUsers()).map(usr=>({...usr,menus:usr.menus||ALL_MENU_KEYS}));
+  setTimeout(()=>$('#loginUser').focus(),150);
 }
 
 /* Ganti password dari panel Pengaturan */
@@ -2499,14 +2586,15 @@ async function saveSetAkunWithLogin(){
   const newUser=$('#s_loginuser')?.value.trim();
   const newPass=$('#s_loginpass')?.value.trim();
   if(newUser&&newPass){
-    const users=await getUsers();
-    const currentUser=sessionStorage.getItem('apotek:loggedIn');
-    const idx=users.findIndex(u=>u.username===currentUser);
-    if(idx>=0){users[idx].username=newUser;users[idx].password=newPass;}
-    else users.push({username:newUser,password:newPass,role:SET.operatorRole});
-    await saveUsers(users);
-    sessionStorage.setItem('apotek:loggedIn',newUser);
-    toast('Akun & password diperbarui','ok');
+    try{
+      const userId=sessionStorage.getItem('apotek:userId');
+      if(userId){
+        await apiFetch('/api/pengguna/'+userId,{method:'PUT',body:{username:newUser,password:newPass}});
+        sessionStorage.setItem('apotek:loggedIn',newUser);
+        USERS=await getUsers();
+        toast('Akun & password diperbarui','ok');
+      }
+    }catch(e){toast(e.message,'err');return;}
   }
   await saveSet();applyOperator();toast('Pengaturan akun disimpan','ok');
 }
