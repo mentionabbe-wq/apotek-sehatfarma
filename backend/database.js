@@ -196,6 +196,10 @@ function initDatabase() {
   addCol('transaksi', 'laba', 'REAL DEFAULT 0');
   addCol('pembelian', 'inv', 'TEXT');
   addCol('pembelian', 'supplier_nama', 'TEXT DEFAULT ""');
+  addCol('pembelian', 'jatuh_tempo', 'TEXT DEFAULT ""');
+  addCol('pembelian', 'bayar_muka', 'REAL DEFAULT 0');
+  addCol('pembelian', 'sisa_bayar', 'REAL DEFAULT 0');
+  addCol('pembelian', 'status_bayar', 'TEXT DEFAULT "lunas"');
   addCol('pengguna', 'menus', 'TEXT DEFAULT "[]"');
 
   // Default users

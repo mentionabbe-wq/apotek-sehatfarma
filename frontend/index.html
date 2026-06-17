@@ -402,6 +402,7 @@
       <div class="nav-label">Inventori</div>
       <a data-view="obat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.5 20.5 4 14a4.95 4.95 0 0 1 7-7l6.5 6.5a4.95 4.95 0 0 1-7 7Z"/><path d="m8.5 8.5 7 7"/></svg>Data Obat</a>
       <a data-view="pembelian"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h2l.4 2M7 13h10l3-8H5.4M7 13 5.4 5M7 13l-2 4h12"/><circle cx="9" cy="20" r="1.2"/><circle cx="16" cy="20" r="1.2"/></svg>Pembelian</a>
+      <a data-view="piutang"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20M7 15h.01M11 15h4"/></svg>Hutang Pembelian<span class="badge" id="piutangBadge" style="display:none">0</span></a>
       <a data-view="stok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8 12 3 3 8l9 5 9-5Z"/><path d="m3 8 0 8 9 5 9-5 0-8"/><path d="M12 13v8"/></svg>Stok &amp; Expired<span class="badge" id="navBadge" style="display:none">0</span></a>
       <a data-view="opname"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg>Stok Opname</a>
       <div class="nav-label">Analisa</div>
@@ -468,6 +469,8 @@
       <div class="toolbar">
         <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg><input id="obatSearch" placeholder="Cari nama / kode obat…"></div>
         <select id="catFilter" class="btn-ghost" style="padding:9px 12px;border-radius:10px"><option value="">Semua Kategori</option></select>
+        <button class="btn btn-ghost" onclick="downloadContohObat()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Contoh CSV</button>
+        <button class="btn btn-ghost" onclick="$('#importObatFile').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>Import CSV</button>
         <button class="btn btn-ghost" style="margin-left:auto" onclick="openPriceSettings()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12V8H6a2 2 0 0 1 0-4h12v4M4 6v12a2 2 0 0 0 2 2h14v-4"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>Margin &amp; Harga</button>
         <button class="btn btn-primary" onclick="openObatModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Tambah Obat</button>
       </div>
@@ -494,7 +497,13 @@
         </div>
         <div class="card cart">
           <div class="cart-head"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2"><path d="M3 3h2l.4 2M7 13h10l3-8H5.4"/><circle cx="9" cy="20" r="1.2"/><circle cx="16" cy="20" r="1.2"/></svg><h3>Nota Pembelian</h3></div>
-          <div style="padding:14px 18px;border-bottom:1px solid var(--line)"><div class="field"><label>Supplier / Distributor</label><input id="beliSupplier" placeholder="cth: PBF Anugrah Pharma"></div></div>
+          <div style="padding:14px 18px;border-bottom:1px solid var(--line)">
+            <div class="field" style="margin-bottom:10px"><label>Supplier / Distributor</label><input id="beliSupplier" placeholder="cth: PBF Anugrah Pharma"></div>
+            <div class="form-grid">
+              <div class="field"><label>Jatuh Tempo Bayar</label><input type="date" id="beliJatuhTempo"><div class="hint">Kosongkan jika bayar tunai</div></div>
+              <div class="field"><label>Bayar Muka (Rp)</label><input type="number" id="beliDP" min="0" placeholder="0 = kredit penuh"><div class="hint">Isi total jika lunas</div></div>
+            </div>
+          </div>
           <div class="cart-body" id="beliBody"></div>
           <div class="cart-foot">
             <div class="sumline total" style="border:none;padding-top:0;margin:0 0 10px"><span>Total Beli</span><span class="num" id="beliTotal">Rp 0</span></div>
@@ -503,7 +512,20 @@
         </div>
       </div>
       <div class="card" style="overflow:hidden"><div class="panel-head"><h3>Riwayat Pembelian</h3><span class="chip chip-gray" id="beliCount">0 nota</span></div>
-        <table><thead><tr><th>No. Nota</th><th>Tanggal</th><th>Supplier</th><th class="t-center">Item</th><th class="t-right">Total</th><th></th></tr></thead><tbody id="beliTable"></tbody></table>
+        <table><thead><tr><th>No. Nota</th><th>Tanggal</th><th>Supplier</th><th class="t-center">Item</th><th class="t-right">Total</th><th class="t-center">Status</th><th></th></tr></thead><tbody id="beliTable"></tbody></table>
+      </div>
+    </section>
+
+    <!-- HUTANG PEMBELIAN -->
+    <section class="view" id="view-piutang">
+      <div class="stat-grid" id="piutangStats" style="grid-template-columns:repeat(3,1fr);margin-bottom:18px"></div>
+      <div class="card" style="overflow:hidden">
+        <div class="panel-head"><h3>Hutang Pembelian Belum Lunas</h3><span class="chip chip-amber" id="piutangCount">0 nota</span></div>
+        <table><thead><tr>
+          <th>No. Nota</th><th>Tanggal</th><th>Supplier</th>
+          <th class="t-right">Total</th><th class="t-right">Bayar Muka</th><th class="t-right">Sisa Bayar</th>
+          <th>Jatuh Tempo</th><th class="t-center">Status</th><th></th>
+        </tr></thead><tbody id="piutangTable"></tbody></table>
       </div>
     </section>
 
@@ -643,6 +665,7 @@
 <div class="print-area" id="printArea"></div>
 <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importBackup(this)">
 <input type="file" id="logoFile" accept="image/*" style="display:none" onchange="handleLogoUpload(this)">
+<input type="file" id="importObatFile" accept=".csv,.txt" style="display:none" onchange="importObatCSV(this)">
 <div class="toast-wrap" id="toastWrap"></div>
 
 <script>
@@ -783,12 +806,12 @@ async function init(){
   buildCatFilter(); renderAll(); applyOperator(); tickClock(); setInterval(tickClock,1000);
   if(SET.pinEnabled&&SET.pin)showLock();
 }
-function renderAll(){renderDash();renderObat();renderPOS();renderPembelian();renderStok();renderOpname();renderPengeluaran();renderSalesman();renderPelanggan();renderLaporan();renderPajak();renderSettings();updateBadge();}
+function renderAll(){renderDash();renderObat();renderPOS();renderPembelian();renderPiutang();renderStok();renderOpname();renderPengeluaran();renderSalesman();renderPelanggan();renderLaporan();renderPajak();renderSettings();updateBadge();}
 const saveSales=()=>sset(KEY_SALES,SALES);
 
 function tickClock(){const d=new Date();$('#clockTime').textContent=d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});$('#clockDate').textContent=d.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});}
 
-const TITLES={dashboard:['Beranda','Ringkasan aktivitas apotek hari ini'],kasir:['Kasir','Layani transaksi penjualan obat'],pengeluaran:['Pengeluaran','Catat gaji & biaya operasional apotek'],salesman:['Salesman','Kelola salesman dan komisi penjualan'],pelanggan:['Pelanggan','Kelola data pelanggan dan klasifikasi'],obat:['Data Obat','Kelola master data, satuan & harga obat'],pembelian:['Pembelian','Catat pembelian obat dari supplier'],stok:['Stok & Expired','Pantau stok menipis dan obat kadaluarsa'],opname:['Stok Opname','Cocokkan stok fisik dengan stok sistem'],laporan:['Laporan Penjualan','Analisa penjualan dan laba apotek'],pajak:['Laporan Pajak','Estimasi PPN dan PPh Final UMKM'],setting:['Pengaturan','Atur apotek, akun, printer, dan kertas']};
+const TITLES={dashboard:['Beranda','Ringkasan aktivitas apotek hari ini'],kasir:['Kasir','Layani transaksi penjualan obat'],pengeluaran:['Pengeluaran','Catat gaji & biaya operasional apotek'],salesman:['Salesman','Kelola salesman dan komisi penjualan'],pelanggan:['Pelanggan','Kelola data pelanggan dan klasifikasi'],obat:['Data Obat','Kelola master data, satuan & harga obat'],pembelian:['Pembelian','Catat pembelian obat dari supplier'],piutang:['Hutang Pembelian','Pantau hutang ke supplier dan jatuh tempo'],stok:['Stok & Expired','Pantau stok menipis dan obat kadaluarsa'],opname:['Stok Opname','Cocokkan stok fisik dengan stok sistem'],laporan:['Laporan Penjualan','Analisa penjualan dan laba apotek'],pajak:['Laporan Pajak','Estimasi PPN dan PPh Final UMKM'],setting:['Pengaturan','Atur apotek, akun, printer, dan kertas']};
 $$('.nav a').forEach(a=>a.onclick=()=>{
   const v=a.dataset.view;
   $$('.nav a').forEach(x=>x.classList.remove('active')); a.classList.add('active');
@@ -1255,6 +1278,8 @@ function renderBeliCart(){
 function saveBeli(){
   if(!beliCart.length){toast('Nota pembelian masih kosong','warn');return;}
   const supplier=$('#beliSupplier').value.trim()||'Umum';
+  const jatuhTempo=$('#beliJatuhTempo').value||'';
+  const dp=+$('#beliDP').value||0;
   let total=0;
   const items=beliCart.map(c=>{
     const o=OBAT.find(x=>x.id===c.id);
@@ -1264,11 +1289,19 @@ function saveBeli(){
     total+=c.qty*c.harga;
     return{nama:c.nama,unit:c.satuan,qty:c.qty,harga:c.harga,sub:c.qty*c.harga};
   });
+  const sisa=Math.max(0,total-dp);
+  const status=sisa<=0?'lunas':(dp>0?'sebagian':'kredit');
   const no='BLI-'+new Date().toISOString().slice(2,10).replace(/-/g,'')+'-'+String(CTRB).padStart(3,'0');
-  BELI.unshift({no,time:new Date().toISOString(),supplier,items,total});
+  BELI.unshift({no,time:new Date().toISOString(),supplier,items,total,jatuhTempo,dp,sisa,status});
   CTRB++;saveObat();saveBeliData();saveCtrB();
-  beliCart=[];$('#beliSupplier').value='';renderAll();
+  beliCart=[];$('#beliSupplier').value='';$('#beliJatuhTempo').value='';$('#beliDP').value='';renderAll();
   toast('Pembelian disimpan · stok diperbarui','ok');
+}
+function statusBeliChip(b){
+  const s=b.status||'lunas';
+  if(s==='lunas')return '<span class="chip chip-teal">Lunas</span>';
+  if(s==='sebagian')return '<span class="chip chip-amber">Sebagian</span>';
+  return '<span class="chip chip-red">Kredit</span>';
 }
 function renderPembelian(){
   fillBeliObat();renderBeliCart();
@@ -1279,16 +1312,93 @@ function renderPembelian(){
     <td>${esc(b.supplier)}</td>
     <td class="t-center num">${b.items.length}</td>
     <td class="t-right num" style="font-weight:700">${rp(b.total)}</td>
-    <td class="t-right"><button class="icon-btn" onclick='viewBeli("${b.no}")'><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg></button></td></tr>`).join(''):`<tr><td colspan="6">${emptyBox('Belum ada pembelian tercatat')}</td></tr>`;
+    <td class="t-center">${statusBeliChip(b)}</td>
+    <td class="t-right"><button class="icon-btn" onclick='viewBeli("${b.no}")'><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg></button></td></tr>`).join(''):`<tr><td colspan="7">${emptyBox('Belum ada pembelian tercatat')}</td></tr>`;
 }
 function viewBeli(no){
   const b=BELI.find(x=>x.no===no);
+  const sisa=b.sisa??b.total;
+  const dp=b.dp||0;
+  const jtTempo=b.jatuhTempo||b.jatuh_tempo||'';
+  const isKredit=(b.status||'lunas')!=='lunas';
   $('#modal').innerHTML=`<div class="modal-head"><h3>Detail Pembelian</h3><button class="icon-btn" onclick="closeModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
-  <div class="modal-body"><div class="receipt"><div style="margin-bottom:12px"><b>${b.no}</b><div style="font-size:12px;color:var(--ink-3)">${esc(b.supplier)} · ${new Date(b.time).toLocaleString('id-ID')}</div></div>
+  <div class="modal-body"><div class="receipt">
+    <div style="margin-bottom:12px"><b>${b.no}</b><div style="font-size:12px;color:var(--ink-3)">${esc(b.supplier)} · ${new Date(b.time).toLocaleString('id-ID')}</div></div>
     ${b.items.map(i=>`<div class="r-line"><span>${esc(i.nama)} ${i.qty} ${esc(i.unit)} × ${rp(i.harga)}</span><span class="num">${rp(i.sub)}</span></div>`).join('')}
-    <div class="r-tot"><span>TOTAL</span><span class="num">${rp(b.total)}</span></div></div></div>
-  <div class="modal-foot"><button class="btn btn-primary" onclick="closeModal()">Tutup</button></div>`;
+    <div class="r-tot"><span>TOTAL</span><span class="num">${rp(b.total)}</span></div>
+    <div class="r-line" style="border:none;margin-top:8px"><span>Bayar Muka</span><span class="num" style="color:var(--green)">${rp(dp)}</span></div>
+    <div class="r-line" style="border:none"><span>Sisa Hutang</span><span class="num" style="color:${isKredit?'var(--danger)':'var(--green)'};font-weight:700">${rp(sisa)}</span></div>
+    ${jtTempo?`<div class="r-line" style="border:none"><span>Jatuh Tempo</span><span class="num">${fmtDate(jtTempo)}</span></div>`:''}
+    <div class="r-line" style="border:none"><span>Status</span><span>${statusBeliChip(b)}</span></div>
+  </div></div>
+  <div class="modal-foot">
+    ${isKredit?`<button class="btn btn-primary" onclick="bayarPiutang('${no}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Catat Pembayaran</button>`:''}
+    <button class="btn btn-ghost" onclick="closeModal()">Tutup</button>
+  </div>`;
   showModal();
+}
+
+function renderPiutang(){
+  const hutang=BELI.filter(b=>(b.status||'lunas')!=='lunas');
+  const totalHutang=hutang.reduce((s,b)=>s+(b.sisa??b.total),0);
+  const jatuhHari=hutang.filter(b=>{if(!b.jatuhTempo&&!b.jatuh_tempo)return false;return daysUntil(b.jatuhTempo||b.jatuh_tempo)<=7;}).length;
+  $('#piutangStats').innerHTML=[
+    {lbl:'Total Hutang',val:rp(totalHutang),col:'var(--danger)',bg:'var(--danger-soft)',ic:'<rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/>'},
+    {lbl:'Nota Belum Lunas',val:hutang.length+' nota',col:'var(--amber)',bg:'var(--amber-soft)',ic:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/>'},
+    {lbl:'Jatuh Tempo ≤7 Hari',val:jatuhHari+' nota',col:'var(--indigo)',bg:'var(--indigo-soft)',ic:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'},
+  ].map(s=>`<div class="stat card"><div class="ic" style="background:${s.bg}"><svg viewBox="0 0 24 24" fill="none" stroke="${s.col}" stroke-width="2">${s.ic}</svg></div><div class="lbl">${s.lbl}</div><div class="val num">${s.val}</div></div>`).join('');
+  $('#piutangCount').textContent=hutang.length+' nota';
+  const badge=$('#piutangBadge');
+  if(hutang.length>0){badge.textContent=hutang.length;badge.style.display='';}else{badge.style.display='none';}
+  $('#piutangTable').innerHTML=hutang.length?hutang.map(b=>{
+    const sisa=b.sisa??b.total, dp=b.dp||0;
+    const jtStr=b.jatuhTempo||b.jatuh_tempo||'';
+    const hari=jtStr?daysUntil(jtStr):null;
+    const jtChip=!jtStr?'<span style="color:var(--ink-3)">—</span>':hari<0?`<span class="chip chip-red">Lewat ${Math.abs(hari)} hari</span>`:hari<=7?`<span class="chip chip-amber">${fmtDate(jtStr)}<br><small>${hari} hari lagi</small></span>`:`<span style="font-size:12.5px">${fmtDate(jtStr)}</span>`;
+    return`<tr>
+      <td><span class="num" style="font-size:12.5px;color:var(--ink-2)">${b.no}</span></td>
+      <td class="num" style="color:var(--ink-3);font-size:12.5px">${new Date(b.time).toLocaleString('id-ID',{day:'2-digit',month:'short',year:'numeric'})}</td>
+      <td>${esc(b.supplier)}</td>
+      <td class="t-right num">${rp(b.total)}</td>
+      <td class="t-right num" style="color:var(--green)">${rp(dp)}</td>
+      <td class="t-right num" style="color:var(--danger);font-weight:700">${rp(sisa)}</td>
+      <td>${jtChip}</td>
+      <td class="t-center">${statusBeliChip(b)}</td>
+      <td class="t-right">
+        <button class="btn btn-ghost btn-sm" onclick='bayarPiutang("${b.no}")'>Bayar</button>
+        <button class="icon-btn" onclick='viewBeli("${b.no}")'><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+      </td></tr>`;
+  }).join(''):`<tr><td colspan="9">${emptyBox('Semua pembelian sudah lunas ✓','Tidak ada hutang ke supplier')}</td></tr>`;
+}
+function bayarPiutang(no){
+  const b=BELI.find(x=>x.no===no);
+  if(!b)return;
+  const sisa=b.sisa??b.total;
+  $('#modal').innerHTML=`<div class="modal-head"><h3>Catat Pembayaran Hutang</h3><button class="icon-btn" onclick="closeModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+  <div class="modal-body">
+    <div style="background:var(--bg);border-radius:10px;padding:14px;margin-bottom:16px">
+      <div style="font-size:12.5px;color:var(--ink-3)">${b.no} · ${esc(b.supplier)}</div>
+      <div style="font-size:15px;font-weight:700;color:var(--danger);margin-top:4px">Sisa Hutang: ${rp(sisa)}</div>
+    </div>
+    <div class="field"><label>Jumlah Bayar (Rp)</label><input type="number" id="bayarJml" min="1" max="${sisa}" placeholder="${sisa}" value="${sisa}"></div>
+    <div class="field" style="margin-top:12px"><label>Tanggal Bayar</label><input type="date" id="bayarTgl" value="${new Date().toISOString().slice(0,10)}"></div>
+  </div>
+  <div class="modal-foot">
+    <button class="btn btn-ghost" onclick="closeModal()">Batal</button>
+    <button class="btn btn-primary" onclick="konfirmasiBayar('${no}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>Simpan Pembayaran</button>
+  </div>`;
+  showModal();
+}
+function konfirmasiBayar(no){
+  const b=BELI.find(x=>x.no===no);
+  if(!b)return;
+  const jml=+$('#bayarJml').value||0;
+  if(jml<=0){toast('Jumlah bayar harus lebih dari 0','warn');return;}
+  const dp=(b.dp||0)+jml;
+  const sisa=Math.max(0,(b.sisa??b.total)-jml);
+  b.dp=dp; b.sisa=sisa; b.status=sisa<=0?'lunas':(dp>0?'sebagian':'kredit');
+  saveBeliData();renderAll();closeModal();
+  toast(sisa<=0?'Hutang lunas!':'Pembayaran dicatat, sisa '+rp(sisa),'ok');
 }
 
 /* ---------- Stok ---------- */
@@ -1788,6 +1898,7 @@ const ALL_MENUS=[
   {key:'pelanggan',label:'Pelanggan',icon:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>'},
   {key:'obat',label:'Data Obat',icon:'<path d="M10.5 20.5 4 14a4.95 4.95 0 0 1 7-7l6.5 6.5a4.95 4.95 0 0 1-7 7Z"/>'},
   {key:'pembelian',label:'Pembelian',icon:'<path d="M3 3h2l.4 2M7 13h10l3-8H5.4"/><circle cx="9" cy="20" r="1.2"/><circle cx="16" cy="20" r="1.2"/>'},
+  {key:'piutang',label:'Hutang Pembelian',icon:'<rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20M7 15h.01M11 15h4"/>'},
   {key:'stok',label:'Stok & Expired',icon:'<path d="M21 8 12 3 3 8l9 5 9-5Z"/><path d="m3 8 0 8 9 5 9-5 0-8"/>'},
   {key:'opname',label:'Stok Opname',icon:'<path d="M9 11l3 3 8-8"/>'},
   {key:'laporan',label:'Laporan Penjualan',icon:'<path d="M3 3v18h18"/><path d="m7 14 3-4 3 3 5-6"/>'},
@@ -2097,23 +2208,56 @@ function captureTpl(){
 }
 function changeTplPaper(v){captureTpl();tplPaper=v;renderSettings();}
 function buildStruk(tx,paper){
-  const t=getTpl(paper), alamat=[SET.apotekAlamat,SET.apotekKota].filter(Boolean).join(', ');
-  return `<div class="slip" style="max-width:${t.lebar}px;font-size:${t.font}px">
-    <div style="text-align:center;border-bottom:2px solid #101828;padding-bottom:10px;margin-bottom:10px">
-      ${t.showLogo&&SET.logo?`<img src="${SET.logo}" style="max-height:48px;max-width:75%;margin:0 auto 7px;display:block">`:''}
-      <b style="font-family:'Plus Jakarta Sans';font-size:${t.font+5}px;display:block">${esc(SET.apotekNama||'SehatFarma')}</b>
-      ${t.showAlamat&&alamat?`<span style="font-size:${t.font-1}px;color:#475467">${esc(alamat)}</span>`:''}
-      ${t.showTelepon&&SET.apotekTelepon?`<div style="font-size:${t.font-1}px;color:#475467">Telp. ${esc(SET.apotekTelepon)}</div>`:''}
-      <div style="font-size:${t.font-1}px;color:#475467;margin-top:6px">${esc(tx.inv)} · ${new Date(tx.time).toLocaleString('id-ID')}</div>
-      ${t.showKasir?`<div style="font-size:${t.font-1}px;color:#475467">Kasir: ${esc(SET.operatorNama||'-')}</div>`:''}
-      ${t.showSalesman&&tx.salesmanNama?`<div style="font-size:${t.font-1}px;color:#475467">Salesman: ${esc(tx.salesmanNama)}</div>`:''}
+  const t=getTpl(paper);
+  const alamat=[SET.apotekAlamat,SET.apotekKota].filter(Boolean).join(', ');
+  const d=new Date(tx.time);
+  const hari=['Min','Sen','Sel','Rab','Kam','Jum','Sab'][d.getDay()];
+  const tglStr=`${hari} ${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getFullYear()).slice(2)}`;
+  const jamStr=`${String(d.getHours()).padStart(2,'0')}.${String(d.getMinutes()).padStart(2,'0')}.${String(d.getSeconds()).padStart(2,'0')}`;
+  const n=v=>Math.round(v||0).toLocaleString('id-ID');
+  const fs=t.font, lebar=t.lebar;
+  const dash=`<div style="border-top:1px dashed #101828;margin:5px 0"></div>`;
+  const footer=SET.strukFooter||'Obat yang sudah dibeli tidak dapat\ndikembalikan atau ditukar\nTerimakasih, semoga lekas sembuh.';
+  return `<div class="slip" style="max-width:${lebar}px;font-size:${fs}px;font-family:'Courier New',Courier,monospace;line-height:1.55">
+    <div style="text-align:center;margin-bottom:5px">
+      ${t.showLogo&&SET.logo?`<img src="${SET.logo}" style="max-height:42px;max-width:70%;margin:0 auto 4px;display:block">`:''}
+      <b style="font-size:${fs+3}px;letter-spacing:.04em;display:block">${esc(SET.apotekNama||'SehatFarma')}</b>
+      ${t.showAlamat&&alamat?`<div style="font-size:${fs-1}px">${esc(alamat)}</div>`:''}
+      ${t.showTelepon&&SET.apotekTelepon?`<div style="font-size:${fs-1}px">Tlp: ${esc(SET.apotekTelepon)}</div>`:''}
+      ${SET.penanggungJawab?`<div style="font-size:${fs-1}px">Apoeker: ${esc(SET.penanggungJawab)}</div>`:''}
+      ${SET.noSIPA?`<div style="font-size:${fs-1}px">SIPA: ${esc(SET.noSIPA)}</div>`:''}
     </div>
-    ${tx.items.map(i=>`<div class="r-line"><span>${esc(i.nama)} ${i.qty} ${esc(i.unit||'')}</span><span class="num">${rp((i.harga||i.jual)*i.qty)}</span></div>`).join('')}
-    <div class="r-line"><span>Diskon</span><span class="num">${rp(tx.disc)}</span></div>
-    <div class="r-tot"><span>TOTAL</span><span class="num">${rp(tx.total)}</span></div>
-    <div class="r-line" style="margin-top:8px;border:none"><span>Tunai</span><span class="num">${rp(tx.pay)}</span></div>
-    <div class="r-line" style="border:none"><span>Kembali</span><span class="num" style="font-weight:700">${rp(tx.kembali)}</span></div>
-    ${t.showFooter&&SET.strukFooter?`<div style="text-align:center;font-size:${t.font-1}px;color:#475467;margin-top:14px">${esc(SET.strukFooter)}</div>`:''}
+    ${dash}
+    <table style="width:100%;border-collapse:collapse;font-size:${fs-1}px">
+      <tr><td>${tglStr}</td><td style="text-align:right">Jam: ${jamStr}</td></tr>
+      <tr><td style="word-break:break-all;font-size:${fs-2}px">No: ${esc(tx.inv)}</td><td style="text-align:right">${esc(tx.kepada||'')}</td></tr>
+      ${t.showKasir?`<tr><td>Kasir: ${esc(SET.operatorNama||'-')}</td><td style="text-align:right">Jenis: ${esc(tx.metodeBayar||'Tunai')}</td></tr>`:''}
+    </table>
+    ${dash}
+    <table style="width:100%;border-collapse:collapse;font-size:${fs-1}px">
+      <tr style="border-bottom:1px solid #101828">
+        <td style="padding:2px 0;width:18px">No</td>
+        <td style="padding:2px 0">Nama</td>
+        <td style="padding:2px 0;text-align:right;width:28px">Jml</td>
+        <td style="padding:2px 0;text-align:right;width:60px">Total</td>
+      </tr>
+      ${tx.items.map((i,idx)=>`<tr>
+        <td style="padding:3px 0 1px;vertical-align:top">${idx+1}</td>
+        <td style="padding:3px 0 1px">${esc(i.nama)}</td>
+        <td style="padding:3px 0 1px;text-align:right;vertical-align:top">${i.qty}</td>
+        <td style="padding:3px 0 1px;text-align:right;vertical-align:top">${n((i.harga||i.jual)*i.qty)}</td>
+      </tr>`).join('')}
+    </table>
+    ${dash}
+    <table style="width:100%;border-collapse:collapse;font-size:${fs-1}px">
+      <tr><td style="text-align:right;padding:1px 0">Jumlah Total:</td><td style="text-align:right;padding:1px 0;padding-left:8px;white-space:nowrap">${n(tx.sub!=null?tx.sub:tx.total)}</td></tr>
+      <tr><td style="text-align:right;padding:1px 0">Diskon:</td><td style="text-align:right;padding:1px 0;padding-left:8px">${n(tx.disc)}</td></tr>
+      <tr style="font-weight:700"><td style="text-align:right;padding:1px 0">Yang Harus Dibayar:</td><td style="text-align:right;padding:1px 0;padding-left:8px">${n(tx.total)}</td></tr>
+      <tr><td style="text-align:right;padding:1px 0">Pembayaran:</td><td style="text-align:right;padding:1px 0;padding-left:8px">${n(tx.pay)}</td></tr>
+      <tr style="font-weight:700"><td style="text-align:right;padding:1px 0">Kembalian:</td><td style="text-align:right;padding:1px 0;padding-left:8px">${n(tx.kembali)}</td></tr>
+    </table>
+    ${dash}
+    ${t.showFooter?`<div style="text-align:center;font-size:${fs-2}px;white-space:pre-line">${esc(footer)}</div>`:''}
   </div>`;
 }
 function previewStruk(){
@@ -2600,6 +2744,77 @@ async function saveSetAkunWithLogin(){
 }
 
 initApp();
+
+/* ---- Import Obat CSV ---- */
+function downloadContohObat(){
+  const bom='﻿';
+  const header='Kode,Nama Obat,Kategori,Satuan Kecil,Satuan Besar,Isi per Besar,Harga Beli,Harga Jual,Stok,Stok Min,Expired (YYYY-MM-DD)\n';
+  const contoh=[
+    'PCT001,Paracetamol 500mg,Tablet,tablet,strip,10,1500,3000,100,20,2026-12-31',
+    'AMX001,Amoxicillin 500mg,Kapsul,kapsul,strip,10,2500,5000,50,10,2027-06-30',
+    'VIT001,Vitamin C 1000mg,Suplemen,tablet,botol,100,500,2000,200,30,2027-03-31',
+  ].join('\n')+'\n';
+  const blob=new Blob([bom+header+contoh],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='contoh-import-obat.csv';
+  a.click();URL.revokeObjectURL(a.href);
+  toast('File contoh CSV diunduh','ok');
+}
+function _parseCSVLine(line){
+  const res=[];let cur='',inQ=false;
+  for(const c of line){
+    if(c==='"'){inQ=!inQ;}
+    else if(c===','&&!inQ){res.push(cur.trim());cur='';}
+    else{cur+=c;}
+  }
+  res.push(cur.trim());
+  return res;
+}
+async function importObatCSV(input){
+  const file=input.files[0];if(!file){return;}
+  const reader=new FileReader();
+  reader.onload=async()=>{
+    try{
+      const text=reader.result.replace(/^﻿/,'');
+      const lines=text.split(/\r?\n/).filter(l=>l.trim());
+      if(lines.length<2){toast('File CSV kosong atau tidak valid','warn');return;}
+      const hdr=_parseCSVLine(lines[0]).map(h=>h.toLowerCase().trim());
+      const col=k=>hdr.findIndex(h=>h.includes(k));
+      const iKode=col('kode'),iNama=col('nama'),iKat=col('kategori'),
+            iSatK=col('satuan kecil'),iSatB=col('satuan besar'),iIsi=col('isi per'),
+            iHB=col('harga beli'),iHJ=col('harga jual'),
+            iStok=col('stok'),iMin=col('stok min'),iExp=col('expired');
+      if(iNama<0){toast('Kolom "Nama Obat" tidak ditemukan di CSV','warn');return;}
+      let added=0,updated=0;
+      for(let i=1;i<lines.length;i++){
+        const c=_parseCSVLine(lines[i]);
+        if(c.length<2)continue;
+        const nama=(c[iNama]||'').trim();if(!nama)continue;
+        const kode=(iKode>=0?c[iKode]:'')||'';
+        const existing=OBAT.find(o=>(kode&&o.kode===kode)||(o.nama.toLowerCase()===nama.toLowerCase()));
+        const data={
+          nama,kode,
+          kategori:(iKat>=0?c[iKat]:'')||'Lainnya',
+          satuanKecil:(iSatK>=0?c[iSatK]:'')||'tablet',
+          satuanBesar:(iSatB>=0?c[iSatB]:'')||'',
+          isiPerBesar:iIsi>=0?+c[iIsi]||0:0,
+          beli:iHB>=0?+c[iHB]||0:0,
+          jual:iHJ>=0?+c[iHJ]||0:0,
+          stok:iStok>=0?+c[iStok]||0:0,
+          min:iMin>=0?+c[iMin]||10:10,
+          exp:(iExp>=0?c[iExp]:'')||'',
+        };
+        if(existing){Object.assign(existing,data);updated++;}
+        else{data.id='o'+Date.now()+Math.random().toString(36).slice(2,6);OBAT.push(data);added++;}
+      }
+      await saveObat();renderAll();
+      toast(`Import selesai: ${added} obat baru ditambah, ${updated} diperbarui`,'ok');
+    }catch(e){toast('Gagal import: '+e.message,'error');}
+    input.value='';
+  };
+  reader.readAsText(file,'UTF-8');
+}
 </script>
 </body>
 </html>
