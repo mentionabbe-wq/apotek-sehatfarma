@@ -1,0 +1,17 @@
+name: apotek-sehatfarma
+
+services:
+  apotek:
+    image: ghcr.io/mentionabbe-wq/apotek-sehatfarma:latest
+    container_name: apotek-sehatfarma
+    ports:
+      - "3000:3000"
+    volumes:
+      - apotek-data:/app/data
+    restart: unless-stopped
+    environment:
+      - PORT=3000
+      - JWT_SECRET=apotek-sehatfarma-ganti-secret-ini
+
+volumes:
+  apotek-data:
