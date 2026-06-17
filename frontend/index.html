@@ -545,7 +545,7 @@
       <div class="toolbar">
         <div class="seg" id="pengSeg"><button data-period="today">Hari Ini</button><button class="on" data-period="month">Bulan Ini</button><button data-period="30">30 Hari</button><button data-period="all">Semua</button></div>
         <button class="btn btn-ghost" onclick="openProfilModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h.01M9 13h.01M9 17h.01M15 9h.01M15 13h.01M15 17h.01"/></svg>Profil Apotek</button>
-        <button class="btn btn-ghost" onclick="exportPengCSV()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Ekspor CSV</button>
+        <button class="btn btn-ghost" onclick="exportPengExcel()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Ekspor Excel</button>
         <button class="btn btn-primary" style="margin-left:auto" onclick="openExpenseModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Tambah Pengeluaran</button>
       </div>
       <div class="stat-grid" id="pengStats" style="grid-template-columns:repeat(4,1fr)"></div>
@@ -596,7 +596,7 @@
     <section class="view" id="view-laporan">
       <div class="toolbar">
         <div class="seg" id="lapSeg"><button class="on" data-period="today">Hari Ini</button><button data-period="7">7 Hari</button><button data-period="30">30 Hari</button><button data-period="all">Semua</button></div>
-        <button class="btn btn-ghost" style="margin-left:auto" onclick="exportCSV()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Ekspor CSV</button>
+        <button class="btn btn-ghost" style="margin-left:auto" onclick="exportExcel()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Ekspor Excel</button>
       </div>
       <div class="stat-grid" id="lapStats" style="grid-template-columns:repeat(3,1fr)"></div>
       <div class="card" style="overflow:hidden"><div class="panel-head"><h3>Riwayat Transaksi</h3><span class="chip chip-gray" id="lapTxCount">0 transaksi</span></div>
@@ -1292,12 +1292,46 @@ function viewTx(inv){
   $('#modal').innerHTML=`<div class="modal-head"><h3>Detail Transaksi</h3><button class="icon-btn" onclick="closeModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div><div class="modal-body"><div class="receipt"><div style="margin-bottom:12px"><b>${t.inv}</b><div style="font-size:12px;color:var(--ink-3)">${new Date(t.time).toLocaleString('id-ID')}</div></div>${t.items.map(i=>`<div class="r-line"><span>${esc(i.nama)} ${i.qty} ${esc(i.unit||'')}</span><span class="num">${rp((i.harga||i.jual)*i.qty)}</span></div>`).join('')}<div class="r-line"><span>Diskon</span><span class="num">${rp(t.disc)}</span></div><div class="r-tot"><span>TOTAL</span><span class="num">${rp(t.total)}</span></div><div class="r-line" style="border:none;margin-top:8px"><span>Laba</span><span class="num" style="color:var(--green)">${rp(t.laba)}</span></div>${t.salesmanNama?`<div class="r-line" style="border:none"><span>Salesman</span><span>${esc(t.salesmanNama)}</span></div><div class="r-line" style="border:none"><span>Komisi</span><span class="num" style="color:var(--amber)">${rp(t.komisi||0)}</span></div>`:''}</div></div><div class="modal-foot"><button class="btn btn-primary" onclick="closeModal()">Tutup</button></div>`;
   showModal();
 }
-function exportCSV(){
+function exportExcel(){
   const rows=TX.filter(t=>inPeriod(t.time,lapPeriod));
   if(!rows.length){toast('Tidak ada data untuk diekspor','warn');return;}
-  let csv='Invoice,Waktu,Unit Terjual,Subtotal,Diskon,Total,Laba\n';
-  rows.forEach(t=>{csv+=`${t.inv},"${new Date(t.time).toLocaleString('id-ID')}",${t.items.reduce((a,i)=>a+(i.qtyKecil||i.qty),0)},${t.sub},${t.disc},${t.total},${t.laba}\n`;});
-  const blob=new Blob([csv],{type:'text/csv'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='laporan-penjualan.csv';a.click();URL.revokeObjectURL(url);toast('Laporan diekspor','ok');
+  const tgl=new Date().toISOString().slice(0,10);
+  const thead=`<tr style="background:#0d9488;color:#fff;font-weight:bold">
+    <th>Invoice</th><th>Waktu</th><th>Kasir</th><th>Pelanggan</th>
+    <th>Klasifikasi</th><th>Salesman</th><th>Metode Bayar</th>
+    <th>Unit Terjual</th><th>Subtotal (Rp)</th><th>Diskon (Rp)</th>
+    <th>Total (Rp)</th><th>Laba (Rp)</th></tr>`;
+  const tbody=rows.map((t,i)=>`<tr style="${i%2?'background:#f9fafb':''}">
+    <td>${t.inv}</td>
+    <td>${new Date(t.time).toLocaleString('id-ID')}</td>
+    <td>${SET.operatorNama||''}</td>
+    <td>${t.kepada||'Umum'}</td>
+    <td>${t.klasifikasi||'Umum'}</td>
+    <td>${t.salesmanNama||''}</td>
+    <td>${t.metodeBayar||'Tunai'}</td>
+    <td style="text-align:right">${t.items.reduce((a,i)=>a+(i.qtyKecil||i.qty),0)}</td>
+    <td style="text-align:right">${t.sub}</td>
+    <td style="text-align:right">${t.disc||0}</td>
+    <td style="text-align:right;font-weight:600">${t.total}</td>
+    <td style="text-align:right">${t.laba}</td>
+  </tr>`).join('');
+  const totalRow=`<tr style="background:#f0fdf4;font-weight:bold">
+    <td colspan="8">TOTAL (${rows.length} transaksi)</td>
+    <td style="text-align:right">${rows.reduce((s,t)=>s+t.sub,0)}</td>
+    <td style="text-align:right">${rows.reduce((s,t)=>s+(t.disc||0),0)}</td>
+    <td style="text-align:right">${rows.reduce((s,t)=>s+t.total,0)}</td>
+    <td style="text-align:right">${rows.reduce((s,t)=>s+t.laba,0)}</td>
+  </tr>`;
+  const html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>
+<x:Name>Laporan Penjualan</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>
+</x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>
+<body><table border="1" cellspacing="0" style="font-family:Arial;font-size:11px;border-collapse:collapse">
+<thead>${thead}</thead><tbody>${tbody}${totalRow}</tbody></table></body></html>`;
+  const blob=new Blob([html],{type:'application/vnd.ms-excel;charset=utf-8'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=`laporan-penjualan-${tgl}.xls`;a.click();URL.revokeObjectURL(url);
+  toast('Laporan diekspor ke Excel','ok');
 }
 
 /* ---------- Pajak ---------- */
@@ -1426,12 +1460,33 @@ function delExpense(id){
   showModal();
 }
 function confirmDelExpense(id){PENG=PENG.filter(x=>x.id!==id);savePeng();closeModal();renderPengeluaran();renderDash();toast('Pengeluaran dihapus','ok');}
-function exportPengCSV(){
+function exportPengExcel(){
   const rows=PENG.filter(p=>inPeriod(p.time,pengPeriod)).sort((a,b)=>new Date(b.time)-new Date(a.time));
   if(!rows.length){toast('Tidak ada data untuk diekspor','warn');return;}
-  let csv='Tanggal,Kategori,Keterangan,Penerima,Nominal\n';
-  rows.forEach(p=>{csv+=`${p.time.slice(0,10)},"${p.kategori}","${(p.keterangan||'').replace(/"/g,'""')}","${(p.penerima||'').replace(/"/g,'""')}",${p.nominal}\n`;});
-  const blob=new Blob([csv],{type:'text/csv'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='pengeluaran.csv';a.click();URL.revokeObjectURL(url);toast('Data diekspor','ok');
+  const tgl=new Date().toISOString().slice(0,10);
+  const thead=`<tr style="background:#0d9488;color:#fff;font-weight:bold">
+    <th>Tanggal</th><th>Kategori</th><th>Keterangan</th><th>Penerima</th><th>Nominal (Rp)</th></tr>`;
+  const tbody=rows.map((p,i)=>`<tr style="${i%2?'background:#f9fafb':''}">
+    <td>${new Date(p.time).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'})}</td>
+    <td>${p.kategori||''}</td>
+    <td>${p.keterangan||''}</td>
+    <td>${p.penerima||''}</td>
+    <td style="text-align:right">${p.nominal}</td>
+  </tr>`).join('');
+  const totalRow=`<tr style="background:#fef3c7;font-weight:bold">
+    <td colspan="4">TOTAL (${rows.length} pengeluaran)</td>
+    <td style="text-align:right">${rows.reduce((s,p)=>s+p.nominal,0)}</td>
+  </tr>`;
+  const html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>
+<x:Name>Pengeluaran</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>
+</x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>
+<body><table border="1" cellspacing="0" style="font-family:Arial;font-size:11px;border-collapse:collapse">
+<thead>${thead}</thead><tbody>${tbody}${totalRow}</tbody></table></body></html>`;
+  const blob=new Blob([html],{type:'application/vnd.ms-excel;charset=utf-8'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=`pengeluaran-${tgl}.xls`;a.click();URL.revokeObjectURL(url);
+  toast('Data pengeluaran diekspor ke Excel','ok');
 }
 
 /* ---------- Salesman ---------- */
