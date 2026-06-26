@@ -40,7 +40,8 @@ app.use('/api/salesman',   require('./routes/salesman'));
 app.use('/api/pengeluaran',require('./routes/pengeluaran'));
 app.use('/api/opname',     require('./routes/opname'));
 app.use('/api/pengaturan', require('./routes/pengaturan'));
-app.use('/api/store',     require('./routes/store'));
+app.use('/api/store',          require('./routes/store'));
+app.use('/api/piutang-online', require('./routes/piutang-online'));
 
 // 404 API
 app.use('/api', (req, res) => {
