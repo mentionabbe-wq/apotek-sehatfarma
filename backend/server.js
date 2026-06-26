@@ -17,6 +17,12 @@ app.use(express.static(path.join(__dirname, '..', 'frontend')));
 // Public: auth only
 app.use('/api/auth', require('./routes/auth'));
 
+// Public: notifikasi dari apotek-online (tidak butuh token)
+app.use('/api/store/notif', require('./routes/notif'));
+
+// Public: produk untuk apotek-online (tidak butuh token)
+app.use('/api/publik', require('./routes/publik'));
+
 // Protected: semua route API lainnya
 app.use('/api', authMiddleware);
 app.use('/api/pengguna',   require('./routes/pengguna'));

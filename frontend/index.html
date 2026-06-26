@@ -3203,6 +3203,54 @@ function saveScanObatBaru(queue, index, addedSoFar, qty, satuan) {
   processScanUnmatched(queue, index+1, addedSoFar+1);
 }
 </script>
+
+<script>
+// Polling notifikasi order online dari apotek-online setiap 30 detik
+async function cekNotifOrder() {
+  try {
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token') || '';
+    const r = await fetch('/api/store/notif', { headers: { 'Authorization': 'Bearer ' + token } });
+    const j = await r.json();
+    if (j.success && j.belum_dibaca > 0) {
+      const latest = j.data.find(n => !n.dibaca);
+      if (latest) showOrderNotif(latest, j.belum_dibaca);
+    }
+  } catch {}
+}
+
+function showOrderNotif(order, total) {
+  document.getElementById('orderNotifBadge')?.remove();
+  const el = document.createElement('div');
+  el.id = 'orderNotifBadge';
+  el.style.cssText = `
+    position:fixed; bottom:24px; right:24px; z-index:9999;
+    background:#16a34a; color:white; border-radius:14px;
+    padding:14px 18px; max-width:300px; cursor:pointer;
+    box-shadow:0 8px 24px rgba(0,0,0,0.3);
+    animation: slideIn 0.3s ease;
+  `;
+  el.innerHTML = `
+    <style>@keyframes slideIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}</style>
+    <div style="font-weight:700;font-size:0.9rem">&#x1F6D2; Order Online Baru!</div>
+    <div style="font-size:0.8rem;margin-top:4px;opacity:0.9">${order.customer} &mdash; ${rupiah(order.total)}</div>
+    <div style="font-size:0.75rem;margin-top:2px;opacity:0.75">Kode: ${order.kode}</div>
+    ${total > 1 ? `<div style="font-size:0.72rem;margin-top:4px;opacity:0.75">+${total-1} order lainnya menunggu</div>` : ''}
+    <div style="font-size:0.72rem;margin-top:8px;opacity:0.8">Klik untuk tandai dibaca &#x2715;</div>
+  `;
+  el.onclick = async () => {
+    const token = localStorage.getItem('token') || '';
+    await fetch('/api/store/notif/baca', { method: 'PATCH', headers: { 'Authorization': 'Bearer ' + token } });
+    el.remove();
+  };
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 15000);
+}
+
+function rupiah(n) { return 'Rp ' + (n || 0).toLocaleString('id-ID'); }
+
+cekNotifOrder();
+setInterval(cekNotifOrder, 30000);
+</script>
 </body>
 </html>
 
