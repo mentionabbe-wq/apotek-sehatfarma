@@ -1173,13 +1173,14 @@ $('#checkoutBtn').onclick=()=>{
       <div class="form-grid" style="margin-bottom:14px">
         <div class="field full"><label>Kepada / Pembeli <span class="hint">(opsional — muncul di faktur)</span></label><input id="payKepada" placeholder="cth: Umum / Nama Pasien / RS..."></div>
         <div class="field"><label>Klasifikasi Pelanggan</label><select id="payKlas" onchange="updateCheckoutKlas()"><option value="">— Pilih Klasifikasi —</option>${klasOpts}</select></div>
-        <div class="field"><label>Metode Bayar</label><select id="payMetode"><option value="Tunai">Tunai</option><option value="Transfer">Transfer</option><option value="QRIS">QRIS</option><option value="Kredit">Kredit</option></select></div>
+        <div class="field"><label>Metode Bayar</label><select id="payMetode" onchange="toggleTempoField()"><option value="Tunai">Tunai</option><option value="Transfer">Transfer</option><option value="QRIS">QRIS</option><option value="Kredit">Kredit</option><option value="Tempo">Tempo</option></select></div>
         <div class="field"><label>Uang Diterima (Rp)</label><input type="number" id="payInput" min="${sub-baseDisc}" placeholder="${sub-baseDisc}" oninput="calcChange()"></div>
+        <div class="field full" id="tempoFieldWrap" style="display:none"><label>Jatuh Tempo *</label><input type="date" id="payJatuhTempo" min="${new Date().toISOString().split('T')[0]}"></div>
       </div>
       <div class="sumline"><span>Subtotal</span><b class="num">${rp(sub)}</b></div>
       <div class="sumline"><span>Diskon</span><b class="num" id="discOut">${rp(baseDisc)}</b></div>
       <div class="sumline total" style="margin:6px 0 14px"><span>Total Bayar</span><span class="num" id="totalOut">${rp(sub-baseDisc)}</span></div>
-      <div class="sumline" style="font-size:16px"><span>Kembalian</span><b class="num" id="changeOut" style="color:var(--teal)">Rp 0</b></div>
+      <div class="sumline" style="font-size:16px" id="kembalianRow"><span>Kembalian</span><b class="num" id="changeOut" style="color:var(--teal)">Rp 0</b></div>
       <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap" id="quickPay"></div>
     </div>
     <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">Batal</button><button class="btn btn-primary" onclick="finishSale()">Selesaikan</button></div>`;
@@ -1204,11 +1205,23 @@ function updateCheckoutKlas(){
   if($('#payInput')){$('#payInput').placeholder=String(newTotal);$('#payInput').min=String(newTotal);}
   calcChange();_buildQuickPay(newTotal);
 }
-function calcChange(){const total=(window._cks||{}).total||0;const pay=+$('#payInput').value||0,ch=pay-total;$('#changeOut').textContent=rp(Math.max(0,ch));$('#changeOut').style.color=ch<0?'var(--danger)':'var(--teal)';}
+function calcChange(){const total=(window._cks||{}).total||0;const pay=+$('#payInput').value||0,ch=pay-total;if($('#changeOut'))$('#changeOut').textContent=rp(Math.max(0,ch));if($('#changeOut'))$('#changeOut').style.color=ch<0?'var(--danger)':'var(--teal)';}
+function toggleTempoField(){
+  const isTempo=$('#payMetode')?.value==='Tempo';
+  if($('#tempoFieldWrap'))$('#tempoFieldWrap').style.display=isTempo?'':'none';
+  if($('#kembalianRow'))$('#kembalianRow').style.display=isTempo?'none':'';
+  if($('#quickPay'))$('#quickPay').style.display=isTempo?'none':'';
+  if($('#payInput')){$('#payInput').disabled=isTempo;if(isTempo)$('#payInput').value='';}
+}
 function finishSale(){
   const {sub,disc,total}=window._cks||{sub:0,disc:0,total:0};
-  const pay=+$('#payInput').value||0;
-  if(pay<total){toast('Uang diterima kurang','warn');return;}
+  const isTempo=$('#payMetode')?.value==='Tempo';
+  if(isTempo){
+    const jt=$('#payJatuhTempo')?.value;
+    if(!jt){toast('Tanggal jatuh tempo wajib diisi','warn');return;}
+  }
+  const pay=isTempo?total:(+$('#payInput').value||0);
+  if(!isTempo&&pay<total){toast('Uang diterima kurang','warn');return;}
   let cost=0;
   const items=cart.map(c=>{const o=OBAT.find(x=>x.id===c.id),f=factor(o,c.unit),qk=c.qty*f;cost+=o.beli*qk;return{nama:o.nama,unit:unitName(o,c.unit),qty:c.qty,qtyKecil:qk,harga:unitPrice(o,c.unit)};});
   cart.forEach(c=>{const o=OBAT.find(x=>x.id===c.id);o.stok-=c.qty*factor(o,c.unit);});
@@ -1219,11 +1232,21 @@ function finishSale(){
   if(sm){salesmanId=sm.id;salesmanNama=sm.nama;const basis=sm.komisiBasis==='laba'?laba:total;komisi=Math.max(0,Math.round(basis*(sm.komisiPersen||0)/100));}
   const kepada=($('#payKepada')?.value||'').trim()||'Umum';
   const metodeBayar=$('#payMetode')?.value||'Tunai';
+  const jatuhTempo=metodeBayar==='Tempo'?($('#payJatuhTempo')?.value||''):'';
   const klasId=$('#payKlas')?.value||'';
   const klas=KLAS.find(k=>k.id===klasId);
   const klasifikasi=klas?.nama||'Umum';
-  TX.unshift({inv,time:new Date().toISOString(),items,sub,disc,total,laba,pay,kembali:pay-total,salesmanId,salesmanNama,komisi,kepada,metodeBayar,klasifikasi});
+  TX.unshift({inv,time:new Date().toISOString(),items,sub,disc,total,laba,pay:isTempo?0:pay,kembali:isTempo?0:pay-total,salesmanId,salesmanNama,komisi,kepada,metodeBayar,klasifikasi,jatuhTempo,lunas:!isTempo});
   CTR++;saveObat();saveTx();saveCtr();
+  // Simpan ke piutang pelanggan jika Tempo
+  if(isTempo){
+    const KEY_PIUTANG_PEL='apotek:piutang_pel';
+    sget(KEY_PIUTANG_PEL).then(list=>{
+      const arr=list||[];
+      arr.unshift({id:Date.now(),inv,kepada,total,jatuhTempo,waktu:new Date().toISOString(),status:'belum_lunas'});
+      sset(KEY_PIUTANG_PEL,arr);
+    });
+  }
   // Auto-selesaikan order online jika ada
   if (window._onlineOrderKode) {
     const kode = window._onlineOrderKode;
