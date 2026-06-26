@@ -23,6 +23,9 @@ app.use('/api/store/notif', require('./routes/notif'));
 // Public: produk untuk apotek-online (tidak butuh token)
 app.use('/api/publik', require('./routes/publik'));
 
+// Public: notif order (tidak butuh token — dipanggil dari apotek-online)
+app.use('/api/order-online', require('./routes/orderonline'));
+
 // Protected: semua route API lainnya
 app.use('/api', authMiddleware);
 app.use('/api/pengguna',   require('./routes/pengguna'));

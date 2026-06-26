@@ -300,6 +300,9 @@
   .seg{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px}
   .seg button{padding:7px 14px;border-radius:7px;font-size:12.5px;font-weight:600;color:var(--ink-2)}
   .seg button.on{background:var(--navy);color:#fff}
+  .seg-btn{padding:7px 14px;border-radius:7px;font-size:12.5px;font-weight:600;color:var(--ink-2);border:1.5px solid var(--line);background:#fff;cursor:pointer;transition:.15s}
+  .seg-btn:hover{border-color:var(--teal);color:var(--teal)}
+  .seg-btn.on{background:var(--navy);color:#fff;border-color:var(--navy)}
   .loading{display:grid;place-items:center;height:100vh;gap:14px;color:var(--ink-3);font-weight:500}
   .spinner{width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--teal);border-radius:50%;animation:spin 1s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
@@ -407,6 +410,8 @@
       <a data-view="piutang"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20M7 15h.01M11 15h4"/></svg>Hutang Pembelian<span class="badge" id="piutangBadge" style="display:none">0</span></a>
       <a data-view="stok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8 12 3 3 8l9 5 9-5Z"/><path d="m3 8 0 8 9 5 9-5 0-8"/><path d="M12 13v8"/></svg>Stok &amp; Expired<span class="badge" id="navBadge" style="display:none">0</span></a>
       <a data-view="opname"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg>Stok Opname</a>
+      <div class="nav-label">Online</div>
+      <a data-view="pesanan-online"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1.4"/><circle cx="18" cy="21" r="1.4"/><path d="M2.5 3h2.2l2.3 12.4a1.5 1.5 0 0 0 1.5 1.2h8.6a1.5 1.5 0 0 0 1.5-1.1L21.5 7H6"/><path d="M18 9l-2-2-2 2"/><path d="M16 7v6"/></svg>Pesanan Online<span class="badge" id="onlineBadge" style="display:none">0</span></a>
       <div class="nav-label">Analisa</div>
       <a data-view="laporan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m7 14 3-4 3 3 5-6"/></svg>Laporan Penjualan</a>
       <a data-view="pajak"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13l6 6M15 13l-6 6"/></svg>Laporan Pajak</a>
@@ -648,6 +653,21 @@
     </section>
 
     <!-- PENGATURAN -->
+    <section class="view" id="view-pesanan-online">
+      <div style="max-width:900px">
+        <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+          <button onclick="filterOrder('semua')" id="btnSemua" class="seg-btn on">Semua</button>
+          <button onclick="filterOrder('menunggu_bayar')" id="btnMenungguBayar" class="seg-btn">Menunggu Bayar</button>
+          <button onclick="filterOrder('menunggu_konfirmasi')" id="btnMenungguKonfirmasi" class="seg-btn">Perlu Konfirmasi</button>
+          <button onclick="filterOrder('diproses')" id="btnDiproses" class="seg-btn">Diproses</button>
+          <button onclick="filterOrder('selesai')" id="btnSelesai" class="seg-btn">Selesai</button>
+          <button onclick="filterOrder('dibatalkan')" id="btnDibatalkan" class="seg-btn">Dibatalkan</button>
+          <button onclick="loadOrderOnline()" style="margin-left:auto;background:none;border:1.5px solid var(--line);border-radius:8px;padding:7px 14px;cursor:pointer;font-size:13px;color:var(--ink-2)">⟳ Refresh</button>
+        </div>
+        <div id="orderOnlineList"><p style="color:var(--ink-3);padding:20px;text-align:center">Memuat pesanan...</p></div>
+      </div>
+    </section>
+
     <section class="view" id="view-setting">
       <div class="set-layout">
         <div class="set-tabs" id="setTabs"></div>
@@ -819,7 +839,7 @@ const saveSales=()=>sset(KEY_SALES,SALES);
 
 function tickClock(){const d=new Date();$('#clockTime').textContent=d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});$('#clockDate').textContent=d.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});}
 
-const TITLES={dashboard:['Beranda','Ringkasan aktivitas apotek hari ini'],kasir:['Kasir','Layani transaksi penjualan obat'],pengeluaran:['Pengeluaran','Catat gaji & biaya operasional apotek'],salesman:['Salesman','Kelola salesman dan komisi penjualan'],pelanggan:['Pelanggan','Kelola data pelanggan dan klasifikasi'],obat:['Data Obat','Kelola master data, satuan & harga obat'],pembelian:['Pembelian','Catat pembelian obat dari supplier'],piutang:['Hutang Pembelian','Pantau hutang ke supplier dan jatuh tempo'],stok:['Stok & Expired','Pantau stok menipis dan obat kadaluarsa'],opname:['Stok Opname','Cocokkan stok fisik dengan stok sistem'],laporan:['Laporan Penjualan','Analisa penjualan dan laba apotek'],pajak:['Laporan Pajak','Estimasi PPN dan PPh Final UMKM'],setting:['Pengaturan','Atur apotek, akun, printer, dan kertas']};
+const TITLES={dashboard:['Beranda','Ringkasan aktivitas apotek hari ini'],kasir:['Kasir','Layani transaksi penjualan obat'],pengeluaran:['Pengeluaran','Catat gaji & biaya operasional apotek'],salesman:['Salesman','Kelola salesman dan komisi penjualan'],pelanggan:['Pelanggan','Kelola data pelanggan dan klasifikasi'],obat:['Data Obat','Kelola master data, satuan & harga obat'],pembelian:['Pembelian','Catat pembelian obat dari supplier'],piutang:['Hutang Pembelian','Pantau hutang ke supplier dan jatuh tempo'],stok:['Stok & Expired','Pantau stok menipis dan obat kadaluarsa'],opname:['Stok Opname','Cocokkan stok fisik dengan stok sistem'],laporan:['Laporan Penjualan','Analisa penjualan dan laba apotek'],pajak:['Laporan Pajak','Estimasi PPN dan PPh Final UMKM'],setting:['Pengaturan','Atur apotek, akun, printer, dan kertas'],'pesanan-online':['Pesanan Online','Kelola order dari toko online apotek']};
 $$('.nav a').forEach(a=>a.onclick=()=>{
   const v=a.dataset.view;
   $$('.nav a').forEach(x=>x.classList.remove('active')); a.classList.add('active');
@@ -828,6 +848,7 @@ $$('.nav a').forEach(a=>a.onclick=()=>{
   $('#sidebar').classList.remove('open'); $('#scrim').classList.remove('show');
   if(v==='kasir')$('#posSearch').focus();
   if(v==='setting')renderSettings();
+  if(v==='pesanan-online')loadOrderOnline();
 });
 $('#menuBtn').onclick=()=>{$('#sidebar').classList.toggle('open');$('#scrim').classList.toggle('show');};
 $('#scrim').onclick=()=>{$('#sidebar').classList.remove('open');$('#scrim').classList.remove('show');};
@@ -3250,6 +3271,116 @@ function rupiah(n) { return 'Rp ' + (n || 0).toLocaleString('id-ID'); }
 
 cekNotifOrder();
 setInterval(cekNotifOrder, 30000);
+
+/* -------- Pesanan Online -------- */
+let allOrders = [], filterStatus = 'semua';
+
+async function loadOrderOnline() {
+  const token = localStorage.getItem('token') || '';
+  try {
+    const r = await fetch('/api/store/notif', { headers: { 'Authorization': 'Bearer ' + token } });
+    const j = await r.json();
+    allOrders = j.data || [];
+    const belum = allOrders.filter(o => !o.dibaca).length;
+    const badge = $('#onlineBadge');
+    if (belum > 0) { badge.textContent = belum; badge.style.display = 'inline-flex'; }
+    else { badge.style.display = 'none'; }
+    renderOrderOnline();
+  } catch {
+    $('#orderOnlineList').innerHTML = '<p style="color:#dc2626;padding:20px;text-align:center">Gagal memuat pesanan. Pastikan apotek-online berjalan.</p>';
+  }
+}
+
+function filterOrder(status) {
+  filterStatus = status;
+  $$('.seg-btn').forEach(b => b.classList.remove('on'));
+  const map = { semua:'btnSemua', menunggu_bayar:'btnMenungguBayar', menunggu_konfirmasi:'btnMenungguKonfirmasi', diproses:'btnDiproses', selesai:'btnSelesai', dibatalkan:'btnDibatalkan' };
+  const el = $('#' + map[status]);
+  if (el) el.classList.add('on');
+  renderOrderOnline();
+}
+
+function renderOrderOnline() {
+  const list = filterStatus === 'semua' ? allOrders : allOrders.filter(o => o.type === filterStatus || o.status === filterStatus);
+  const el = $('#orderOnlineList');
+  if (!list.length) {
+    el.innerHTML = '<p style="color:var(--ink-3);padding:40px;text-align:center">Tidak ada pesanan</p>';
+    return;
+  }
+  el.innerHTML = list.map(o => {
+    const statusInfo = {
+      order_baru:        { label: 'Order Baru',          color: '#0ea5e9', bg: '#e0f2fe' },
+      menunggu_bayar:    { label: 'Menunggu Bayar',      color: '#d97706', bg: '#fef3c7' },
+      menunggu_konfirmasi:{ label: 'Bukti Dikirim',      color: '#7c3aed', bg: '#ede9fe' },
+      diproses:          { label: 'Diproses',            color: '#0891b2', bg: '#cffafe' },
+      dikirim:           { label: 'Dikirim',             color: '#16a34a', bg: '#dcfce7' },
+      selesai:           { label: 'Selesai',             color: '#15803d', bg: '#bbf7d0' },
+      dibatalkan:        { label: 'Dibatalkan',          color: '#dc2626', bg: '#fee2e2' },
+      bukti_bayar:       { label: 'Bukti Transfer',      color: '#7c3aed', bg: '#ede9fe' },
+    };
+    const s = statusInfo[o.type] || statusInfo['order_baru'];
+    const tgl = new Date(o.waktu).toLocaleString('id-ID', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    return `
+    <div style="background:#fff;border-radius:10px;border:1px solid var(--line);padding:16px;margin-bottom:10px;${!o.dibaca ? 'border-left:4px solid #0ea5e9' : ''}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span style="font-size:12.5px;font-weight:700;font-family:monospace;color:var(--teal)">${o.kode || '-'}</span>
+            <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:${s.bg};color:${s.color}">${s.label}</span>
+            ${!o.dibaca ? '<span style="font-size:11px;background:#0ea5e9;color:#fff;padding:2px 7px;border-radius:20px;font-weight:700">Baru</span>' : ''}
+          </div>
+          <div style="font-size:14px;font-weight:600;color:var(--ink)">${o.customer || '-'}</div>
+          <div style="font-size:12.5px;color:var(--ink-3);margin-top:2px">📞 ${o.telepon || '-'} &nbsp;·&nbsp; 🕐 ${tgl}</div>
+          ${o.items ? `<div style="font-size:12px;color:var(--ink-3);margin-top:3px">📦 ${o.items} item</div>` : ''}
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:16px;font-weight:800;color:var(--teal)">${rupiahOrder(o.total)}</div>
+          <div style="display:flex;gap:6px;margin-top:8px;justify-content:flex-end;flex-wrap:wrap">
+            ${!o.dibaca ? `<button onclick="tandaiBaca('${o.id}')" style="font-size:11.5px;padding:5px 10px;border-radius:6px;border:1.5px solid var(--line);background:none;cursor:pointer;color:var(--ink-2)">✓ Tandai Dibaca</button>` : ''}
+            <button onclick="ubahStatusOrder('${o.kode}','diproses')" style="font-size:11.5px;padding:5px 10px;border-radius:6px;border:none;background:var(--teal);color:#fff;cursor:pointer;font-weight:600">Proses</button>
+            <button onclick="ubahStatusOrder('${o.kode}','selesai')" style="font-size:11.5px;padding:5px 10px;border-radius:6px;border:none;background:#16a34a;color:#fff;cursor:pointer;font-weight:600">Selesai</button>
+            <button onclick="ubahStatusOrder('${o.kode}','dibatalkan')" style="font-size:11.5px;padding:5px 10px;border-radius:6px;border:1.5px solid #fca5a5;background:#fff;color:#dc2626;cursor:pointer">Batalkan</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function tandaiBaca(id) {
+  const token = localStorage.getItem('token') || '';
+  allOrders = allOrders.map(o => o.id == id ? { ...o, dibaca: true } : o);
+  const updated = allOrders.map(o => ({ ...o, dibaca: true }));
+  await fetch('/api/store/notif/baca', { method: 'PATCH', headers: { 'Authorization': 'Bearer ' + token } });
+  renderOrderOnline();
+  const belum = allOrders.filter(o => !o.dibaca).length;
+  const badge = $('#onlineBadge');
+  badge.textContent = belum;
+  badge.style.display = belum > 0 ? 'inline-flex' : 'none';
+}
+
+async function ubahStatusOrder(kode, status) {
+  if (!kode) return;
+  const token = localStorage.getItem('token') || '';
+  const labelMap = { diproses: 'diproses', selesai: 'diselesaikan', dibatalkan: 'dibatalkan' };
+  if (!confirm(`Order ${kode} akan ditandai ${labelMap[status] || status}?`)) return;
+  try {
+    const r = await fetch(`/api/order-online/${kode}/status`, {
+      method: 'PATCH',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status })
+    });
+    const j = await r.json();
+    if (j.success) { toast(`Order ${kode} → ${labelMap[status]}`, 'ok'); loadOrderOnline(); }
+    else toast(j.message || 'Gagal update status', 'err');
+  } catch { toast('Gagal terhubung', 'err'); }
+}
+
+function rupiahOrder(n) { return 'Rp ' + (n || 0).toLocaleString('id-ID'); }
+
+setInterval(() => {
+  if ($('#view-pesanan-online')?.classList.contains('active')) loadOrderOnline();
+}, 30000);
 </script>
 </body>
 </html>
