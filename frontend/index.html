@@ -3349,7 +3349,7 @@ function renderOrderOnline() {
           <div style="font-size:16px;font-weight:800;color:var(--teal)">${rupiahOrder(o.total)}</div>
           <div style="display:flex;gap:6px;margin-top:8px;justify-content:flex-end;flex-wrap:wrap">
             ${!o.dibaca ? `<button onclick="tandaiBaca('${o.id}')" style="font-size:11.5px;padding:5px 10px;border-radius:6px;border:1.5px solid var(--line);background:none;cursor:pointer;color:var(--ink-2)">✓ Tandai Dibaca</button>` : ''}
-            <button onclick="prosesKeKasir(${JSON.stringify(o).replace(/"/g,'&quot;')})" style="font-size:11.5px;padding:5px 10px;border-radius:6px;border:none;background:var(--teal);color:#fff;cursor:pointer;font-weight:600">⚡ Proses di Kasir</button>
+            <button onclick="prosesKeKasir('${o.kode}')" style="font-size:11.5px;padding:5px 10px;border-radius:6px;border:none;background:var(--teal);color:#fff;cursor:pointer;font-weight:600">⚡ Proses di Kasir</button>
             <button onclick="ubahStatusOrder('${o.kode}','selesai')" style="font-size:11.5px;padding:5px 10px;border-radius:6px;border:none;background:#16a34a;color:#fff;cursor:pointer;font-weight:600">Selesai</button>
             <button onclick="ubahStatusOrder('${o.kode}','dibatalkan')" style="font-size:11.5px;padding:5px 10px;border-radius:6px;border:1.5px solid #fca5a5;background:#fff;color:#dc2626;cursor:pointer">Batalkan</button>
           </div>
@@ -3390,7 +3390,9 @@ async function ubahStatusOrder(kode, status) {
 
 function rupiahOrder(n) { return 'Rp ' + (n || 0).toLocaleString('id-ID'); }
 
-async function prosesKeKasir(order) {
+async function prosesKeKasir(kode) {
+  const order = allOrders.find(o => o.kode === kode);
+  if (!order) { toast('Order tidak ditemukan', 'err'); return; }
   // Tandai diproses
   const token = localStorage.getItem('token') || '';
   await fetch(`/api/order-online/${order.kode}/status`, {

@@ -18,14 +18,22 @@ router.post('/', (req, res) => {
       } catch { return []; }
     })();
 
-    notifList.unshift({
-      id: Date.now(),
+    // Jika kode sudah ada, update entry lama (jangan duplikasi)
+    const idx = notifList.findIndex(n => n.kode === kode);
+    const newEntry = {
+      id: idx >= 0 ? notifList[idx].id : Date.now(),
       type: type || 'order_baru',
-      kode, customer, telepon,
-      total, items, item_names: item_names || [], items_detail: items_detail || [],
+      kode, customer: customer || (idx >= 0 ? notifList[idx].customer : ''),
+      telepon: telepon || (idx >= 0 ? notifList[idx].telepon : ''),
+      total: total ?? (idx >= 0 ? notifList[idx].total : 0),
+      items: items ?? (idx >= 0 ? notifList[idx].items : 0),
+      item_names: (item_names && item_names.length) ? item_names : (idx >= 0 ? notifList[idx].item_names : []),
+      items_detail: (items_detail && items_detail.length) ? items_detail : (idx >= 0 ? notifList[idx].items_detail : []),
       waktu: waktu || new Date().toISOString(),
       dibaca: false
-    });
+    };
+    if (idx >= 0) notifList.splice(idx, 1);
+    notifList.unshift(newEntry);
 
     // Simpan max 50 notifikasi
     const trimmed = notifList.slice(0, 50);
