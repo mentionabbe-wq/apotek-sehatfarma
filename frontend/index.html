@@ -793,7 +793,11 @@ async function sset(k,v){
   if(!_jwt)return;
   try{await apiFetch('/api/store/'+encodeURIComponent(k),{method:'PUT',body:{value:v}});}catch{}
 }
-const saveObat=()=>sset(KEY_OBAT,OBAT), saveTx=()=>sset(KEY_TX,TX), saveBeliData=()=>sset(KEY_BELI,BELI);
+const saveObat=()=>{sset(KEY_OBAT,OBAT);syncObatToBackend();}, saveTx=()=>sset(KEY_TX,TX), saveBeliData=()=>sset(KEY_BELI,BELI);
+function syncObatToBackend(){
+  const token=localStorage.getItem('token')||'';
+  fetch('/api/publik/sync-obat',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({obat:OBAT})}).catch(()=>{});
+}
 const saveCtr=()=>sset(KEY_CTR,CTR), saveCtrB=()=>sset(KEY_CTRB,CTRB), saveSet=()=>sset(KEY_SET,SET);
 const saveOpn=()=>sset(KEY_OPN,OPN), saveCtrO=()=>sset(KEY_CTRO,CTRO);
 const savePeng=()=>sset(KEY_PENG,PENG), saveCtrP=()=>sset(KEY_CTRP,CTRP);
@@ -826,6 +830,7 @@ async function init(){
   CTR=await sget(KEY_CTR); CTRB=await sget(KEY_CTRB); CTRO=await sget(KEY_CTRO); CTRP=await sget(KEY_CTRP); const s=await sget(KEY_SET);
   if(!OBAT){OBAT=SEED.map(o=>({...o,id:'o'+Math.random().toString(36).slice(2,9),barcode:genEAN13()}));await saveObat();}
   else{OBAT=OBAT.map(migrate);await saveObat();}
+  syncObatToBackend();
   const kl=await sget(KEY_KLAS); const pl=await sget(KEY_PEL);
   if(!TX)TX=[]; if(!BELI)BELI=[]; if(!OPN)OPN=[]; if(!PENG)PENG=[]; if(!SALES)SALES=[]; if(!CTR)CTR=1; if(!CTRB)CTRB=1; if(!CTRO)CTRO=1; if(!CTRP)CTRP=1; if(s)SET={...SET,...s};
   KLAS=kl&&kl.length?kl:defaultKlasifikasi();
@@ -3416,8 +3421,8 @@ async function prosesKeKasir(kode) {
     const detail = order.items_detail || [];
     let tidakDitemukan = [];
     detail.forEach(item => {
-      const nama = (item.nama || '').toLowerCase().trim();
-      const o = OBAT.find(x => (x.nama || '').toLowerCase().trim() === nama);
+      const o = (item.local_id ? OBAT.find(x => x.id === item.local_id) : null)
+             || OBAT.find(x => (x.nama||'').toLowerCase().trim() === (item.nama||'').toLowerCase().trim());
       if (!o) { tidakDitemukan.push(item.nama); return; }
       const existing = cart.find(c => c.id === o.id);
       if (existing) existing.qty += item.jumlah;

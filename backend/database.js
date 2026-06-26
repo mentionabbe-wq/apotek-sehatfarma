@@ -185,6 +185,12 @@ function initDatabase() {
   addCol('obat', 'stok_min', 'INTEGER DEFAULT 10');
   addCol('obat', 'lokasi', 'TEXT DEFAULT ""');
   addCol('obat', 'keterangan', 'TEXT DEFAULT ""');
+  addCol('obat', 'local_id', 'TEXT DEFAULT ""');
+  addCol('obat', 'satuan_kecil', 'TEXT DEFAULT ""');
+  addCol('obat', 'satuan_besar', 'TEXT DEFAULT ""');
+  addCol('obat', 'jual_kecil', 'REAL DEFAULT 0');
+  addCol('obat', 'jual_besar', 'REAL DEFAULT 0');
+  addCol('obat', 'isi_per_besar', 'INTEGER DEFAULT 0');
   addCol('transaksi', 'inv', 'TEXT');
   addCol('transaksi', 'kepada', 'TEXT DEFAULT ""');
   addCol('transaksi', 'pelanggan_id', 'TEXT DEFAULT ""');
