@@ -3416,7 +3416,8 @@ async function prosesKeKasir(kode) {
     const detail = order.items_detail || [];
     let tidakDitemukan = [];
     detail.forEach(item => {
-      const o = OBAT.find(x => x.id === item.obat_id);
+      const nama = (item.nama || '').toLowerCase().trim();
+      const o = OBAT.find(x => (x.nama || '').toLowerCase().trim() === nama);
       if (!o) { tidakDitemukan.push(item.nama); return; }
       const existing = cart.find(c => c.id === o.id);
       if (existing) existing.qty += item.jumlah;
