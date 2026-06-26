@@ -1205,6 +1205,17 @@ function finishSale(){
   const klasifikasi=klas?.nama||'Umum';
   TX.unshift({inv,time:new Date().toISOString(),items,sub,disc,total,laba,pay,kembali:pay-total,salesmanId,salesmanNama,komisi,kepada,metodeBayar,klasifikasi});
   CTR++;saveObat();saveTx();saveCtr();
+  // Auto-selesaikan order online jika ada
+  if (window._onlineOrderKode) {
+    const kode = window._onlineOrderKode;
+    window._onlineOrderKode = null;
+    const token = localStorage.getItem('token') || '';
+    fetch(`/api/order-online/${kode}/status`, {
+      method: 'PATCH',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'selesai' })
+    }).catch(() => {});
+  }
   showReceipt(inv,total,pay-total);
   cart=[];$('#discInput').value=0;renderAll();
 }
@@ -3338,7 +3349,7 @@ function renderOrderOnline() {
           <div style="font-size:16px;font-weight:800;color:var(--teal)">${rupiahOrder(o.total)}</div>
           <div style="display:flex;gap:6px;margin-top:8px;justify-content:flex-end;flex-wrap:wrap">
             ${!o.dibaca ? `<button onclick="tandaiBaca('${o.id}')" style="font-size:11.5px;padding:5px 10px;border-radius:6px;border:1.5px solid var(--line);background:none;cursor:pointer;color:var(--ink-2)">✓ Tandai Dibaca</button>` : ''}
-            <button onclick="ubahStatusOrder('${o.kode}','diproses')" style="font-size:11.5px;padding:5px 10px;border-radius:6px;border:none;background:var(--teal);color:#fff;cursor:pointer;font-weight:600">Proses</button>
+            <button onclick="prosesKeKasir(${JSON.stringify(o).replace(/"/g,'&quot;')})" style="font-size:11.5px;padding:5px 10px;border-radius:6px;border:none;background:var(--teal);color:#fff;cursor:pointer;font-weight:600">⚡ Proses di Kasir</button>
             <button onclick="ubahStatusOrder('${o.kode}','selesai')" style="font-size:11.5px;padding:5px 10px;border-radius:6px;border:none;background:#16a34a;color:#fff;cursor:pointer;font-weight:600">Selesai</button>
             <button onclick="ubahStatusOrder('${o.kode}','dibatalkan')" style="font-size:11.5px;padding:5px 10px;border-radius:6px;border:1.5px solid #fca5a5;background:#fff;color:#dc2626;cursor:pointer">Batalkan</button>
           </div>
@@ -3378,6 +3389,43 @@ async function ubahStatusOrder(kode, status) {
 }
 
 function rupiahOrder(n) { return 'Rp ' + (n || 0).toLocaleString('id-ID'); }
+
+async function prosesKeKasir(order) {
+  // Tandai diproses
+  const token = localStorage.getItem('token') || '';
+  await fetch(`/api/order-online/${order.kode}/status`, {
+    method: 'PATCH',
+    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status: 'diproses' })
+  }).catch(() => {});
+
+  // Simpan kode order aktif agar finishSale bisa update ke selesai
+  window._onlineOrderKode = order.kode;
+
+  // Pindah ke kasir
+  cart = [];
+  const kasirLink = document.querySelector('.nav a[data-view="kasir"]');
+  if (kasirLink) kasirLink.click();
+  else { $$('.view').forEach(x=>x.classList.remove('active')); $('#view-kasir').classList.add('active'); }
+
+  // Tunggu OBAT siap lalu isi cart
+  const tryFill = () => {
+    if (!Array.isArray(OBAT) || OBAT.length === 0) { setTimeout(tryFill, 200); return; }
+    const detail = order.items_detail || [];
+    let tidakDitemukan = [];
+    detail.forEach(item => {
+      const o = OBAT.find(x => x.id === item.obat_id);
+      if (!o) { tidakDitemukan.push(item.nama); return; }
+      const existing = cart.find(c => c.id === o.id);
+      if (existing) existing.qty += item.jumlah;
+      else cart.push({ id: o.id, unit: 'kecil', qty: item.jumlah });
+    });
+    renderPOS();
+    toast(`Order ${order.kode} dimuat ke kasir (${detail.length - tidakDitemukan.length} item)`, 'ok');
+    if (tidakDitemukan.length) toast('Tidak ditemukan: ' + tidakDitemukan.join(', '), 'warn');
+  };
+  setTimeout(tryFill, 300);
+}
 
 setInterval(() => {
   if ($('#view-pesanan-online')?.classList.contains('active')) loadOrderOnline();

@@ -7,7 +7,7 @@ const { db } = require('../database');
 
 // POST /api/store/notif — terima notifikasi dari apotek-online
 router.post('/', (req, res) => {
-  const { type, kode, customer, telepon, total, items, item_names, waktu } = req.body;
+  const { type, kode, customer, telepon, total, items, item_names, items_detail, waktu } = req.body;
 
   try {
     // Simpan notifikasi ke tabel store (sudah ada di SehatFarma)
@@ -22,7 +22,7 @@ router.post('/', (req, res) => {
       id: Date.now(),
       type: type || 'order_baru',
       kode, customer, telepon,
-      total, items, item_names: item_names || [],
+      total, items, item_names: item_names || [], items_detail: items_detail || [],
       waktu: waktu || new Date().toISOString(),
       dibaca: false
     });
