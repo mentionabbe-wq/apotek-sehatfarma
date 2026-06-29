@@ -16,19 +16,19 @@ router.post('/sync-obat', (req, res) => {
            satuan, satuan_kecil, satuan_besar, jual_kecil, jual_besar, isi_per_besar, expired_date)
         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`);
       for (const o of obatList) {
-        const sk = o.satuanKecil || 'Pcs';
-        const jk = o.jualKecil || 0;
+        const sk = o.satuanKecil || o.satuan || 'Pcs';
+        const jk = o.jualKecil || o.jual || o.harga_jual || 0;
         ins.run(
           o.id, o.kode || '', o.nama || '', o.kategori || '',
-          o.stok || 0, o.min || 10, o.beli || 0,
-          jk,          // harga_jual = harga satuan kecil
-          sk,          // satuan = satuan kecil
+          o.stok || 0, o.min || 10, o.beli || o.harga_beli || 0,
+          jk,
+          sk,
           sk,
           o.satuanBesar || '',
           jk,
           o.jualBesar || 0,
           o.isiPerBesar || 0,
-          o.exp || null
+          o.exp || o.expired_date || null
         );
       }
     })();

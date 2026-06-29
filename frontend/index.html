@@ -848,9 +848,11 @@ async function sset(k,v){
   try{await apiFetch('/api/store/'+encodeURIComponent(k),{method:'PUT',body:{value:v}});}catch{}
 }
 const saveObat=()=>{sset(KEY_OBAT,OBAT);syncObatToBackend();}, saveTx=()=>sset(KEY_TX,TX), saveBeliData=()=>sset(KEY_BELI,BELI);
-function syncObatToBackend(){
+function syncObatToBackend(silent=true){
   const token=localStorage.getItem('token')||'';
-  fetch('/api/publik/sync-obat',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({obat:OBAT})}).catch(()=>{});
+  fetch('/api/publik/sync-obat',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({obat:OBAT})})
+    .then(r=>r.json()).then(j=>{if(!silent&&j.success)toast(`✓ ${j.synced} produk tersinkron ke toko online`,'ok');})
+    .catch(()=>{if(!silent)toast('Gagal sinkron ke toko online','warn');});
 }
 const saveCtr=()=>sset(KEY_CTR,CTR), saveCtrB=()=>sset(KEY_CTRB,CTRB), saveSet=()=>sset(KEY_SET,SET);
 const saveOpn=()=>sset(KEY_OPN,OPN), saveCtrO=()=>sset(KEY_CTRO,CTRO);
@@ -2935,6 +2937,7 @@ async function importObatExcel(input){
           isiPerBesar:iIsi>=0?+c[iIsi]||0:0,
           beli:iHB>=0?+c[iHB]||0:0,
           jual:iHJ>=0?+c[iHJ]||0:0,
+          jualKecil:iHJ>=0?+c[iHJ]||0:0,
           stok:iStok>=0?+c[iStok]||0:0,
           min:iMin>=0?+c[iMin]||10:10,
           exp:iExp>=0?String(c[iExp]||'').trim():'',
@@ -2943,7 +2946,9 @@ async function importObatExcel(input){
         if(existing){Object.assign(existing,data);updated++;}
         else{data.id='o'+Date.now()+Math.random().toString(36).slice(2,6);OBAT.push(data);added++;}
       }
-      await saveObat();renderAll();
+      await sset(KEY_OBAT,OBAT);
+      syncObatToBackend(false);
+      renderAll();
       toast(`Import selesai: ${added} obat baru, ${updated} diperbarui`,'ok');
     }catch(err){toast('Gagal import: '+err.message,'error');}
     input.value='';
