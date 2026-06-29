@@ -413,6 +413,7 @@
       <a data-view="piutang"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20M7 15h.01M11 15h4"/></svg>Hutang Pembelian<span class="badge" id="piutangBadge" style="display:none">0</span></a>
       <a data-view="stok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8 12 3 3 8l9 5 9-5Z"/><path d="m3 8 0 8 9 5 9-5 0-8"/><path d="M12 13v8"/></svg>Stok &amp; Expired<span class="badge" id="navBadge" style="display:none">0</span></a>
       <a data-view="opname"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg>Stok Opname</a>
+      <a data-view="surat-pesanan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg>Surat Pesanan</a>
       <div class="nav-label">Analisa</div>
       <a data-view="laporan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m7 14 3-4 3 3 5-6"/></svg>Laporan Penjualan</a>
       <a data-view="pajak"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13l6 6M15 13l-6 6"/></svg>Laporan Pajak</a>
@@ -681,6 +682,46 @@
       </div>
     </section>
 
+    <section class="view" id="view-surat-pesanan">
+      <div style="max-width:860px">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:28px">
+          <!-- SP Biasa -->
+          <div class="card" style="padding:22px">
+            <div style="width:44px;height:44px;border-radius:12px;background:#dbeafe;display:grid;place-items:center;margin-bottom:14px">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg>
+            </div>
+            <h3 style="font-size:14px;font-weight:700;margin-bottom:4px">SP Obat Biasa</h3>
+            <p style="font-size:12.5px;color:var(--ink-3);margin-bottom:16px;line-height:1.5">Surat Pesanan untuk obat bebas, bebas terbatas, dan keras biasa.</p>
+            <div style="font-size:12px;color:var(--ink-3);margin-bottom:12px" id="spBiasaCount">Memuat...</div>
+            <button class="btn btn-primary btn-sm" onclick="bukaSP('Biasa')" style="width:100%;justify-content:center">📄 Buat Surat Pesanan</button>
+          </div>
+          <!-- SP Prekursor -->
+          <div class="card" style="padding:22px">
+            <div style="width:44px;height:44px;border-radius:12px;background:#fef3c7;display:grid;place-items:center;margin-bottom:14px">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2"><path d="M10.5 20.5 4 14a4.95 4.95 0 0 1 7-7l6.5 6.5a4.95 4.95 0 0 1-7 7Z"/><path d="m8.5 8.5 7 7"/><path d="M16 2l6 6"/></svg>
+            </div>
+            <h3 style="font-size:14px;font-weight:700;margin-bottom:4px">SP Prekursor Farmasi</h3>
+            <p style="font-size:12.5px;color:var(--ink-3);margin-bottom:16px;line-height:1.5">Surat Pesanan resmi untuk obat mengandung Prekursor Farmasi.</p>
+            <div style="font-size:12px;color:var(--ink-3);margin-bottom:12px" id="spPrekursorCount">Memuat...</div>
+            <button class="btn btn-sm" onclick="bukaSP('Prekursor')" style="width:100%;justify-content:center;background:#fef3c7;color:#92400e;border:1px solid #fde68a">📄 Buat Surat Pesanan</button>
+          </div>
+          <!-- SP OOT -->
+          <div class="card" style="padding:22px">
+            <div style="width:44px;height:44px;border-radius:12px;background:#fee2e2;display:grid;place-items:center;margin-bottom:14px">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg>
+            </div>
+            <h3 style="font-size:14px;font-weight:700;margin-bottom:4px">SP Obat-Obat Tertentu</h3>
+            <p style="font-size:12.5px;color:var(--ink-3);margin-bottom:16px;line-height:1.5">Surat Pesanan resmi untuk Obat-Obat Tertentu (OOT/Psikotropika).</p>
+            <div style="font-size:12px;color:var(--ink-3);margin-bottom:12px" id="spOOTCount">Memuat...</div>
+            <button class="btn btn-sm" onclick="bukaSP('OOT')" style="width:100%;justify-content:center;background:#fee2e2;color:#991b1b;border:1px solid #fecaca">📄 Buat Surat Pesanan</button>
+          </div>
+        </div>
+        <div class="card" style="padding:18px 20px">
+          <p style="font-size:12.5px;color:var(--ink-3)">💡 <strong>Petunjuk:</strong> Jenis obat diatur di menu <strong>Data Obat → Edit → Jenis Obat</strong>. Surat Pesanan Prekursor & OOT wajib ditandatangani Apoteker Penanggung Jawab. Pastikan data apoteker sudah diisi di <strong>Pengaturan → Apotek</strong>.</p>
+        </div>
+      </div>
+    </section>
+
     <section class="view" id="view-setting">
       <div class="set-layout">
         <div class="set-tabs" id="setTabs"></div>
@@ -857,7 +898,7 @@ const saveSales=()=>sset(KEY_SALES,SALES);
 
 function tickClock(){const d=new Date();$('#clockTime').textContent=d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});$('#clockDate').textContent=d.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});}
 
-const TITLES={dashboard:['Beranda','Ringkasan aktivitas apotek hari ini'],kasir:['Kasir','Layani transaksi penjualan obat'],pengeluaran:['Pengeluaran','Catat gaji & biaya operasional apotek'],salesman:['Salesman','Kelola salesman dan komisi penjualan'],pelanggan:['Pelanggan','Kelola data pelanggan dan klasifikasi'],obat:['Data Obat','Kelola master data, satuan & harga obat'],pembelian:['Pembelian','Catat pembelian obat dari supplier'],piutang:['Hutang Pembelian','Pantau hutang ke supplier dan jatuh tempo'],stok:['Stok & Expired','Pantau stok menipis dan obat kadaluarsa'],opname:['Stok Opname','Cocokkan stok fisik dengan stok sistem'],laporan:['Laporan Penjualan','Analisa penjualan dan laba apotek'],pajak:['Laporan Pajak','Estimasi PPN dan PPh Final UMKM'],setting:['Pengaturan','Atur apotek, akun, printer, dan kertas'],'pesanan-online':['Pesanan Online','Kelola order dari toko online apotek'],'piutang-online':['Piutang Tempo','Pantau & lunasi piutang tempo dari kasir dan toko online']};
+const TITLES={dashboard:['Beranda','Ringkasan aktivitas apotek hari ini'],kasir:['Kasir','Layani transaksi penjualan obat'],pengeluaran:['Pengeluaran','Catat gaji & biaya operasional apotek'],salesman:['Salesman','Kelola salesman dan komisi penjualan'],pelanggan:['Pelanggan','Kelola data pelanggan dan klasifikasi'],obat:['Data Obat','Kelola master data, satuan & harga obat'],pembelian:['Pembelian','Catat pembelian obat dari supplier'],piutang:['Hutang Pembelian','Pantau hutang ke supplier dan jatuh tempo'],stok:['Stok & Expired','Pantau stok menipis dan obat kadaluarsa'],opname:['Stok Opname','Cocokkan stok fisik dengan stok sistem'],laporan:['Laporan Penjualan','Analisa penjualan dan laba apotek'],pajak:['Laporan Pajak','Estimasi PPN dan PPh Final UMKM'],setting:['Pengaturan','Atur apotek, akun, printer, dan kertas'],'pesanan-online':['Pesanan Online','Kelola order dari toko online apotek'],'piutang-online':['Piutang Tempo','Pantau & lunasi piutang tempo dari kasir dan toko online'],'surat-pesanan':['Surat Pesanan Obat','Buat & cetak surat pesanan obat biasa, prekursor, dan OOT']};
 $$('.nav a').forEach(a=>a.onclick=()=>{
   const v=a.dataset.view;
   $$('.nav a').forEach(x=>x.classList.remove('active')); a.classList.add('active');
@@ -868,6 +909,7 @@ $$('.nav a').forEach(a=>a.onclick=()=>{
   if(v==='setting')renderSettings();
   if(v==='pesanan-online')loadOrderOnline();
   if(v==='piutang-online')loadPiutangOnline();
+  if(v==='surat-pesanan')renderSuratPesanan();
 });
 $('#menuBtn').onclick=()=>{$('#sidebar').classList.toggle('open');$('#scrim').classList.toggle('show');};
 $('#scrim').onclick=()=>{$('#sidebar').classList.remove('open');$('#scrim').classList.remove('show');};
@@ -953,6 +995,13 @@ function openObatModal(id){
       <div class="field"><label>Stok <span class="hint">(satuan terkecil)</span></label><input type="number" id="f_stok" value="${o?o.stok:0}" min="0"></div>
       <div class="field"><label>Stok Minimum</label><input type="number" id="f_min" value="${o?o.min:10}" min="0"></div>
       <div class="field full"><label>Tanggal Kadaluarsa</label><input type="date" id="f_exp" value="${o?o.exp:''}"></div>
+      <div class="field full"><label>Jenis Obat <span class="hint">(untuk Surat Pesanan)</span></label>
+        <select id="f_jenis">
+          <option value="Biasa" ${(!o||!o.jenis||o.jenis==='Biasa')?'selected':''}>Obat Biasa</option>
+          <option value="Prekursor" ${o&&o.jenis==='Prekursor'?'selected':''}>Prekursor Farmasi</option>
+          <option value="OOT" ${o&&o.jenis==='OOT'?'selected':''}>Obat-Obat Tertentu (OOT)</option>
+        </select>
+      </div>
     </div></div>
     <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">Batal</button><button class="btn btn-primary" onclick='saveObatForm(${o?`"${o.id}"`:'null'})'>Simpan</button></div>`;
   showModal(); updateBcPreview();
@@ -972,7 +1021,8 @@ function saveObatForm(id){
   const data={kode:$('#f_kode').value.trim(),nama:$('#f_nama').value.trim(),kategori:$('#f_kategori').value,barcode,
     satuanKecil:$('#f_satkecil').value.trim()||'Pcs',satuanBesar:sb,isiPerBesar:sb?isi:0,
     beli:+$('#f_beli').value||0,jualKecil:jk,jualBesar:sb?jb:0,
-    stok:+$('#f_stok').value||0,min:+$('#f_min').value||0,exp:$('#f_exp').value};
+    stok:+$('#f_stok').value||0,min:+$('#f_min').value||0,exp:$('#f_exp').value,
+    jenis:$('#f_jenis')?$('#f_jenis').value:'Biasa'};
   if(!data.nama){toast('Nama obat wajib diisi','warn');return;}
   if(data.satuanBesar&&data.isiPerBesar<=0){toast('Isi per satuan besar harus diisi','warn');return;}
   if(data.jualKecil<data.beli){toast('Harga jual di bawah harga beli','warn');}
@@ -1988,6 +2038,7 @@ const ALL_MENUS=[
   {key:'setting',label:'Pengaturan',icon:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-2.81 1.17V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15H4.5a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 6 8a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 11 4.6h.09a2 2 0 0 1 4 0"/>'},
   {key:'pesanan-online',label:'Pesanan Online',icon:'<path d="M3 3h2l.4 2M7 13h10l3-8H5.4"/><circle cx="9" cy="20" r="1.2"/><circle cx="16" cy="20" r="1.2"/><path d="M17 17l2 2 4-4"/>'},
   {key:'piutang-online',label:'Piutang Tempo',icon:'<rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20M7 15h.01M11 15h4"/>'},
+  {key:'surat-pesanan',label:'Surat Pesanan',icon:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/>'},
 ];
 const ALL_MENU_KEYS=ALL_MENUS.map(m=>m.key);
 
@@ -2032,6 +2083,7 @@ const PANELS={
       <div class="field"><label>Kota</label><input id="s_kota" value="${esc(SET.apotekKota||'')}"></div>
       <div class="field"><label>Telepon</label><input id="s_telp" value="${esc(SET.apotekTelepon||'')}"></div>
       <div class="field full"><label>Apoteker Penanggung Jawab</label><input id="s_pj" value="${esc(SET.penanggungJawab||'')}" placeholder="Apt. Nama, S.Farm"></div>
+      <div class="field full"><label>Jabatan Apoteker</label><input id="s_jabatan" value="${esc(SET.jabatanApoteker||'Apoteker Pengelola Apotek')}" placeholder="Apoteker Pengelola Apotek"></div>
       <div class="field"><label>No. SIA</label><input id="s_sia" value="${esc(SET.noSIA||'')}"></div>
       <div class="field"><label>No. SIPA</label><input id="s_sipa" value="${esc(SET.noSIPA||'')}"></div>
       <div class="field full"><label>Nomor Rekening</label>
@@ -2200,7 +2252,7 @@ function addRek(){if(!SET.rekening)SET.rekening=[];SET.rekening.push({bank:'',no
 function rmRek(i){SET.rekening.splice(i,1);renderSettings();}
 function saveSetApotek(){
   SET.apotekNama=$('#s_nama').value.trim()||'SehatFarma';SET.apotekAlamat=$('#s_alamat').value.trim();SET.apotekKota=$('#s_kota').value.trim();
-  SET.apotekTelepon=$('#s_telp').value.trim();SET.penanggungJawab=$('#s_pj').value.trim();SET.noSIA=$('#s_sia').value.trim();SET.noSIPA=$('#s_sipa').value.trim();
+  SET.apotekTelepon=$('#s_telp').value.trim();SET.penanggungJawab=$('#s_pj').value.trim();SET.jabatanApoteker=$('#s_jabatan')?$('#s_jabatan').value.trim():(SET.jabatanApoteker||'Apoteker Pengelola Apotek');SET.noSIA=$('#s_sia').value.trim();SET.noSIPA=$('#s_sipa').value.trim();
   SET.rekening=(SET.rekening||[]).filter(r=>r.bank||r.nomor||r.atasNama);
   saveSet();applyOperator();applyLoginBranding(SET);renderSettings();toast('Pengaturan apotek disimpan','ok');
 }
@@ -3562,6 +3614,198 @@ function renderPiutangOnline() {
       </div>
     </div>`;
   }).join('');
+}
+
+/* ========== Surat Pesanan Obat ========== */
+function renderSuratPesanan() {
+  const biasa   = OBAT.filter(o => !o.jenis || o.jenis === 'Biasa');
+  const prekur  = OBAT.filter(o => o.jenis === 'Prekursor');
+  const oot     = OBAT.filter(o => o.jenis === 'OOT');
+  const el = id => document.getElementById(id);
+  if(el('spBiasaCount'))    el('spBiasaCount').textContent    = `${biasa.length} item terdaftar`;
+  if(el('spPrekursorCount'))el('spPrekursorCount').textContent= `${prekur.length} item terdaftar`;
+  if(el('spOOTCount'))      el('spOOTCount').textContent      = `${oot.length} item terdaftar`;
+}
+
+function bukaSP(jenis) {
+  const labelMap = { Biasa:'Obat Biasa', Prekursor:'Prekursor Farmasi', OOT:'Obat-Obat Tertentu' };
+  const items = OBAT.filter(o => jenis === 'Biasa' ? (!o.jenis || o.jenis === 'Biasa') : o.jenis === jenis);
+  const rows10 = Array(Math.max(10, items.length + 3)).fill(0)
+    .map((_, i) => {
+      const o = items[i];
+      if (jenis === 'Biasa') {
+        return `<tr><td style="border:1px solid #333;padding:6px 8px;text-align:center">${i+1}</td>
+          <td style="border:1px solid #333;padding:6px 8px">${o ? esc(o.nama) : ''}</td>
+          <td style="border:1px solid #333;padding:6px 8px;text-align:center">${o ? o.stok+' '+o.satuanKecil : ''}</td>
+          <td style="border:1px solid #333;padding:6px 8px"></td></tr>`;
+      } else {
+        return `<tr><td style="border:1px solid #333;padding:6px 8px;text-align:center">${i+1}</td>
+          <td style="border:1px solid #333;padding:6px 8px">${o ? esc(o.nama) : ''}</td>
+          <td style="border:1px solid #333;padding:6px 8px"></td>
+          <td style="border:1px solid #333;padding:6px 8px">${o ? (o.satuanKecil||'') : ''}</td>
+          <td style="border:1px solid #333;padding:6px 8px;text-align:center">${o ? o.stok+' '+o.satuanKecil : ''}</td>
+          <td style="border:1px solid #333;padding:6px 8px"></td></tr>`;
+      }
+    }).join('');
+
+  $('#modal').innerHTML = `
+    <div class="modal-head"><h3>Buat SP ${labelMap[jenis]}</h3><button class="icon-btn" onclick="closeModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field"><label>Nomor SP</label><input id="sp_no" placeholder="Contoh: 001/SP/${new Date().getFullYear()}"></div>
+        <div class="field"><label>Tanggal</label><input type="date" id="sp_tgl" value="${new Date().toISOString().slice(0,10)}"></div>
+        <div class="field full"><label>Nama Distributor / PBF</label><input id="sp_pbf" placeholder="cth: PT Kimia Farma Trading & Distribution"></div>
+        <div class="field full"><label>Alamat PBF</label><input id="sp_alamat_pbf" placeholder="Alamat distributor"></div>
+        <div class="field"><label>No. Telepon PBF</label><input id="sp_telp_pbf" placeholder="021-xxxxxxx"></div>
+      </div>
+      <p style="font-size:12px;color:var(--ink-3);margin-top:8px">Item obat diambil otomatis dari Data Obat dengan jenis <strong>${labelMap[jenis]}</strong> (${items.length} item). Edit jenis obat di menu Data Obat jika diperlukan.</p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal()">Batal</button>
+      <button class="btn btn-primary" onclick="cetakSP('${jenis}')">🖨️ Cetak Surat Pesanan</button>
+    </div>`;
+  showModal();
+}
+
+function cetakSP(jenis) {
+  const no       = $('#sp_no').value.trim() || '_______________';
+  const tgl      = $('#sp_tgl').value;
+  const pbf      = $('#sp_pbf').value.trim() || '_______________';
+  const alamatPbf= $('#sp_alamat_pbf').value.trim() || '';
+  const telpPbf  = $('#sp_telp_pbf').value.trim() || '';
+  const tglFmt   = tgl ? new Date(tgl).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'}) : '__________________';
+
+  const namaApotek = SET.apotekNama || 'Apotek Dian Farma';
+  const alamat     = [SET.apotekAlamat, SET.apotekKota].filter(Boolean).join(', ');
+  const telepon    = SET.apotekTelepon || '';
+  const sia        = SET.noSIA || '';
+  const apoteker   = SET.penanggungJawab || '';
+  const jabatan    = SET.jabatanApoteker || 'Apoteker Pengelola Apotek';
+  const sipa       = SET.noSIPA || '';
+
+  const items = OBAT.filter(o => jenis === 'Biasa' ? (!o.jenis || o.jenis === 'Biasa') : o.jenis === jenis);
+  const rowCount = Math.max(10, items.length + 3);
+
+  let tableHeader = '', tableRows = '';
+
+  if (jenis === 'Biasa') {
+    tableHeader = `<tr>
+      <th style="border:1px solid #333;padding:7px 10px;width:40px;background:#f5f5f5">No.</th>
+      <th style="border:1px solid #333;padding:7px 10px;background:#f5f5f5">Jenis</th>
+      <th style="border:1px solid #333;padding:7px 10px;width:100px;background:#f5f5f5">Jumlah</th>
+      <th style="border:1px solid #333;padding:7px 10px;width:140px;background:#f5f5f5">Keterangan</th>
+    </tr>`;
+    tableRows = Array(rowCount).fill(0).map((_, i) => {
+      const o = items[i];
+      return `<tr style="height:28px">
+        <td style="border:1px solid #333;padding:4px 8px;text-align:center">${i+1}</td>
+        <td style="border:1px solid #333;padding:4px 8px">${o ? esc(o.nama) : ''}</td>
+        <td style="border:1px solid #333;padding:4px 8px;text-align:center">${o ? o.stok+' '+o.satuanKecil : ''}</td>
+        <td style="border:1px solid #333;padding:4px 8px"></td>
+      </tr>`;
+    }).join('');
+  } else {
+    const kolZat = jenis === 'Prekursor' ? 'Zat Aktif Prekursor Farmasi' : 'Zat Aktif Obat-Obat Tertentu';
+    tableHeader = `<tr>
+      <th style="border:1px solid #333;padding:7px 8px;width:35px;background:#f5f5f5">No</th>
+      <th style="border:1px solid #333;padding:7px 8px;background:#f5f5f5">Nama Obat</th>
+      <th style="border:1px solid #333;padding:7px 8px;background:#f5f5f5">${kolZat}</th>
+      <th style="border:1px solid #333;padding:7px 8px;background:#f5f5f5">Bentuk &amp; Kekuatan Sediaan</th>
+      <th style="border:1px solid #333;padding:7px 8px;width:110px;background:#f5f5f5">Jumlah &amp; Satuan</th>
+      <th style="border:1px solid #333;padding:7px 8px;width:70px;background:#f5f5f5">Ket</th>
+    </tr>`;
+    tableRows = Array(rowCount).fill(0).map((_, i) => {
+      const o = items[i];
+      return `<tr style="height:28px">
+        <td style="border:1px solid #333;padding:4px 8px;text-align:center">${i+1}</td>
+        <td style="border:1px solid #333;padding:4px 8px">${o ? esc(o.nama) : ''}</td>
+        <td style="border:1px solid #333;padding:4px 8px"></td>
+        <td style="border:1px solid #333;padding:4px 8px">${o ? (o.satuanKecil||'') : ''}</td>
+        <td style="border:1px solid #333;padding:4px 8px;text-align:center">${o ? o.stok+' '+o.satuanKecil : ''}</td>
+        <td style="border:1px solid #333;padding:4px 8px"></td>
+      </tr>`;
+    }).join('');
+  }
+
+  const labelJenis = { Biasa:'SURAT PESANAN OBAT', Prekursor:'SURAT PESANAN OBAT MENGANDUNG PREKURSOR FARMASI', OOT:'SURAT PESANAN OBAT-OBAT TERTENTU' }[jenis];
+  const noLabel    = jenis === 'Biasa' ? `<p style="text-align:center;margin-bottom:20px">No : <span style="display:inline-block;min-width:180px;border-bottom:1px solid #333">${no}</span></p>` :
+                     `<p style="text-align:center;margin-bottom:16px">Nomor SP : <span style="display:inline-block;min-width:180px;border-bottom:1px solid #333">${no}</span></p>`;
+
+  const headerApoteker = jenis !== 'Biasa' ? `
+    <p style="margin-bottom:12px">Yang bertanda tangan dibawah ini :</p>
+    <table style="margin-bottom:16px;font-size:13px"><tbody>
+      <tr><td style="padding:2px 0;width:140px">Nama</td><td>: ${apoteker}</td></tr>
+      <tr><td style="padding:2px 0">Jabatan</td><td>: ${jabatan}</td></tr>
+      <tr><td style="padding:2px 0">SIPA</td><td>: ${sipa}</td></tr>
+    </tbody></table>
+    <p style="margin-bottom:8px">Mengajukan pemesanan ${jenis==='Prekursor'?'obat yang mengandung Prekursor Farmasi':'obat-obat tertentu'} kepada :</p>
+    <table style="margin-bottom:16px;font-size:13px"><tbody>
+      <tr><td style="padding:2px 0;width:180px">Nama Distributor / PBF</td><td>: ${pbf}</td></tr>
+      <tr><td style="padding:2px 0">Alamat</td><td>: ${alamatPbf}</td></tr>
+      <tr><td style="padding:2px 0">No. Telp</td><td>: ${telpPbf}</td></tr>
+    </tbody></table>
+    <p style="margin-bottom:10px">Jenis ${jenis==='Prekursor'?'Obat Mengandung Prekursor Farmasi':'Obat-obat tertentu'} yang dipesan adalah :</p>` :
+    `<p style="margin-bottom:8px">Kepada Yth.</p>
+     <p style="margin-bottom:4px">PBF / Apotek <span style="display:inline-block;min-width:220px;border-bottom:1px solid #333">${pbf}</span></p>
+     <p style="min-width:260px;border-bottom:1px solid #333;margin-bottom:14px">${alamatPbf}</p>
+     <p style="margin-bottom:10px">Bersama ini kami sampaikan pesanan sbb :</p>`;
+
+  const footerKet = jenis !== 'Biasa' ? `
+    <p style="margin-top:14px;font-size:12.5px">Obat ${jenis==='Prekursor'?'mengandung Prekursor Farmasi':'obat-obat tertentu'} tersebut akan dipergunakan untuk memenuhi kebutuhan :</p>
+    <table style="font-size:12.5px;margin-top:6px"><tbody>
+      <tr><td style="padding:2px 0;width:140px">Nama Sarana</td><td>: ${namaApotek}</td></tr>
+      <tr><td style="padding:2px 0">Alamat</td><td>: ${alamat}</td></tr>
+      <tr><td style="padding:2px 0">Nomor SIA</td><td>: ${sia}</td></tr>
+    </tbody></table>` : '';
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>${labelJenis}</title>
+  <style>
+    body{font-family:Arial,sans-serif;font-size:13px;color:#000;margin:0;padding:28px 36px}
+    @page{size:A4 portrait;margin:20mm 18mm}
+    @media print{body{padding:0}}
+    table{border-collapse:collapse;width:100%}
+    h2{font-size:15px;text-align:center;text-transform:uppercase;font-weight:bold;margin-bottom:4px}
+  </style></head><body>
+  <table style="margin-bottom:14px;border-bottom:2px solid #000;padding-bottom:10px">
+    <tr>
+      <td style="width:90px;text-align:center;vertical-align:middle">
+        <div style="font-size:10px;font-weight:bold;text-align:center;line-height:1.3">
+          <div style="font-size:22px">💊</div>
+          <div>DIAN FARMA</div><div style="font-size:9px">APOTEK</div>
+        </div>
+      </td>
+      <td style="text-align:center;vertical-align:middle">
+        <div style="font-size:17px;font-weight:bold;text-transform:uppercase">${namaApotek}</div>
+        <div style="font-size:11px">${alamat}</div>
+        ${sia?`<div style="font-size:11px">SIA : ${sia}</div>`:''}
+      </td>
+    </tr>
+  </table>
+  <h2>${labelJenis}</h2>
+  ${noLabel}
+  ${headerApoteker}
+  <table style="margin-bottom:0">${tableHeader}${tableRows}</table>
+  ${footerKet}
+  <table style="margin-top:28px">
+    <tr>
+      <td style="width:60%"></td>
+      <td style="text-align:center;font-size:13px">
+        <p>${SET.apotekKota || 'Subang'}, _____________________________ 20_____</p>
+        <p style="margin-top:4px">Apoteker Penanggung Jawab</p>
+        <div style="height:60px"></div>
+        <p style="border-top:1px solid #333;display:inline-block;min-width:200px;padding-top:4px">${apoteker}</p>
+        ${sipa?`<p style="font-size:11px">SIPA: ${sipa}</p>`:''}
+      </td>
+    </tr>
+  </table>
+  <script>window.onload=()=>{window.print();}<\/script>
+  </body></html>`;
+
+  const w = window.open('','_blank','width=800,height:900');
+  w.document.write(html);
+  w.document.close();
+  closeModal();
 }
 
 async function lunaskanPiutang(kode, sumber) {

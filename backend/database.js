@@ -207,6 +207,7 @@ function initDatabase() {
   addCol('pembelian', 'sisa_bayar', 'REAL DEFAULT 0');
   addCol('pembelian', 'status_bayar', 'TEXT DEFAULT "lunas"');
   addCol('pengguna', 'menus', 'TEXT DEFAULT "[]"');
+  addCol('obat', 'jenis_obat', 'TEXT DEFAULT "Biasa"');
 
   // Default users
   const userCount = db.prepare('SELECT COUNT(*) as c FROM pengguna').get();

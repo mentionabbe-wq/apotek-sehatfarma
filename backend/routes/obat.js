@@ -36,12 +36,13 @@ router.get('/:id', (req, res) => {
 
 router.post('/', (req, res) => {
   try {
-    const { kode, nama, kategori, stok, stok_min, harga_beli, harga_jual, satuan, expired_date, supplier_id, lokasi, keterangan } = req.body;
+    const { kode, nama, kategori, stok, stok_min, harga_beli, harga_jual, satuan, expired_date, supplier_id, lokasi, keterangan, jenis_obat } = req.body;
     if (!nama) return res.status(400).json({ success: false, message: 'Nama obat wajib diisi' });
-    const result = db.prepare(`INSERT INTO obat (kode,nama,kategori,stok,stok_min,harga_beli,harga_jual,satuan,expired_date,supplier_id,lokasi,keterangan)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`).run(
+    const result = db.prepare(`INSERT INTO obat (kode,nama,kategori,stok,stok_min,harga_beli,harga_jual,satuan,expired_date,supplier_id,lokasi,keterangan,jenis_obat)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(
       kode||'', nama, kategori||'', stok||0, stok_min||10, harga_beli||0, harga_jual||0,
-      satuan||'tablet', expired_date||null, supplier_id||null, lokasi||'', keterangan||''
+      satuan||'tablet', expired_date||null, supplier_id||null, lokasi||'', keterangan||'',
+      jenis_obat||'Biasa'
     );
     const newObat = db.prepare('SELECT o.*, s.nama as supplier_nama FROM obat o LEFT JOIN supplier s ON o.supplier_id = s.id WHERE o.id = ?').get(result.lastInsertRowid);
     res.status(201).json({ success: true, data: newObat, message: 'Obat berhasil ditambahkan' });
@@ -52,14 +53,15 @@ router.put('/:id', (req, res) => {
   try {
     const ex = db.prepare('SELECT * FROM obat WHERE id = ?').get(req.params.id);
     if (!ex) return res.status(404).json({ success: false, message: 'Obat tidak ditemukan' });
-    const { kode, nama, kategori, stok, stok_min, harga_beli, harga_jual, satuan, expired_date, supplier_id, lokasi, keterangan } = req.body;
-    db.prepare(`UPDATE obat SET kode=?,nama=?,kategori=?,stok=?,stok_min=?,harga_beli=?,harga_jual=?,satuan=?,expired_date=?,supplier_id=?,lokasi=?,keterangan=? WHERE id=?`).run(
+    const { kode, nama, kategori, stok, stok_min, harga_beli, harga_jual, satuan, expired_date, supplier_id, lokasi, keterangan, jenis_obat } = req.body;
+    db.prepare(`UPDATE obat SET kode=?,nama=?,kategori=?,stok=?,stok_min=?,harga_beli=?,harga_jual=?,satuan=?,expired_date=?,supplier_id=?,lokasi=?,keterangan=?,jenis_obat=? WHERE id=?`).run(
       kode!==undefined?kode:ex.kode, nama||ex.nama, kategori!==undefined?kategori:ex.kategori,
       stok!==undefined?stok:ex.stok, stok_min!==undefined?stok_min:ex.stok_min,
       harga_beli!==undefined?harga_beli:ex.harga_beli, harga_jual!==undefined?harga_jual:ex.harga_jual,
       satuan||ex.satuan, expired_date!==undefined?expired_date:ex.expired_date,
       supplier_id!==undefined?supplier_id:ex.supplier_id, lokasi!==undefined?lokasi:ex.lokasi,
-      keterangan!==undefined?keterangan:ex.keterangan, req.params.id
+      keterangan!==undefined?keterangan:ex.keterangan,
+      jenis_obat!==undefined?jenis_obat:ex.jenis_obat||'Biasa', req.params.id
     );
     const updated = db.prepare('SELECT o.*, s.nama as supplier_nama FROM obat o LEFT JOIN supplier s ON o.supplier_id = s.id WHERE o.id = ?').get(req.params.id);
     res.json({ success: true, data: updated, message: 'Obat berhasil diperbarui' });
