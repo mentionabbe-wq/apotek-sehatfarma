@@ -43,7 +43,7 @@ router.get('/produk', (req, res) => {
   try {
     const search = req.query.search || '';
     const page = parseInt(req.query.page) || 1;
-    const limit = 24;
+    const limit = Math.min(parseInt(req.query.limit) || 24, 100);
     const offset = (page - 1) * limit;
     const params = [];
     let where = 'WHERE o.stok > 0';

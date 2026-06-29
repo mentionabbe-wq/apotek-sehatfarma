@@ -487,6 +487,7 @@
         <thead><tr><th>Kode</th><th>Nama Obat</th><th>Kategori</th><th class="t-right">Hrg Beli</th><th class="t-right">Hrg Jual</th><th class="t-center">Stok</th><th>Expired</th><th class="t-right">Aksi</th></tr></thead>
         <tbody id="obatTable"></tbody>
       </table></div>
+      <div id="obatPagination"></div>
     </section>
 
     <!-- PEMBELIAN -->
@@ -946,30 +947,57 @@ function emptyBox(msg,sub){return `<div class="empty"><svg viewBox="0 0 24 24" f
 
 /* ---------- Data Obat ---------- */
 function buildCatFilter(){$('#catFilter').innerHTML='<option value="">Semua Kategori</option>'+KATEGORI.map(c=>`<option>${c}</option>`).join('');}
-function renderObat(){
+let _obatPage=1;
+const OBAT_PER_PAGE=10;
+
+function renderObat(resetPage=false){
+  if(resetPage) _obatPage=1;
   const q=($('#obatSearch').value||'').toLowerCase(), cf=$('#catFilter').value;
-  const rows=OBAT.filter(o=>(o.nama.toLowerCase().includes(q)||o.kode.toLowerCase().includes(q))&&(!cf||o.kategori===cf));
+  const filtered=OBAT.filter(o=>(o.nama.toLowerCase().includes(q)||(o.kode||'').toLowerCase().includes(q))&&(!cf||o.kategori===cf));
+  const totalPage=Math.ceil(filtered.length/OBAT_PER_PAGE)||1;
+  if(_obatPage>totalPage) _obatPage=totalPage;
+  const rows=filtered.slice((_obatPage-1)*OBAT_PER_PAGE, _obatPage*OBAT_PER_PAGE);
+
   $('#obatTable').innerHTML=rows.length?rows.map(o=>{
     const low=o.stok<=o.min, d=daysUntil(o.exp);
-    const expChip=o.exp?(d<0?`<span class="chip chip-red">${fmtDate(o.exp)}</span>`:d<=90?`<span class="chip chip-amber">${fmtDate(o.exp)}</span>`:fmtDate(o.exp)):'<span style="color:var(--ink-3)">—</span>';
+    const expChip=o.exp?(d<0?`<span class=”chip chip-red”>${fmtDate(o.exp)}</span>`:d<=90?`<span class=”chip chip-amber”>${fmtDate(o.exp)}</span>`:fmtDate(o.exp)):'<span style=”color:var(--ink-3)”>—</span>';
     const satInfo=hasBesar(o)?`1 ${o.satuanBesar} = ${o.isiPerBesar} ${o.satuanKecil}`:o.satuanKecil;
-    const jual=`${rp(o.jualKecil)}<span style="color:var(--ink-3)">/${o.satuanKecil}</span>`+(hasBesar(o)?`<div style="font-size:11.5px;color:var(--ink-3)">${rp(o.jualBesar)}/${o.satuanBesar}</div>`:'');
+    const jual=`${rp(o.jualKecil)}<span style=”color:var(--ink-3)”>/${o.satuanKecil}</span>`+(hasBesar(o)?`<div style=”font-size:11.5px;color:var(--ink-3)”>${rp(o.jualBesar)}/${o.satuanBesar}</div>`:'');
     return `<tr>
-      <td><span class="num" style="color:var(--ink-3);font-size:12.5px">${o.kode}</span>${o.barcode?`<div class="num" style="font-size:10.5px;color:var(--ink-3);letter-spacing:1px;margin-top:2px">${o.barcode}</div>`:''}</td>
-      <td><b style="font-weight:600">${esc(o.nama)}</b><div style="font-size:11.5px;color:var(--ink-3)">${satInfo}</div></td>
-      <td><span class="chip chip-gray">${o.kategori}</span></td>
-      <td class="t-right num">${rp(o.beli)}<div style="font-size:11px;color:var(--ink-3)">/${o.satuanKecil}</div></td>
-      <td class="t-right num" style="font-weight:600">${jual}</td>
-      <td class="t-center"><span class="chip ${low?'chip-amber':'chip-teal'} num">${o.stok}</span>${hasBesar(o)?`<div style="font-size:10.5px;color:var(--ink-3);margin-top:3px">${Math.floor(o.stok/o.isiPerBesar)} ${o.satuanBesar}</div>`:''}</td>
+      <td><span class=”num” style=”color:var(--ink-3);font-size:12.5px”>${o.kode}</span>${o.barcode?`<div class=”num” style=”font-size:10.5px;color:var(--ink-3);letter-spacing:1px;margin-top:2px”>${o.barcode}</div>`:''}</td>
+      <td><b style=”font-weight:600”>${esc(o.nama)}</b><div style=”font-size:11.5px;color:var(--ink-3)”>${satInfo}</div></td>
+      <td><span class=”chip chip-gray”>${o.kategori}</span></td>
+      <td class=”t-right num”>${rp(o.beli)}<div style=”font-size:11px;color:var(--ink-3)”>/${o.satuanKecil}</div></td>
+      <td class=”t-right num” style=”font-weight:600”>${jual}</td>
+      <td class=”t-center”><span class=”chip ${low?'chip-amber':'chip-teal'} num”>${o.stok}</span>${hasBesar(o)?`<div style=”font-size:10.5px;color:var(--ink-3);margin-top:3px”>${Math.floor(o.stok/o.isiPerBesar)} ${o.satuanBesar}</div>`:''}</td>
       <td>${expChip}</td>
-      <td class="t-right">
-        <button class="icon-btn" onclick='printLabel("${o.id}")' title="Cetak label barcode"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5v14M7 5v14M11 5v14M15 5v14M19 5v14"/></svg></button>
-        <button class="icon-btn" onclick='openObatModal("${o.id}")' title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
-        <button class="icon-btn" onclick='delObat("${o.id}")' title="Hapus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>
+      <td class=”t-right”>
+        <button class=”icon-btn” onclick='printLabel(“${o.id}”)' title=”Cetak label barcode”><svg viewBox=”0 0 24 24” fill=”none” stroke=”currentColor” stroke-width=”2”><path d=”M3 5v14M7 5v14M11 5v14M15 5v14M19 5v14”/></svg></button>
+        <button class=”icon-btn” onclick='openObatModal(“${o.id}”)' title=”Edit”><svg viewBox=”0 0 24 24” fill=”none” stroke=”currentColor” stroke-width=”2”><path d=”M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z”/></svg></button>
+        <button class=”icon-btn” onclick='delObat(“${o.id}”)' title=”Hapus”><svg viewBox=”0 0 24 24” fill=”none” stroke=”currentColor” stroke-width=”2”><path d=”M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6”/></svg></button>
       </td></tr>`;
-  }).join(''):`<tr><td colspan="8">${emptyBox(q||cf?'Tidak ada obat yang cocok':'Belum ada data obat','Klik “Tambah Obat” untuk memulai')}</td></tr>`;
+  }).join(''):`<tr><td colspan=”8”>${emptyBox(q||cf?'Tidak ada obat yang cocok':'Belum ada data obat','Klik “Tambah Obat” untuk memulai')}</td></tr>`;
+
+  // Render pagination
+  let pg='';
+  if(totalPage>1){
+    const info=`<span style=”font-size:12.5px;color:var(--ink-3)”>Halaman ${_obatPage} / ${totalPage} &nbsp;(${filtered.length} obat)</span>`;
+    const prev=_obatPage>1?`<button class=”btn btn-ghost btn-sm” onclick=”_obatPage--;renderObat()”>‹ Prev</button>`:'';
+    const next=_obatPage<totalPage?`<button class=”btn btn-ghost btn-sm” onclick=”_obatPage++;renderObat()”>Next ›</button>`:'';
+    const nums=Array.from({length:totalPage},(_,i)=>i+1)
+      .filter(i=>i===1||i===totalPage||Math.abs(i-_obatPage)<=1)
+      .reduce((acc,i,idx,arr)=>{if(idx>0&&i-arr[idx-1]>1)acc.push('…');acc.push(i);return acc;},[])
+      .map(i=>i==='…'?`<span style=”padding:0 4px;color:var(--ink-3)”>…</span>`:
+        `<button class=”btn btn-sm ${i===_obatPage?'btn-primary':'btn-ghost'}” onclick=”_obatPage=${i};renderObat()”>${i}</button>`)
+      .join('');
+    pg=`<div style=”display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:14px”>${prev}${nums}${next}&nbsp;${info}</div>`;
+  } else if(filtered.length){
+    pg=`<div style=”text-align:right;font-size:12px;color:var(--ink-3);margin-top:8px”>${filtered.length} obat</div>`;
+  }
+  const pgEl=$('#obatPagination');
+  if(pgEl) pgEl.innerHTML=pg;
 }
-$('#obatSearch').oninput=renderObat; $('#catFilter').onchange=renderObat;
+$('#obatSearch').oninput=()=>renderObat(true); $('#catFilter').onchange=()=>renderObat(true);
 
 function openObatModal(id){
   const o=id?OBAT.find(x=>x.id===id):null;
