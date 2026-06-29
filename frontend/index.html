@@ -2124,6 +2124,7 @@ const PANELS={
       <div class="field full"><label>Jabatan Apoteker</label><input id="s_jabatan" value="${esc(SET.jabatanApoteker||'Apoteker Pengelola Apotek')}" placeholder="Apoteker Pengelola Apotek"></div>
       <div class="field"><label>No. SIA</label><input id="s_sia" value="${esc(SET.noSIA||'')}"></div>
       <div class="field"><label>No. SIPA</label><input id="s_sipa" value="${esc(SET.noSIPA||'')}"></div>
+      <div class="field full"><label>No. NIB <span class="hint">(tampil di faktur A5)</span></label><input id="s_nib" value="${esc(SET.noNIB||'')}" placeholder="cth: 0508240553173"></div>
       <div class="field full"><label>Nomor Rekening</label>
         <div id="rekList">${rekRows()}</div>
         <button class="btn btn-ghost btn-sm" type="button" onclick="addRek()" style="margin-top:6px;align-self:flex-start"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Tambah Rekening</button>
@@ -2290,7 +2291,7 @@ function addRek(){if(!SET.rekening)SET.rekening=[];SET.rekening.push({bank:'',no
 function rmRek(i){SET.rekening.splice(i,1);renderSettings();}
 function saveSetApotek(){
   SET.apotekNama=$('#s_nama').value.trim()||'SehatFarma';SET.apotekAlamat=$('#s_alamat').value.trim();SET.apotekKota=$('#s_kota').value.trim();
-  SET.apotekTelepon=$('#s_telp').value.trim();SET.penanggungJawab=$('#s_pj').value.trim();SET.jabatanApoteker=$('#s_jabatan')?$('#s_jabatan').value.trim():(SET.jabatanApoteker||'Apoteker Pengelola Apotek');SET.noSIA=$('#s_sia').value.trim();SET.noSIPA=$('#s_sipa').value.trim();
+  SET.apotekTelepon=$('#s_telp').value.trim();SET.penanggungJawab=$('#s_pj').value.trim();SET.jabatanApoteker=$('#s_jabatan')?$('#s_jabatan').value.trim():(SET.jabatanApoteker||'Apoteker Pengelola Apotek');SET.noSIA=$('#s_sia').value.trim();SET.noSIPA=$('#s_sipa').value.trim();SET.noNIB=$('#s_nib')?$('#s_nib').value.trim():(SET.noNIB||'');
   SET.rekening=(SET.rekening||[]).filter(r=>r.bank||r.nomor||r.atasNama);
   saveSet();applyOperator();applyLoginBranding(SET);renderSettings();toast('Pengaturan apotek disimpan','ok');
 }
@@ -2445,7 +2446,7 @@ function previewStruk(){
     <div class="modal-foot"><button class="btn btn-ghost" onclick="$('#printArea').innerHTML=\`${struk.replace(/`/g,'\\`')}\`;window.print()">Cetak Contoh</button><button class="btn btn-primary" onclick="closeModal()">Tutup</button></div>`;
   showModal();
 }
-function pageCSS(p,orient='portrait'){const sizes={'58':'size:58mm auto','80':'size:80mm auto','a5':'size:A5','a4':'size:A4'};const margins={'58':'3mm','80':'3mm','a5':'8mm','a4':'10mm'};const sz=(sizes[p]||'size:A4');const mg=margins[p]||'10mm';const ls=(p==='a5'||p==='a4')&&orient==='landscape'?' landscape':'';return `${sz}${ls};margin:${mg}`;}
+function pageCSS(p,orient='portrait'){const sizes={'58':'size:58mm auto','80':'size:80mm auto','a5':'size:A5','a4':'size:A4'};const margins={'58':'3mm','80':'3mm','a5':'0','a4':'10mm'};const sz=(sizes[p]||'size:A4');const mg=margins[p]||'10mm';const ls=(p==='a5'||p==='a4')&&orient==='landscape'?' landscape':'';return `${sz}${ls};margin:${mg}`;}
 function setPageSize(p,orient='portrait'){let el=document.getElementById('pageStyle');if(!el){el=document.createElement('style');el.id='pageStyle';document.head.appendChild(el);}el.textContent='@media print{@page{'+pageCSS(p,orient)+'}}';}
 
 /* ---- Lock ---- */
@@ -2488,7 +2489,117 @@ function resetApp(){
 }
 
 /* ---------- Faktur Penjualan ---------- */
+// Faktur klasik gaya dot-matrix (A5) sesuai contoh fisik
+function buildFakturClassic(tx){
+  const f2=x=>Number(x||0).toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const tgl=new Date(tx.time);
+  const tglStr=`${String(tgl.getDate()).padStart(2,'0')}/${String(tgl.getMonth()+1).padStart(2,'0')}/${tgl.getFullYear()} ${String(tgl.getHours()).padStart(2,'0')}:${String(tgl.getMinutes()).padStart(2,'0')}:${String(tgl.getSeconds()).padStart(2,'0')}`;
+  const alamat=[SET.apotekAlamat,SET.apotekKota].filter(Boolean).join(', ');
+  const logoHtml=SET.logo?`<img src="${SET.logo}" style="max-height:46px;max-width:54px;object-fit:contain">`:`<div style="font-size:30px">💊</div>`;
+  const jmlItem=tx.items.reduce((s,i)=>s+(+i.qty||0),0);
+  const potTot=tx.disc||0;
+  const isTempo=tx.metodeBayar==='Kredit'||tx.metodeBayar==='Tempo'||tx.lunas===false;
+  const tunai=isTempo?0:(tx.pay||tx.total);
+  const kredit=isTempo?tx.total:0;
+  const kembali=isTempo?0:((tx.pay||0)-tx.total>0?(tx.pay-tx.total):0);
+
+  const rows=tx.items.map((it,i)=>{
+    const kode=it.kode||(OBAT.find(o=>o.id===it.id)?.kode)||'';
+    const harga=it.harga||it.jual||0;
+    const pot=it.disc||0;
+    const total=harga*it.qty-pot;
+    return `<tr>
+      <td style="padding:1px 6px;text-align:center">${i+1}</td>
+      <td style="padding:1px 6px">${esc(kode)}</td>
+      <td style="padding:1px 6px">${esc((it.nama||'').toUpperCase())}</td>
+      <td style="padding:1px 6px;text-align:right">${f2(it.qty)}</td>
+      <td style="padding:1px 6px">${esc(it.unit||'Pcs')}</td>
+      <td style="padding:1px 6px;text-align:right">${f2(harga)}</td>
+      <td style="padding:1px 6px;text-align:right">${f2(pot)}</td>
+      <td style="padding:1px 6px;text-align:right">${f2(total)}</td>
+    </tr>`;
+  }).join('');
+
+  const lbl=(k,v)=>`<tr><td style="padding:0 6px 0 0;white-space:nowrap">${k}</td><td style="padding:0 4px">:</td><td style="white-space:nowrap">${v}</td></tr>`;
+
+  return `<div style="font-family:'Consolas','Courier New',monospace;color:#000;font-size:10px;line-height:1.35;width:100%;box-sizing:border-box;padding:6mm 7mm">
+    <!-- KOP -->
+    <table style="width:100%;border-collapse:collapse;margin-bottom:6px"><tr>
+      <td style="vertical-align:top;width:58%">
+        <div style="display:flex;align-items:center;gap:8px">
+          ${logoHtml}
+          <div>
+            <div style="font-size:14px;font-weight:bold">FAKTUR PENJUALAN</div>
+            <div style="font-size:12px;font-weight:bold;letter-spacing:.5px">${esc((SET.apotekNama||'APOTEK DIAN FARMA').toUpperCase())}</div>
+            <div>${esc(alamat||'-')}</div>
+            ${SET.apotekTelepon?`<div>${esc(SET.apotekTelepon)}</div>`:''}
+            ${SET.noNIB?`<div>NIB : ${esc(SET.noNIB)}</div>`:(SET.noSIA?`<div>SIA : ${esc(SET.noSIA)}</div>`:'')}
+          </div>
+        </div>
+      </td>
+      <td style="vertical-align:top;width:42%">
+        <table style="border-collapse:collapse;font-size:10px;width:100%"><tbody>
+          ${lbl('No Transaksi',esc(tx.inv))}
+          ${lbl('Tanggal',tglStr)}
+          ${lbl('Kode Sales',esc(tx.salesmanNama||'-'))}
+          ${lbl('Pelanggan',esc(tx.kepada||'Umum'))}
+          ${lbl('PPN',SET.pkp?'Include':'-')}
+        </tbody></table>
+      </td>
+    </tr></table>
+
+    <!-- TABEL ITEM -->
+    <table style="width:100%;border-collapse:collapse;font-size:10px">
+      <thead><tr style="border-top:1.5px solid #000;border-bottom:1.5px solid #000">
+        <th style="padding:3px 6px;text-align:center">No.</th>
+        <th style="padding:3px 6px;text-align:left">Kode Item</th>
+        <th style="padding:3px 6px;text-align:left">Nama Item</th>
+        <th style="padding:3px 6px;text-align:right">Jml Item</th>
+        <th style="padding:3px 6px;text-align:left">Satuan</th>
+        <th style="padding:3px 6px;text-align:right">Harga</th>
+        <th style="padding:3px 6px;text-align:right">Pot</th>
+        <th style="padding:3px 6px;text-align:right">Total</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div style="border-top:1.5px solid #000;margin:2px 0 6px"></div>
+
+    <!-- FOOTER -->
+    <table style="width:100%;border-collapse:collapse;font-size:10px"><tr>
+      <td style="vertical-align:top;width:50%">
+        <div style="margin-bottom:4px">Keterangan :</div>
+        <table style="width:100%;margin-top:30px;text-align:center"><tr>
+          <td style="width:50%">Hormat Kami<div style="margin-top:34px">(.............................)</div></td>
+          <td style="width:50%">Penerima<div style="margin-top:34px">(.............................)</div></td>
+        </tr></table>
+      </td>
+      <td style="vertical-align:top;width:50%">
+        <table style="width:100%;border-collapse:collapse"><tbody>
+          <tr><td style="white-space:nowrap">Jml Item</td><td style="padding:0 4px">:</td><td style="text-align:right">${f2(jmlItem)}</td>
+              <td style="white-space:nowrap;padding-left:14px">Sub Total</td><td style="padding:0 4px">:</td><td style="text-align:right">${f2(tx.sub!=null?tx.sub:tx.total)}</td></tr>
+          <tr><td>Potongan</td><td>:</td><td style="text-align:right">${f2(potTot)}</td>
+              <td style="padding-left:14px">Total Akhir</td><td>:</td><td style="text-align:right;font-weight:bold">${f2(tx.total)}</td></tr>
+          <tr><td>Pajak</td><td>:</td><td style="text-align:right">${SET.pkp?f2(Math.round(tx.total-tx.total/(1+SET.ppn/100))):'0,00'}</td>
+              <td style="padding-left:14px">DP PO</td><td>:</td><td style="text-align:right">0,00</td></tr>
+          <tr><td>Biaya Lain</td><td>:</td><td style="text-align:right">0,00</td>
+              <td style="padding-left:14px">Deposit</td><td>:</td><td style="text-align:right">0,00</td></tr>
+          <tr><td></td><td></td><td></td>
+              <td style="padding-left:14px">Tunai</td><td>:</td><td style="text-align:right">${f2(tunai)}</td></tr>
+          <tr><td></td><td></td><td></td>
+              <td style="padding-left:14px">Kredit</td><td>:</td><td style="text-align:right">${f2(kredit)}</td></tr>
+          <tr><td></td><td></td><td></td>
+              <td style="padding-left:14px">Kembali</td><td>:</td><td style="text-align:right">${f2(kembali)}</td></tr>
+        </tbody></table>
+      </td>
+    </tr></table>
+    <div style="border-top:1px solid #000;margin-top:6px;padding-top:3px;font-size:10px">
+      Terbilang : <i>${terbilang(tx.total)} rupiah</i>
+    </div>
+  </div>`;
+}
+
 function buildFaktur(tx, paper, orient='portrait'){
+  if(paper==='a5') return buildFakturClassic(tx);
   const isA4=(paper==='a4');
   const isLandscape=(orient==='landscape');
   const fontBase=isA4?12:11;
@@ -2622,7 +2733,7 @@ function _showFaktur(inv,paper,orient){
 }
 function openFakturModal(inv){
   const paper=SET.strukUkuran==='a4'?'a4':'a5';
-  _showFaktur(inv,paper,'portrait');
+  _showFaktur(inv,paper,paper==='a5'?'landscape':'portrait');
   showModal();
 }
 function rerenderFaktur(inv,paper){_showFaktur(inv,paper,window._fakturCurrentOrient||'portrait');}
@@ -3500,6 +3611,7 @@ function renderOrderOnline() {
           <div style="font-size:14px;font-weight:600;color:var(--ink)">${o.customer || '-'}</div>
           <div style="font-size:12.5px;color:var(--ink-3);margin-top:2px">📞 ${o.telepon || '-'} &nbsp;·&nbsp; 🕐 ${tgl}</div>
           ${o.item_names?.length ? `<div style="font-size:12px;color:var(--ink-3);margin-top:3px">📦 ${o.item_names.join(' · ')}</div>` : o.items ? `<div style="font-size:12px;color:var(--ink-3);margin-top:3px">📦 ${o.items} item</div>` : ''}
+          ${o.bukti_data ? `<div style="margin-top:8px"><img src="${o.bukti_data}" onclick="lihatBuktiTransfer('${o.kode}')" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--line);cursor:pointer" title="Klik untuk perbesar"><button onclick="lihatBuktiTransfer('${o.kode}')" style="margin-left:8px;font-size:11.5px;padding:5px 10px;border-radius:6px;border:1.5px solid #c4b5fd;background:#f5f3ff;color:#7c3aed;cursor:pointer;font-weight:600;vertical-align:top">🧾 Lihat Bukti Transfer</button></div>` : ''}
         </div>
         <div style="text-align:right;flex-shrink:0">
           <div style="font-size:16px;font-weight:800;color:var(--teal)">${rupiahOrder(o.total)}</div>
@@ -3513,6 +3625,22 @@ function renderOrderOnline() {
       </div>
     </div>`;
   }).join('');
+}
+
+function lihatBuktiTransfer(kode) {
+  const o = allOrders.find(x => x.kode === kode);
+  if (!o || !o.bukti_data) { toast('Bukti transfer tidak tersedia', 'warn'); return; }
+  $('#modal').innerHTML = `
+    <div class="modal-head"><h3>Bukti Transfer — ${esc(kode)}</h3><button class="icon-btn" onclick="closeModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <div class="modal-body" style="text-align:center;background:#1e293b;padding:16px">
+      <img src="${o.bukti_data}" style="max-width:100%;max-height:70vh;border-radius:8px">
+    </div>
+    <div class="modal-foot">
+      <div style="font-size:13px;color:var(--ink-3);margin-right:auto">${esc(o.customer||'-')} · ${rupiahOrder(o.total)}</div>
+      <a href="${o.bukti_data}" download="bukti-${kode}.jpg" class="btn btn-ghost">⬇ Unduh</a>
+      <button class="btn btn-primary" onclick="closeModal()">Tutup</button>
+    </div>`;
+  showModal();
 }
 
 async function tandaiBaca(id) {
