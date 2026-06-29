@@ -3630,13 +3630,45 @@ function renderSuratPesanan() {
 
 function spBuatBaris(jenis, o) {
   const isBiasa = jenis === 'Biasa';
-  const td = (val, cls='') => `<td style="padding:3px 4px${cls}"><input style="width:100%;border:1px solid var(--line);border-radius:5px;padding:5px 7px;font-size:12.5px" value="${val||''}"></td>`;
+  const td = (val) => `<td style="padding:3px 4px"><input style="width:100%;border:1px solid var(--line);border-radius:5px;padding:5px 7px;font-size:12.5px" value="${esc(val||'')}"></td>`;
+  const namaTd = `<td style="padding:3px 4px;position:relative"><input class="sp-nama-input" autocomplete="off" style="width:100%;border:1px solid var(--line);border-radius:5px;padding:5px 7px;font-size:12.5px" value="${esc(o?o.nama:'')}" oninput="spCariObat(this,'${jenis}')"><div class="sp-suggest" style="display:none;position:absolute;left:0;top:100%;z-index:200;background:#fff;border:1px solid var(--line);border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,.12);min-width:220px;max-height:180px;overflow-y:auto"></div></td>`;
   const hapusBtn = `<td style="padding:3px 4px;width:30px"><button onclick="this.closest('tr').remove();spNomorUlang()" style="background:var(--danger-soft);color:var(--danger);border:none;border-radius:5px;width:26px;height:26px;cursor:pointer;font-size:13px">✕</button></td>`;
   if (isBiasa) {
-    return `<tr>${td(o?o.nama:'')}${td(o?o.stok:'')}${td(o?o.satuanKecil:'')}${td('')}${hapusBtn}</tr>`;
+    return `<tr>${namaTd}${td('')}${td(o?o.satuanKecil:'')}${td('')}${hapusBtn}</tr>`;
   } else {
-    return `<tr>${td(o?o.nama:'')}${td('')}${td(o?o.satuanKecil:'')}${td(o?o.stok:'')}${td(o?o.satuanKecil:'')}${td('')}${hapusBtn}</tr>`;
+    return `<tr>${namaTd}${td('')}${td(o?o.satuanKecil:'')}${td('')}${td(o?o.satuanKecil:'')}${td('')}${hapusBtn}</tr>`;
   }
+}
+
+function spCariObat(input, jenis) {
+  const q = input.value.toLowerCase().trim();
+  const wrap = input.nextElementSibling;
+  if (!q) { wrap.style.display='none'; return; }
+  const hasil = OBAT.filter(o => o.nama.toLowerCase().includes(q)).slice(0, 10);
+  if (!hasil.length) { wrap.style.display='none'; return; }
+  wrap.innerHTML = hasil.map(o =>
+    `<div style="padding:7px 10px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--line)" onmousedown="spPilihObat(this,'${jenis}')" data-nama="${esc(o.nama)}" data-satuan="${esc(o.satuanKecil||o.satuan||'')}">
+      <b>${esc(o.nama)}</b> <span style="color:var(--ink-3);font-size:11.5px">${esc(o.satuanKecil||o.satuan||'')}</span>
+    </div>`
+  ).join('');
+  wrap.style.display = 'block';
+}
+
+function spPilihObat(item, jenis) {
+  const tr = item.closest('td').closest('tr');
+  const inputs = tr.querySelectorAll('input');
+  const nama = item.dataset.nama;
+  const satuan = item.dataset.satuan;
+  inputs[0].value = nama;
+  // kolom satuan: index 2 untuk Biasa, index 2 (bentuk) & 4 (satuan) untuk Prekursor/OOT
+  if (jenis === 'Biasa') {
+    if (inputs[2]) inputs[2].value = satuan;
+  } else {
+    if (inputs[2]) inputs[2].value = satuan;
+    if (inputs[4]) inputs[4].value = satuan;
+  }
+  item.closest('.sp-suggest').style.display = 'none';
+  if (inputs[1]) inputs[1].focus();
 }
 
 function spNomorUlang() {
@@ -3663,8 +3695,6 @@ function spTambahBaris(jenis) {
 
 function bukaSP(jenis) {
   const labelMap = { Biasa:'Obat Biasa', Prekursor:'Prekursor Farmasi', OOT:'Obat-Obat Tertentu' };
-  const items = OBAT.filter(o => jenis === 'Biasa' ? (!o.jenis || o.jenis === 'Biasa') : o.jenis === jenis);
-
   const isBiasa = jenis === 'Biasa';
   const theadCols = isBiasa
     ? `<th style="padding:7px 8px;background:#f0f4fa;border:1px solid #c7d4e0">Nama Obat / Jenis</th>
@@ -3678,13 +3708,10 @@ function bukaSP(jenis) {
        <th style="padding:7px 8px;background:#f0f4fa;border:1px solid #c7d4e0;width:70px">Satuan</th>
        <th style="padding:7px 8px;background:#f0f4fa;border:1px solid #c7d4e0;width:60px">Ket</th>`;
 
-  const initRows = (items.length > 0 ? items : [null]).map((o,i) => {
-    const isBiasa = jenis === 'Biasa';
-    const td = (val) => `<td style="padding:3px 4px"><input style="width:100%;border:1px solid var(--line);border-radius:5px;padding:5px 7px;font-size:12.5px" value="${esc(val||'')}"></td>`;
-    const hapusBtn = `<td style="padding:3px 4px;width:30px"><button onclick="this.closest('tr').remove()" style="background:var(--danger-soft);color:var(--danger);border:none;border-radius:5px;width:26px;height:26px;cursor:pointer;font-size:13px">✕</button></td>`;
+  const initRows = Array(5).fill(null).map((_,i) => {
+    const baris = spBuatBaris(jenis, null);
     const noTd = `<td class="sp-no" style="padding:3px 8px;text-align:center;font-size:12.5px;color:var(--ink-3);width:34px">${i+1}</td>`;
-    if (isBiasa) return `<tr>${noTd}${td(o?o.nama:'')}${td(o?o.stok:'')}${td(o?o.satuanKecil:'')}${td('')}${hapusBtn}</tr>`;
-    else         return `<tr>${noTd}${td(o?o.nama:'')}${td('')}${td(o?o.satuanKecil:'')}${td(o?o.stok:'')}${td(o?o.satuanKecil:'')}${td('')}${hapusBtn}</tr>`;
+    return baris.replace('<tr>', `<tr>${noTd}`);
   }).join('');
 
   $('#modal').innerHTML = `
