@@ -51,6 +51,12 @@ router.get('/produk', (req, res) => {
       where += ' AND (o.nama LIKE ? OR o.kategori LIKE ?)';
       params.push(`%${search}%`, `%${search}%`);
     }
+    // Prioritaskan produk yang sudah di-sync dari localStorage (local_id != '')
+    // Jika ada data sync, hanya tampilkan itu agar nama & satuan sama persis dengan apotek-app
+    const hasSynced = db.prepare("SELECT 1 FROM obat WHERE local_id != '' LIMIT 1").get();
+    if (hasSynced) {
+      where += " AND o.local_id != ''";
+    }
     const items = db.prepare(
       `SELECT o.id, o.local_id, o.kode, o.nama, o.kategori, o.stok,
               CASE WHEN o.satuan_kecil != '' THEN o.satuan_kecil ELSE o.satuan END as satuan,

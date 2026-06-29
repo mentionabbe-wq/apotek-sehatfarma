@@ -404,15 +404,15 @@
       <a data-view="pengeluaran"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20"/><path d="M7 15h4"/></svg>Pengeluaran</a>
       <a data-view="salesman"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Salesman</a>
       <a data-view="pelanggan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Pelanggan</a>
+      <div class="nav-label">Online</div>
+      <a data-view="pesanan-online"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1.4"/><circle cx="18" cy="21" r="1.4"/><path d="M2.5 3h2.2l2.3 12.4a1.5 1.5 0 0 0 1.5 1.2h8.6a1.5 1.5 0 0 0 1.5-1.1L21.5 7H6"/><path d="M18 9l-2-2-2 2"/><path d="M16 7v6"/></svg>Pesanan Online<span class="badge" id="onlineBadge" style="display:none">0</span></a>
+      <a data-view="piutang-online"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20M7 15h.01M11 15h4"/></svg>Piutang Tempo<span class="badge" id="piutangOnlineBadge" style="display:none">0</span></a>
       <div class="nav-label">Inventori</div>
       <a data-view="obat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.5 20.5 4 14a4.95 4.95 0 0 1 7-7l6.5 6.5a4.95 4.95 0 0 1-7 7Z"/><path d="m8.5 8.5 7 7"/></svg>Data Obat</a>
       <a data-view="pembelian"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h2l.4 2M7 13h10l3-8H5.4M7 13 5.4 5M7 13l-2 4h12"/><circle cx="9" cy="20" r="1.2"/><circle cx="16" cy="20" r="1.2"/></svg>Pembelian</a>
       <a data-view="piutang"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20M7 15h.01M11 15h4"/></svg>Hutang Pembelian<span class="badge" id="piutangBadge" style="display:none">0</span></a>
       <a data-view="stok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8 12 3 3 8l9 5 9-5Z"/><path d="m3 8 0 8 9 5 9-5 0-8"/><path d="M12 13v8"/></svg>Stok &amp; Expired<span class="badge" id="navBadge" style="display:none">0</span></a>
       <a data-view="opname"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg>Stok Opname</a>
-      <div class="nav-label">Online</div>
-      <a data-view="pesanan-online"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1.4"/><circle cx="18" cy="21" r="1.4"/><path d="M2.5 3h2.2l2.3 12.4a1.5 1.5 0 0 0 1.5 1.2h8.6a1.5 1.5 0 0 0 1.5-1.1L21.5 7H6"/><path d="M18 9l-2-2-2 2"/><path d="M16 7v6"/></svg>Pesanan Online<span class="badge" id="onlineBadge" style="display:none">0</span></a>
-      <a data-view="piutang-online"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20M7 15h.01M11 15h4"/></svg>Piutang Online<span class="badge" id="piutangOnlineBadge" style="display:none">0</span></a>
       <div class="nav-label">Analisa</div>
       <a data-view="laporan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m7 14 3-4 3 3 5-6"/></svg>Laporan Penjualan</a>
       <a data-view="pajak"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13l6 6M15 13l-6 6"/></svg>Laporan Pajak</a>
@@ -857,7 +857,7 @@ const saveSales=()=>sset(KEY_SALES,SALES);
 
 function tickClock(){const d=new Date();$('#clockTime').textContent=d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});$('#clockDate').textContent=d.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'});}
 
-const TITLES={dashboard:['Beranda','Ringkasan aktivitas apotek hari ini'],kasir:['Kasir','Layani transaksi penjualan obat'],pengeluaran:['Pengeluaran','Catat gaji & biaya operasional apotek'],salesman:['Salesman','Kelola salesman dan komisi penjualan'],pelanggan:['Pelanggan','Kelola data pelanggan dan klasifikasi'],obat:['Data Obat','Kelola master data, satuan & harga obat'],pembelian:['Pembelian','Catat pembelian obat dari supplier'],piutang:['Hutang Pembelian','Pantau hutang ke supplier dan jatuh tempo'],stok:['Stok & Expired','Pantau stok menipis dan obat kadaluarsa'],opname:['Stok Opname','Cocokkan stok fisik dengan stok sistem'],laporan:['Laporan Penjualan','Analisa penjualan dan laba apotek'],pajak:['Laporan Pajak','Estimasi PPN dan PPh Final UMKM'],setting:['Pengaturan','Atur apotek, akun, printer, dan kertas'],'pesanan-online':['Pesanan Online','Kelola order dari toko online apotek'],'piutang-online':['Piutang Online','Pantau & lunasi piutang dari order tempo apotek-online']};
+const TITLES={dashboard:['Beranda','Ringkasan aktivitas apotek hari ini'],kasir:['Kasir','Layani transaksi penjualan obat'],pengeluaran:['Pengeluaran','Catat gaji & biaya operasional apotek'],salesman:['Salesman','Kelola salesman dan komisi penjualan'],pelanggan:['Pelanggan','Kelola data pelanggan dan klasifikasi'],obat:['Data Obat','Kelola master data, satuan & harga obat'],pembelian:['Pembelian','Catat pembelian obat dari supplier'],piutang:['Hutang Pembelian','Pantau hutang ke supplier dan jatuh tempo'],stok:['Stok & Expired','Pantau stok menipis dan obat kadaluarsa'],opname:['Stok Opname','Cocokkan stok fisik dengan stok sistem'],laporan:['Laporan Penjualan','Analisa penjualan dan laba apotek'],pajak:['Laporan Pajak','Estimasi PPN dan PPh Final UMKM'],setting:['Pengaturan','Atur apotek, akun, printer, dan kertas'],'pesanan-online':['Pesanan Online','Kelola order dari toko online apotek'],'piutang-online':['Piutang Tempo','Pantau & lunasi piutang tempo dari kasir dan toko online']};
 $$('.nav a').forEach(a=>a.onclick=()=>{
   const v=a.dataset.view;
   $$('.nav a').forEach(x=>x.classList.remove('active')); a.classList.add('active');
@@ -1987,7 +1987,7 @@ const ALL_MENUS=[
   {key:'pajak',label:'Laporan Pajak',icon:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/>'},
   {key:'setting',label:'Pengaturan',icon:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-2.81 1.17V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15H4.5a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 6 8a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 11 4.6h.09a2 2 0 0 1 4 0"/>'},
   {key:'pesanan-online',label:'Pesanan Online',icon:'<path d="M3 3h2l.4 2M7 13h10l3-8H5.4"/><circle cx="9" cy="20" r="1.2"/><circle cx="16" cy="20" r="1.2"/><path d="M17 17l2 2 4-4"/>'},
-  {key:'piutang-online',label:'Piutang Online',icon:'<rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20M7 15h.01M11 15h4"/>'},
+  {key:'piutang-online',label:'Piutang Tempo',icon:'<rect x="2" y="5" width="20" height="14" rx="2.5"/><path d="M2 10h20M7 15h.01M11 15h4"/>'},
 ];
 const ALL_MENU_KEYS=ALL_MENUS.map(m=>m.key);
 
@@ -3478,16 +3478,39 @@ setInterval(() => {
   if ($('#view-piutang-online')?.classList.contains('active')) loadPiutangOnline();
 }, 30000);
 
-/* ---- Piutang Online ---- */
+/* ---- Piutang Tempo (Online + Kasir) ---- */
 let allPiutang = [], filterPiutangStatus = 'semua';
 
 async function loadPiutangOnline() {
   const token = localStorage.getItem('token') || '';
   try {
-    const r = await fetch('/api/piutang-online', { headers: { 'Authorization': 'Bearer ' + token } });
-    const j = await r.json();
-    allPiutang = j.data || [];
-    const belum = j.belum_lunas || 0;
+    // Load piutang dari apotek-online (via API)
+    let onlineList = [];
+    try {
+      const r = await fetch('/api/piutang-online', { headers: { 'Authorization': 'Bearer ' + token } });
+      const j = await r.json();
+      onlineList = (j.data || []).map(p => ({ ...p, sumber: 'online' }));
+    } catch {}
+
+    // Load piutang dari kasir (localStorage)
+    const kasirRaw = (await sget('apotek:piutang_pel')) || [];
+    const kasirList = kasirRaw.map(p => ({
+      kode: p.inv,
+      customer: p.kepada || '-',
+      telepon: '-',
+      total: p.total,
+      kategori: p.klasifikasi || '-',
+      jatuh_tempo: p.jatuhTempo || null,
+      status: p.status || 'belum_lunas',
+      lunas_at: p.lunas_at || null,
+      waktu: p.waktu || new Date().toISOString(),
+      sumber: 'kasir'
+    }));
+
+    // Gabungkan dan urutkan terbaru dulu
+    allPiutang = [...onlineList, ...kasirList].sort((a, b) => new Date(b.waktu) - new Date(a.waktu));
+
+    const belum = allPiutang.filter(p => p.status !== 'lunas').length;
     const badge = $('#piutangOnlineBadge');
     if (belum > 0) { badge.textContent = belum; badge.style.display = 'inline-flex'; }
     else badge.style.display = 'none';
@@ -3510,39 +3533,51 @@ function renderPiutangOnline() {
   const el = $('#piutangOnlineList');
   if (!list.length) { el.innerHTML = '<p style="color:var(--ink-3);padding:40px;text-align:center">Tidak ada data piutang</p>'; return; }
 
-  const kategoriColor = { Umum: { bg:'#dbeafe', color:'#1d4ed8' }, Medis: { bg:'#dcfce7', color:'#15803d' } };
   el.innerHTML = list.map(p => {
     const isLunas = p.status === 'lunas';
-    const kc = kategoriColor[p.kategori] || kategoriColor.Umum;
     const tgl = new Date(p.waktu).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
     const jtTgl = p.jatuh_tempo ? new Date(p.jatuh_tempo).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' }) : '-';
     const lewat = p.jatuh_tempo && !isLunas && new Date(p.jatuh_tempo) < new Date();
+    const sumberLabel = p.sumber === 'kasir' ? '🏪 Kasir' : '🌐 Online';
+    const sumberColor = p.sumber === 'kasir' ? { bg:'#f3e8ff', color:'#7e22ce' } : { bg:'#dbeafe', color:'#1d4ed8' };
     return `
     <div style="background:#fff;border-radius:10px;border:1px solid var(--line);padding:16px;margin-bottom:10px;${lewat?'border-left:4px solid #dc2626':''}">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
         <div style="flex:1;min-width:200px">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap">
             <span style="font-size:12.5px;font-weight:700;font-family:monospace;color:var(--teal)">${p.kode}</span>
-            <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:${kc.bg};color:${kc.color}">${p.kategori}</span>
+            <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:${sumberColor.bg};color:${sumberColor.color}">${sumberLabel}</span>
             <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:${isLunas?'#dcfce7':'#fef9c3'};color:${isLunas?'#15803d':'#854d0e'}">${isLunas?'✓ Lunas':'⏳ Belum Lunas'}</span>
-            ${lewat?'<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:#fee2e2;color:#dc2626">⚠ Jatuh Tempo</span>':''}
+            ${lewat?'<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:#fee2e2;color:#dc2626">⚠ Lewat Jatuh Tempo</span>':''}
           </div>
           <div style="font-size:14px;font-weight:600;color:var(--ink)">${p.customer}</div>
-          <div style="font-size:12.5px;color:var(--ink-3);margin-top:2px">📞 ${p.telepon} &nbsp;·&nbsp; 📅 Order: ${tgl}</div>
+          ${p.telepon && p.telepon !== '-' ? `<div style="font-size:12.5px;color:var(--ink-3);margin-top:2px">📞 ${p.telepon} &nbsp;·&nbsp; 📅 ${tgl}</div>` : `<div style="font-size:12.5px;color:var(--ink-3);margin-top:2px">📅 ${tgl}</div>`}
           <div style="font-size:12.5px;color:var(--ink-3);margin-top:2px">⏰ Jatuh Tempo: <strong style="color:${lewat?'#dc2626':'inherit'}">${jtTgl}</strong></div>
           ${isLunas && p.lunas_at ? `<div style="font-size:12px;color:#16a34a;margin-top:2px">✓ Dilunasi: ${new Date(p.lunas_at).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'})}</div>` : ''}
         </div>
         <div style="text-align:right;flex-shrink:0">
           <div style="font-size:18px;font-weight:800;color:var(--teal)">${rupiahOrder(p.total)}</div>
-          ${!isLunas ? `<button onclick="lunaskanPiutang('${p.kode}')" style="margin-top:10px;font-size:12px;padding:7px 16px;border-radius:7px;border:none;background:#16a34a;color:#fff;cursor:pointer;font-weight:700">✓ Tandai Lunas</button>` : ''}
+          ${!isLunas ? `<button onclick="lunaskanPiutang('${p.kode}','${p.sumber}')" style="margin-top:10px;font-size:12px;padding:7px 16px;border-radius:7px;border:none;background:#16a34a;color:#fff;cursor:pointer;font-weight:700">✓ Tandai Lunas</button>` : ''}
         </div>
       </div>
     </div>`;
   }).join('');
 }
 
-async function lunaskanPiutang(kode) {
+async function lunaskanPiutang(kode, sumber) {
   if (!confirm(`Tandai piutang ${kode} sebagai LUNAS?`)) return;
+  if (sumber === 'kasir') {
+    const arr = (await sget('apotek:piutang_pel')) || [];
+    const idx = arr.findIndex(p => p.inv === kode);
+    if (idx >= 0) {
+      arr[idx].status = 'lunas';
+      arr[idx].lunas_at = new Date().toISOString();
+      await sset('apotek:piutang_pel', arr);
+      toast(`Piutang ${kode} ditandai lunas`, 'ok');
+      loadPiutangOnline();
+    } else { toast('Data tidak ditemukan', 'err'); }
+    return;
+  }
   const token = localStorage.getItem('token') || '';
   try {
     const r = await fetch(`/api/piutang-online/${kode}/lunas`, { method: 'PATCH', headers: { 'Authorization': 'Bearer ' + token } });
