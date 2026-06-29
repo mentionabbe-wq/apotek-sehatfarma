@@ -88,4 +88,37 @@ router.get('/produk/:id', (req, res) => {
   }
 });
 
+// POST /api/publik/pelanggan — sync pelanggan dari apotek-online (public, tidak butuh token)
+router.post('/pelanggan', (req, res) => {
+  try {
+    const { nama, telepon, alamat, npwp, email, kategori } = req.body;
+    if (!nama || !telepon) return res.status(400).json({ success: false, message: 'Nama dan telepon wajib' });
+
+    // Cari klasifikasi berdasarkan kategori: Medis → Grosir, Umum → Umum
+    const cariKlas = (nama_klas) => {
+      const row = db.prepare("SELECT id FROM klasifikasi WHERE LOWER(nama) LIKE ? LIMIT 1").get(`%${nama_klas.toLowerCase()}%`);
+      return row?.id || null;
+    };
+    const klasId = kategori === 'Medis' ? (cariKlas('Grosir') || cariKlas('Medis')) : cariKlas('Umum');
+
+    // Cek apakah sudah ada (by telepon)
+    const existing = db.prepare('SELECT id FROM pelanggan WHERE telepon = ?').get(telepon);
+    if (existing) {
+      // Update data existing
+      db.prepare('UPDATE pelanggan SET nama=?, alamat=?, catatan=?, klasifikasi_id=? WHERE id=?').run(
+        nama, alamat || '', npwp ? `NPWP: ${npwp}` : '', klasId, existing.id
+      );
+      return res.json({ success: true, action: 'updated', id: existing.id });
+    }
+
+    const id = 'pel_' + Date.now();
+    db.prepare('INSERT INTO pelanggan (id,nama,telepon,alamat,catatan,klasifikasi_id) VALUES (?,?,?,?,?,?)').run(
+      id, nama, telepon, alamat || '', npwp ? `NPWP: ${npwp}` : '', klasId
+    );
+    res.json({ success: true, action: 'created', id });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 module.exports = router;
