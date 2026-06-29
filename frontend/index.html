@@ -2602,11 +2602,11 @@ function buildFakturClassic(tx){
           <tr><td style="white-space:nowrap">Jml Item</td><td style="padding:0 4px">:</td><td style="text-align:right">${f2(jmlItem)}</td>
               <td style="white-space:nowrap;padding-left:14px">Sub Total</td><td style="padding:0 4px">:</td><td style="text-align:right">${f2(tx.sub!=null?tx.sub:tx.total)}</td></tr>
           <tr><td>Potongan</td><td>:</td><td style="text-align:right">${f2(potTot)}</td>
-              <td style="padding-left:14px">Total Akhir</td><td>:</td><td style="text-align:right;font-weight:bold">${f2(tx.total)}</td></tr>
+              <td style="white-space:nowrap;padding-left:14px">Total Akhir</td><td>:</td><td style="text-align:right;font-weight:bold">${f2(tx.total)}</td></tr>
           <tr><td>Pajak</td><td>:</td><td style="text-align:right">${SET.pkp?f2(Math.round(tx.total-tx.total/(1+SET.ppn/100))):'0,00'}</td>
-              <td style="padding-left:14px">DP PO</td><td>:</td><td style="text-align:right">0,00</td></tr>
-          <tr><td>Biaya Lain</td><td>:</td><td style="text-align:right">0,00</td>
-              <td style="padding-left:14px">Deposit</td><td>:</td><td style="text-align:right">0,00</td></tr>
+              <td style="white-space:nowrap;padding-left:14px">DP PO</td><td>:</td><td style="text-align:right">0,00</td></tr>
+          <tr><td style="white-space:nowrap">Biaya Lain</td><td>:</td><td style="text-align:right">0,00</td>
+              <td style="white-space:nowrap;padding-left:14px">Deposit</td><td>:</td><td style="text-align:right">0,00</td></tr>
           <tr><td></td><td></td><td></td>
               <td style="padding-left:14px">Tunai</td><td>:</td><td style="text-align:right">${f2(tunai)}</td></tr>
           <tr><td></td><td></td><td></td>
@@ -2729,45 +2729,46 @@ function buildFaktur(tx, paper, orient='portrait'){
   </div>`;
 }
 
-function _showFaktur(inv,paper,orient){
+// Bungkus faktur klasik ke halaman A4 (dipakai sebagai setengah A4 / "A4 dibagi 2")
+function fakturA4Doc(tx){
+  const body=buildFakturClassic(tx);
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Faktur ${esc(tx.inv)}</title>
+  <style>
+    @page{size:A4 portrait;margin:0}
+    html,body{margin:0;padding:0}
+    *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .sheet{width:210mm;min-height:148.5mm;padding:0}
+    .cut{border-top:1px dashed #aaa;color:#999;font-size:9px;font-family:Arial,sans-serif;text-align:center;padding:2px 0;margin:0}
+  </style></head><body>
+    <div class="sheet">${body}</div>
+    <div class="cut">— — — — — — — — — — ✂ potong di sini — — — — — — — — — —</div>
+    <script>window.onload=()=>{window.print();}<\/script>
+  </body></html>`;
+}
+function _showFaktur(inv){
   const t=TX.find(x=>x.inv===inv);
-  const html=buildFaktur(t,paper,orient);
-  const paperBtns=['a5','a4'].map(k=>`<button onclick="_showFaktur('${inv}','${k}','${orient}')" style="padding:5px 12px;border-radius:7px;font-size:12px;font-weight:600;border:1.5px solid ${paper===k?'var(--teal)':'var(--line)'};background:${paper===k?'var(--teal-soft)':'var(--surface)'};color:${paper===k?'#0b6e64':'var(--ink-2)'};cursor:pointer">${k.toUpperCase()}</button>`).join('');
-  const orientBtns=[['portrait','Potrait','<rect x="7" y="2" width="10" height="20" rx="2"/>'],['landscape','Landscape','<rect x="2" y="7" width="20" height="10" rx="2"/>']]
-    .map(([o,label,icon])=>`<button class="orient-btn ${orient===o?'on':''}" onclick="_showFaktur('${inv}','${paper}','${o}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${icon}</svg>${label}</button>`).join('');
+  const html=buildFakturClassic(t);
   $('#modal').innerHTML=`
     <div class="modal-head"><h3>Faktur Penjualan</h3>
-      <div style="display:flex;gap:6px;margin-left:auto;align-items:center;flex-wrap:wrap">
-        ${paperBtns}
-        <div style="width:1px;height:18px;background:var(--line);margin:0 2px"></div>
-        ${orientBtns}
-      </div>
-      <button class="icon-btn" style="margin-left:8px" onclick="closeModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      <span style="margin-left:auto;font-size:12px;color:var(--ink-3)">Kertas A4 (dibagi 2)</span>
+      <button class="icon-btn" style="margin-left:10px" onclick="closeModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
     </div>
     <div class="modal-body" style="background:#eef3f6;padding:20px">
-      <div style="background:#fff;padding:18px 20px;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,.08)">${html}</div>
+      <div style="background:#fff;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,.08);overflow:hidden">${html}</div>
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal()">Tutup</button>
       <button class="btn btn-primary" onclick="printFaktur('${inv}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/></svg>Cetak Faktur</button>
     </div>`;
-  window._fakturCurrentPaper=paper;
-  window._fakturCurrentOrient=orient;
   window._fakturCurrentInv=inv;
 }
-function openFakturModal(inv){
-  const paper=SET.strukUkuran==='a4'?'a4':'a5';
-  _showFaktur(inv,paper,paper==='a5'?'landscape':'portrait');
-  showModal();
-}
-function rerenderFaktur(inv,paper){_showFaktur(inv,paper,window._fakturCurrentOrient||'portrait');}
+function openFakturModal(inv){ _showFaktur(inv); showModal(); }
 function printFaktur(inv){
-  const p=window._fakturCurrentPaper||'a5';
-  const o=window._fakturCurrentOrient||'portrait';
   const t=TX.find(x=>x.inv===inv);
-  setPageSize(p,o);
-  $('#printArea').innerHTML=buildFaktur(t,p,o);
-  window.print();
+  if(!t)return;
+  const w=window.open('','_blank','width=900,height=1000');
+  w.document.write(fakturA4Doc(t));
+  w.document.close();
 }
 
 /* ---------- Misc ---------- */
