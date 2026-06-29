@@ -7,7 +7,7 @@ const { db } = require('../database');
 
 // POST /api/store/notif — terima notifikasi dari apotek-online
 router.post('/', (req, res) => {
-  const { type, kode, customer, telepon, total, items, item_names, items_detail, waktu, kategori, metode_bayar, jatuh_tempo, bukti_data } = req.body;
+  const { type, kode, customer, telepon, alamat, catatan, total, items, item_names, items_detail, waktu, kategori, metode_bayar, jatuh_tempo, bukti_data } = req.body;
 
   try {
     // Simpan notifikasi ke tabel store (sudah ada di SehatFarma)
@@ -25,6 +25,8 @@ router.post('/', (req, res) => {
       type: type || 'order_baru',
       kode, customer: customer || (idx >= 0 ? notifList[idx].customer : ''),
       telepon: telepon || (idx >= 0 ? notifList[idx].telepon : ''),
+      alamat: alamat || (idx >= 0 ? notifList[idx].alamat : ''),
+      catatan: catatan || (idx >= 0 ? notifList[idx].catatan : ''),
       total: total ?? (idx >= 0 ? notifList[idx].total : 0),
       items: items ?? (idx >= 0 ? notifList[idx].items : 0),
       item_names: (item_names && item_names.length) ? item_names : (idx >= 0 ? notifList[idx].item_names : []),

@@ -570,10 +570,11 @@
       </div>
       <div class="note" style="margin-bottom:16px">Isi kolom <b>Stok Fisik</b> sesuai hasil hitung di rak. Selisih dihitung otomatis terhadap stok sistem. Saat disimpan, stok sistem akan disesuaikan ke jumlah fisik dan tercatat di riwayat.</div>
       <div class="stat-grid" id="opnameStats" style="grid-template-columns:repeat(3,1fr);margin-bottom:18px"></div>
-      <div class="card" style="overflow:hidden;margin-bottom:18px"><table>
+      <div class="card" style="overflow:hidden;margin-bottom:8px"><table>
         <thead><tr><th>Nama Obat</th><th>Kategori</th><th class="t-center">Stok Sistem</th><th class="t-center" style="width:140px">Stok Fisik</th><th class="t-center">Selisih</th><th class="t-right">Nilai Selisih</th></tr></thead>
         <tbody id="opnameTable"></tbody>
       </table></div>
+      <div id="opnamePagination" style="margin-bottom:18px"></div>
       <div class="card" style="overflow:hidden"><div class="panel-head"><h3>Riwayat Opname</h3><span class="chip chip-gray" id="opnameHistCount">0 sesi</span></div>
         <table><thead><tr><th>No. Opname</th><th>Tanggal</th><th class="t-center">Item Disesuaikan</th><th class="t-center">Total Selisih</th><th class="t-right">Nilai Selisih</th><th></th></tr></thead><tbody id="opnameHistTable"></tbody></table>
       </div>
@@ -1128,12 +1129,30 @@ function applyMarginAll(){
   toast('Harga jual '+OBAT.length+' obat diperbarui (margin '+m+'%)','ok');
 }
 
+/* ---------- Pager generik (maks 10/halaman) ---------- */
+const PER_PAGE=10;
+function buildPager(total,page,fnName){
+  const totalPage=Math.ceil(total/PER_PAGE)||1;
+  if(totalPage<=1) return total?`<div style="text-align:right;font-size:12px;color:var(--ink-3);padding:6px 2px">${total} item</div>`:'';
+  const prev=page>1?`<button class="btn btn-ghost btn-sm" onclick="${fnName}(${page-1})">‹ Prev</button>`:'';
+  const next=page<totalPage?`<button class="btn btn-ghost btn-sm" onclick="${fnName}(${page+1})">Next ›</button>`:'';
+  const nums=Array.from({length:totalPage},(_,i)=>i+1)
+    .filter(i=>i===1||i===totalPage||Math.abs(i-page)<=1)
+    .reduce((a,i,idx,arr)=>{if(idx>0&&i-arr[idx-1]>1)a.push('…');a.push(i);return a;},[])
+    .map(i=>i==='…'?`<span style="padding:0 6px;color:var(--ink-3)">…</span>`:
+      `<button class="btn btn-sm ${i===page?'btn-primary':'btn-ghost'}" onclick="${fnName}(${i})">${i}</button>`).join('');
+  return `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;padding:6px 2px">${prev}${nums}${next}<span style="font-size:12px;color:var(--ink-3);margin-left:8px">Hal ${page}/${totalPage} · ${total} item</span></div>`;
+}
+
 /* ---------- Stok Opname ---------- */
 function opnameVal(o){const v=opnameDraft[o.id];return v===undefined||v===''?o.stok:Math.max(0,+v);}
-function renderOpname(){
+var _opnamePage=1;
+function gotoOpnamePage(p){_opnamePage=p;renderOpname();}
+function renderOpname(resetPage){
+  if(resetPage===true)_opnamePage=1;
   const q=($('#opnameSearch')?$('#opnameSearch').value:'').toLowerCase();
   const filt=$('#opnameFilter')?$('#opnameFilter').value:'all';
-  let rows=OBAT.filter(o=>o.nama.toLowerCase().includes(q)||o.kode.toLowerCase().includes(q));
+  let rows=OBAT.filter(o=>o.nama.toLowerCase().includes(q)||(o.kode||'').toLowerCase().includes(q));
   if(filt==='diff')rows=rows.filter(o=>opnameVal(o)!==o.stok);
   let totItem=0,totQty=0,totNilai=0;
   OBAT.forEach(o=>{const f=opnameVal(o),s=o.stok-f===0?0:f-o.stok;if(s!==0){totItem++;totQty+=s;totNilai+=s*o.beli;}});
@@ -1142,7 +1161,11 @@ function renderOpname(){
     {lbl:'Total Selisih Unit',val:(totQty>0?'+':'')+totQty,col:totQty<0?'var(--danger)':'var(--teal)',bg:totQty<0?'var(--danger-soft)':'var(--teal-soft)'},
     {lbl:'Nilai Selisih (Modal)',val:rp(totNilai),col:totNilai<0?'var(--danger)':'var(--green)',bg:totNilai<0?'var(--danger-soft)':'var(--green-soft)'}
   ].map(s=>`<div class="stat card"><div class="lbl">${s.lbl}</div><div class="val num" style="color:${s.col}">${s.val}</div></div>`).join('');
-  $('#opnameTable').innerHTML=rows.length?rows.map(o=>{
+  const totalRows=rows.length;
+  const totalPage=Math.ceil(totalRows/PER_PAGE)||1;
+  if(_opnamePage>totalPage)_opnamePage=totalPage;
+  const pageRows=rows.slice((_opnamePage-1)*PER_PAGE,_opnamePage*PER_PAGE);
+  $('#opnameTable').innerHTML=pageRows.length?pageRows.map(o=>{
     const f=opnameVal(o), sel=f-o.stok;
     const selChip=sel===0?'<span class="chip chip-gray">0</span>':sel>0?`<span class="chip chip-teal">+${sel}</span>`:`<span class="chip chip-red">${sel}</span>`;
     return `<tr>
@@ -1153,6 +1176,7 @@ function renderOpname(){
       <td class="t-right num" style="color:${sel<0?'var(--danger)':sel>0?'var(--green)':'var(--ink-3)'}">${sel===0?'—':rp(sel*o.beli)}</td>
     </tr>`;
   }).join(''):`<tr><td colspan="6">${emptyBox('Tidak ada obat yang cocok')}</td></tr>`;
+  const opg=$('#opnamePagination');if(opg)opg.innerHTML=buildPager(totalRows,_opnamePage,'gotoOpnamePage');
   $('#opnameHistCount').textContent=OPN.length+' sesi';
   $('#opnameHistTable').innerHTML=OPN.length?OPN.map(s=>`<tr>
     <td><span class="num" style="font-size:12.5px;color:var(--ink-2)">${s.no}</span></td>
@@ -1573,7 +1597,7 @@ function konfirmasiBayar(no){
 
 /* ---------- Stok ---------- */
 $$('#stokSeg button').forEach(b=>b.onclick=()=>{$$('#stokSeg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');$$('.stok-tab').forEach(t=>t.style.display='none');$('#stok-'+b.dataset.tab).style.display='block';});
-$('#opnameSearch').oninput=renderOpname; $('#opnameFilter').onchange=renderOpname;
+$('#opnameSearch').oninput=()=>renderOpname(true); $('#opnameFilter').onchange=()=>renderOpname(true);
 function renderStok(){
   const low=OBAT.filter(o=>o.stok<=o.min).sort((a,b)=>a.stok-b.stok);
   $('#lowStokTable').innerHTML=low.length?low.map(o=>`<tr><td><b style="font-weight:600">${esc(o.nama)}</b></td><td><span class="chip chip-gray">${o.kategori}</span></td><td class="t-center num"><b>${o.stok}</b> ${esc(o.satuanKecil)}</td><td class="t-center num">${o.min}</td><td class="t-center">${o.stok===0?'<span class="chip chip-red">Habis</span>':'<span class="chip chip-amber">Menipis</span>'}</td><td class="t-right"><button class="btn btn-ghost btn-sm" onclick="gotoBeli('${o.id}')">Beli</button></td></tr>`).join(''):`<tr><td colspan="6">${emptyBox('Semua stok di atas batas minimum ✓')}</td></tr>`;
@@ -3617,6 +3641,7 @@ function renderOrderOnline() {
           <div style="font-size:16px;font-weight:800;color:var(--teal)">${rupiahOrder(o.total)}</div>
           <div style="display:flex;gap:6px;margin-top:8px;justify-content:flex-end;flex-wrap:wrap">
             ${!o.dibaca ? `<button onclick="tandaiBaca('${o.id}')" style="font-size:11.5px;padding:5px 10px;border-radius:6px;border:1.5px solid var(--line);background:none;cursor:pointer;color:var(--ink-2)">✓ Tandai Dibaca</button>` : ''}
+            ${o.alamat?`<button onclick="cetakLabelAlamat('${o.kode}')" style="font-size:11.5px;padding:5px 10px;border-radius:6px;border:1.5px solid var(--line);background:#fff;cursor:pointer;color:var(--ink-2);font-weight:600">🏷️ Label Alamat</button>`:''}
             <button onclick="prosesKeKasir('${o.kode}')" style="font-size:11.5px;padding:5px 10px;border-radius:6px;border:none;background:var(--teal);color:#fff;cursor:pointer;font-weight:600">⚡ Proses di Kasir</button>
             <button onclick="ubahStatusOrder('${o.kode}','selesai')" style="font-size:11.5px;padding:5px 10px;border-radius:6px;border:none;background:#16a34a;color:#fff;cursor:pointer;font-weight:600">Selesai</button>
             <button onclick="ubahStatusOrder('${o.kode}','dibatalkan')" style="font-size:11.5px;padding:5px 10px;border-radius:6px;border:1.5px solid #fca5a5;background:#fff;color:#dc2626;cursor:pointer">Batalkan</button>
@@ -3625,6 +3650,59 @@ function renderOrderOnline() {
       </div>
     </div>`;
   }).join('');
+}
+
+function cetakLabelAlamat(kode) {
+  const o = allOrders.find(x => x.kode === kode);
+  if (!o) { toast('Data order tidak ditemukan', 'warn'); return; }
+  const namaApotek = SET.apotekNama || 'Apotek';
+  const alamatApotek = [SET.apotekAlamat, SET.apotekKota].filter(Boolean).join(', ');
+  const telpApotek = SET.apotekTelepon || '';
+  const tgl = new Date(o.waktu).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
+  const items = (o.item_names && o.item_names.length) ? o.item_names : [];
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Label ${esc(kode)}</title>
+  <style>
+    @page{size:100mm 150mm;margin:0}
+    *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    body{font-family:Arial,Helvetica,sans-serif;margin:0;padding:0;color:#000}
+    .label{width:100mm;height:150mm;padding:5mm;border:1.5px solid #000;display:flex;flex-direction:column}
+    .lbl-top{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #000;padding-bottom:4px}
+    .lbl-brand{font-size:15px;font-weight:800;letter-spacing:.5px}
+    .lbl-cod{font-size:11px;font-weight:700;border:1.5px solid #000;border-radius:5px;padding:2px 8px}
+    .lbl-kode{text-align:center;font-family:monospace;font-size:13px;letter-spacing:2px;font-weight:700;padding:6px 0;border-bottom:1.5px dashed #000;margin-bottom:6px}
+    .lbl-sec-title{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#333;font-weight:700;margin-bottom:2px}
+    .lbl-penerima{border:1.5px solid #000;border-radius:6px;padding:7px 9px;margin-bottom:7px}
+    .lbl-nama{font-size:15px;font-weight:800}
+    .lbl-telp{font-size:12px;font-weight:600;margin-top:1px}
+    .lbl-alamat{font-size:12.5px;line-height:1.4;margin-top:3px}
+    .lbl-pengirim{font-size:10.5px;line-height:1.35;border-top:1.5px dashed #000;padding-top:5px}
+    .lbl-items{font-size:10px;line-height:1.4;margin-top:6px;flex:1;overflow:hidden}
+    .lbl-items b{font-size:9px;text-transform:uppercase;color:#333}
+    .lbl-foot{border-top:2px solid #000;padding-top:4px;display:flex;justify-content:space-between;font-size:10px;font-weight:600}
+  </style></head><body>
+  <div class="label">
+    <div class="lbl-top">
+      <div class="lbl-brand">${esc(namaApotek.toUpperCase())}</div>
+      <div class="lbl-cod">${o.metode_bayar==='cod'?'COD':(o.metode_bayar==='tempo'?'TEMPO':'LUNAS')}</div>
+    </div>
+    <div class="lbl-kode">${esc(kode)}</div>
+    <div class="lbl-sec-title">Penerima</div>
+    <div class="lbl-penerima">
+      <div class="lbl-nama">${esc(o.customer || '-')}</div>
+      <div class="lbl-telp">📞 ${esc(o.telepon || '-')}</div>
+      <div class="lbl-alamat">${esc(o.alamat || '-')}</div>
+    </div>
+    <div class="lbl-sec-title">Pengirim</div>
+    <div class="lbl-pengirim">
+      <b>${esc(namaApotek)}</b><br>${esc(alamatApotek || '-')}${telpApotek?`<br>Telp. ${esc(telpApotek)}`:''}
+    </div>
+    ${items.length?`<div class="lbl-items"><b>Isi Paket (${items.length})</b><br>${items.map(x=>esc(x)).join('<br>')}</div>`:'<div class="lbl-items"></div>'}
+    <div class="lbl-foot"><span>${tgl}</span><span>Total: ${rupiahOrder(o.total)}</span></div>
+  </div>
+  <script>window.onload=()=>window.print()<\/script>
+  </body></html>`;
+  const w = window.open('', '_blank', 'width=420,height=620');
+  w.document.write(html); w.document.close();
 }
 
 function lihatBuktiTransfer(kode) {
