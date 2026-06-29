@@ -2886,14 +2886,16 @@ initApp();
 function downloadContohObat(){
   if(!window.XLSX){toast('Library Excel belum siap, coba lagi sebentar','warn');return;}
   const rows=[
-    ['Kode','Nama Obat','Kategori','Satuan Kecil','Satuan Besar','Isi per Besar','Harga Beli','Harga Jual','Stok','Stok Min','Expired (YYYY-MM-DD)'],
-    ['PCT001','Paracetamol 500mg','Tablet','tablet','strip',10,1500,3000,100,20,'2026-12-31'],
-    ['AMX001','Amoxicillin 500mg','Kapsul','kapsul','strip',10,2500,5000,50,10,'2027-06-30'],
-    ['VIT001','Vitamin C 1000mg','Suplemen','tablet','botol',100,500,2000,200,30,'2027-03-31'],
+    ['Kode','Nama Obat','Kategori','Satuan Kecil','Satuan Besar','Isi per Besar','Harga Beli','Harga Jual','Stok','Stok Min','Expired (YYYY-MM-DD)','Jenis Obat (Biasa/Prekursor/OOT)'],
+    ['PCT001','Paracetamol 500mg','Tablet','tablet','strip',10,1500,3000,100,20,'2026-12-31','Biasa'],
+    ['AMX001','Amoxicillin 500mg','Kapsul','kapsul','strip',10,2500,5000,50,10,'2027-06-30','Biasa'],
+    ['VIT001','Vitamin C 1000mg','Suplemen','tablet','botol',100,500,2000,200,30,'2027-03-31','Biasa'],
+    ['EPH001','Efedrin HCl 50mg','Prekursor','tablet','strip',10,5000,12000,30,5,'2027-01-31','Prekursor'],
+    ['TRM001','Tramadol 50mg','OOT','kapsul','strip',10,8000,18000,20,5,'2027-06-30','OOT'],
   ];
   const wb=XLSX.utils.book_new();
   const ws=XLSX.utils.aoa_to_sheet(rows);
-  ws['!cols']=[8,25,12,12,12,10,12,12,8,8,20].map(w=>({wch:w}));
+  ws['!cols']=[8,25,12,12,12,10,12,12,8,8,20,22].map(w=>({wch:w}));
   XLSX.utils.book_append_sheet(wb,ws,'Data Obat');
   XLSX.writeFile(wb,'contoh-import-obat.xlsx');
   toast('File contoh Excel diunduh','ok');
@@ -2914,14 +2916,17 @@ async function importObatExcel(input){
       const iKode=col('kode'),iNama=col('nama'),iKat=col('kategori'),
             iSatK=col('satuan kecil'),iSatB=col('satuan besar'),iIsi=col('isi per'),
             iHB=col('harga beli'),iHJ=col('harga jual'),
-            iStok=col('stok'),iMin=col('stok min'),iExp=col('expired');
+            iStok=col('stok'),iMin=col('stok min'),iExp=col('expired'),iJenis=col('jenis');
       if(iNama<0){toast('Kolom "Nama Obat" tidak ditemukan','warn');return;}
+      const jenisValid=['Biasa','Prekursor','OOT'];
       let added=0,updated=0;
       for(let i=1;i<rows.length;i++){
         const c=rows[i];
         const nama=String(c[iNama]||'').trim();if(!nama)continue;
         const kode=String(iKode>=0?c[iKode]||'':'').trim();
         const existing=OBAT.find(o=>(kode&&o.kode===kode)||(o.nama.toLowerCase()===nama.toLowerCase()));
+        const jenisRaw=iJenis>=0?String(c[iJenis]||'').trim():'';
+        const jenis=jenisValid.find(j=>j.toLowerCase()===jenisRaw.toLowerCase())||'Biasa';
         const data={
           nama,kode,
           kategori:String(iKat>=0?c[iKat]||'':'').trim()||'Lainnya',
@@ -2933,6 +2938,7 @@ async function importObatExcel(input){
           stok:iStok>=0?+c[iStok]||0:0,
           min:iMin>=0?+c[iMin]||10:10,
           exp:iExp>=0?String(c[iExp]||'').trim():'',
+          jenis,
         };
         if(existing){Object.assign(existing,data);updated++;}
         else{data.id='o'+Date.now()+Math.random().toString(36).slice(2,6);OBAT.push(data);added++;}
