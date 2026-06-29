@@ -1,17 +1,31 @@
+# ============================================================
+#  APOTEK SEHATFARMA (apotek-app) — Install untuk CasaOS
+#  Cara pakai:
+#   1. CasaOS → App Store → "Install a customized app" (ikon +)
+#   2. Pilih "Import" lalu tempel seluruh isi file ini
+#   3. (Opsional) ganti JWT_SECRET dengan teks acak Anda sendiri
+#   4. Install, lalu buka:  http://<IP-SERVER>:3002
+#       Login awal:  admin / admin123
+#
+#  PENTING (agar terhubung dengan apotek-online):
+#   - Port host harus 3002 → cocok dengan SIMFAR_URL di apotek-online
+#     (SIMFAR_URL=http://<IP-SERVER>:3002)
+#   - Data tersimpan di /DATA/AppData/apotek-sehatfarma/data
+#     sehingga AMAN saat update / reinstall (tidak hilang).
+# ============================================================
+
 name: apotek-sehatfarma
 
 services:
-  apotek:
+  apotek-sehatfarma:
     image: ghcr.io/mentionabbe-wq/apotek-sehatfarma:latest
     container_name: apotek-sehatfarma
-    ports:
-      - "3000:3000"
-    volumes:
-      - apotek-data:/app/data
     restart: unless-stopped
+    ports:
+      - "3002:3000"          # host 3002 -> container 3000 (dipakai apotek-online)
     environment:
       - PORT=3000
-      - JWT_SECRET=apotek-sehatfarma-ganti-secret-ini
-
-volumes:
-  apotek-data:
+      - JWT_SECRET=ganti-dengan-teks-acak-rahasia-anda
+      - DB_DIR=/app/data
+    volumes:
+      - /DATA/AppData/apotek-sehatfarma/data:/app/data   # database persisten
