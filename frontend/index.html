@@ -556,13 +556,20 @@
           <div style="padding:14px 18px;border-bottom:1px solid var(--line)">
             <div class="field" style="margin-bottom:10px"><label>Supplier / Distributor</label><input id="beliSupplier" placeholder="cth: PBF Anugrah Pharma"></div>
             <div class="form-grid">
+              <div class="field"><label>Diskon (Rp)</label><input type="number" id="beliDiskon" min="0" placeholder="0" oninput="renderBeliCart()"><div class="hint">Potongan dari supplier</div></div>
+              <div class="field"><label>PPN (%)</label><input type="number" id="beliPpn" min="0" step="0.5" placeholder="0" oninput="renderBeliCart()"><div class="hint">Kosongkan / 0 bila non-PPN</div></div>
+            </div>
+            <div class="form-grid" style="margin-top:10px">
               <div class="field"><label>Jatuh Tempo Bayar</label><input type="date" id="beliJatuhTempo"><div class="hint">Kosongkan jika bayar tunai</div></div>
               <div class="field"><label>Bayar Muka (Rp)</label><input type="number" id="beliDP" min="0" placeholder="0 = kredit penuh"><div class="hint">Isi total jika lunas</div></div>
             </div>
           </div>
           <div class="cart-body" id="beliBody"></div>
           <div class="cart-foot">
-            <div class="sumline total" style="border:none;padding-top:0;margin:0 0 10px"><span>Total Beli</span><span class="num" id="beliTotal">Rp 0</span></div>
+            <div class="sumline"><span>Subtotal</span><span class="num" id="beliSub">Rp 0</span></div>
+            <div class="sumline" id="beliDiskonLine" style="display:none"><span>Diskon</span><span class="num" id="beliDiskonView" style="color:var(--danger)">Rp 0</span></div>
+            <div class="sumline" id="beliPpnLine" style="display:none"><span>PPN <span id="beliPpnPct" class="num"></span></span><span class="num" id="beliPpnView">Rp 0</span></div>
+            <div class="sumline total" style="margin:6px 0 10px"><span>Total Beli</span><span class="num" id="beliTotal">Rp 0</span></div>
             <button class="btn btn-primary" style="width:100%;justify-content:center;padding:13px" onclick="saveBeli()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>Simpan Pembelian</button>
           </div>
         </div>
@@ -1506,28 +1513,43 @@ function renderBeliCart(){
     <div class="ci-sub num">${rp(c.qty*c.harga)}</div>
     <button class="icon-btn" onclick="rmBeliCart(${i})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
   </div></div>`).join(''):`<div class="empty" style="padding:34px 20px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3h2l.4 2M7 13h10l3-8H5.4"/><circle cx="9" cy="20" r="1.2"/><circle cx="16" cy="20" r="1.2"/></svg><p>Nota kosong</p><span>Tambah item dari kiri</span></div>`;
-  $('#beliTotal').textContent=rp(beliCart.reduce((s,c)=>s+c.qty*c.harga,0));
+  const t=beliTotals();
+  $('#beliSub').textContent=rp(t.sub);
+  $('#beliDiskonLine').style.display=t.diskon>0?'':'none';
+  $('#beliDiskonView').textContent='- '+rp(t.diskon);
+  $('#beliPpnLine').style.display=t.ppnNom>0?'':'none';
+  $('#beliPpnPct').textContent=t.ppnPct?`${t.ppnPct}%`:'';
+  $('#beliPpnView').textContent=rp(t.ppnNom);
+  $('#beliTotal').textContent=rp(t.total);
+}
+function beliTotals(){
+  const sub=beliCart.reduce((s,c)=>s+c.qty*c.harga,0);
+  const diskon=Math.min(sub,Math.max(0,+($('#beliDiskon')?.value)||0));
+  const ppnPct=Math.max(0,+($('#beliPpn')?.value)||0);
+  const dpp=sub-diskon;
+  const ppnNom=Math.round(dpp*ppnPct/100);
+  return {sub,diskon,ppnPct,dpp,ppnNom,total:dpp+ppnNom};
 }
 function saveBeli(){
   if(!beliCart.length){toast('Nota pembelian masih kosong','warn');return;}
   const supplier=$('#beliSupplier').value.trim()||'Umum';
   const jatuhTempo=$('#beliJatuhTempo').value||'';
   const dp=+$('#beliDP').value||0;
-  let total=0;
+  const t=beliTotals();
   const items=beliCart.map(c=>{
     const o=OBAT.find(x=>x.id===c.id);
     o.stok+=c.qty*c.factor;
     const perKecil=Math.round(c.harga/c.factor); if(perKecil>0)o.beli=perKecil;
     if(c.exp)o.exp=c.exp;
-    total+=c.qty*c.harga;
     return{nama:c.nama,unit:c.satuan,qty:c.qty,harga:c.harga,sub:c.qty*c.harga};
   });
+  const total=t.total;
   const sisa=Math.max(0,total-dp);
   const status=sisa<=0?'lunas':(dp>0?'sebagian':'kredit');
   const no='BLI-'+new Date().toISOString().slice(2,10).replace(/-/g,'')+'-'+String(CTRB).padStart(3,'0');
-  BELI.unshift({no,time:new Date().toISOString(),supplier,items,total,jatuhTempo,dp,sisa,status});
+  BELI.unshift({no,time:new Date().toISOString(),supplier,items,sub:t.sub,diskon:t.diskon,ppnPersen:t.ppnPct,ppnNom:t.ppnNom,total,jatuhTempo,dp,sisa,status});
   CTRB++;saveObat();saveBeliData();saveCtrB();
-  beliCart=[];$('#beliSupplier').value='';$('#beliJatuhTempo').value='';$('#beliDP').value='';renderAll();
+  beliCart=[];$('#beliSupplier').value='';$('#beliJatuhTempo').value='';$('#beliDP').value='';$('#beliDiskon').value='';$('#beliPpn').value='';renderAll();
   toast('Pembelian disimpan · stok diperbarui','ok');
 }
 function statusBeliChip(b){
@@ -1558,6 +1580,9 @@ function viewBeli(no){
   <div class="modal-body"><div class="receipt">
     <div style="margin-bottom:12px"><b>${b.no}</b><div style="font-size:12px;color:var(--ink-3)">${esc(b.supplier)} · ${new Date(b.time).toLocaleString('id-ID')}</div></div>
     ${b.items.map(i=>`<div class="r-line"><span>${esc(i.nama)} ${i.qty} ${esc(i.unit)} × ${rp(i.harga)}</span><span class="num">${rp(i.sub)}</span></div>`).join('')}
+    ${b.sub!=null?`<div class="r-line" style="border:none;margin-top:6px"><span>Subtotal</span><span class="num">${rp(b.sub)}</span></div>`:''}
+    ${b.diskon?`<div class="r-line" style="border:none"><span>Diskon</span><span class="num" style="color:var(--danger)">- ${rp(b.diskon)}</span></div>`:''}
+    ${b.ppnNom?`<div class="r-line" style="border:none"><span>PPN ${b.ppnPersen?b.ppnPersen+'%':''}</span><span class="num">${rp(b.ppnNom)}</span></div>`:''}
     <div class="r-tot"><span>TOTAL</span><span class="num">${rp(b.total)}</span></div>
     <div class="r-line" style="border:none;margin-top:8px"><span>Bayar Muka</span><span class="num" style="color:var(--green)">${rp(dp)}</span></div>
     <div class="r-line" style="border:none"><span>Sisa Hutang</span><span class="num" style="color:${isKredit?'var(--danger)':'var(--green)'};font-weight:700">${rp(sisa)}</span></div>
