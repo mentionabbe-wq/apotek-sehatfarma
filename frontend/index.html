@@ -765,6 +765,13 @@
             <button class="btn btn-sm" onclick="bukaSP('OOT')" style="width:100%;justify-content:center;background:#fee2e2;color:#991b1b;border:1px solid #fecaca">📄 Buat Surat Pesanan</button>
           </div>
         </div>
+        <div class="card" style="overflow:hidden;margin-bottom:18px">
+          <div class="panel-head"><h3>Surat Pesanan Tersimpan</h3><span class="chip chip-gray" id="spCount">0 SP</span></div>
+          <table><thead><tr>
+            <th>Nomor SP</th><th>Jenis</th><th>Tanggal</th><th>Distributor / PBF</th>
+            <th class="t-center">Item</th><th class="t-right">Aksi</th>
+          </tr></thead><tbody id="spListTable"></tbody></table>
+        </div>
         <div class="card" style="padding:18px 20px">
           <p style="font-size:12.5px;color:var(--ink-3)">💡 <strong>Petunjuk:</strong> Jenis obat diatur di menu <strong>Data Obat → Edit → Jenis Obat</strong>. Surat Pesanan Prekursor & OOT wajib ditandatangani Apoteker Penanggung Jawab. Pastikan data apoteker sudah diisi di <strong>Pengaturan → Apotek</strong>.</p>
         </div>
@@ -832,8 +839,9 @@ const KEY_OBAT='apotek:obat', KEY_TX='apotek:transaksi', KEY_BELI='apotek:pembel
       KEY_CTR='apotek:counter', KEY_CTRB='apotek:counterBeli', KEY_SET='apotek:pengaturan',
       KEY_OPN='apotek:opname', KEY_CTRO='apotek:counterOpname',
       KEY_PENG='apotek:pengeluaran', KEY_CTRP='apotek:counterPengeluaran',
-      KEY_SALES='apotek:salesman', KEY_KLAS='apotek:klasifikasi', KEY_PEL='apotek:pelanggan';
-let OBAT=[], TX=[], BELI=[], OPN=[], PENG=[], SALES=[], KLAS=[], PEL=[], CTR=1, CTRB=1, CTRO=1, CTRP=1, SET=defaultSet();
+      KEY_SALES='apotek:salesman', KEY_KLAS='apotek:klasifikasi', KEY_PEL='apotek:pelanggan',
+      KEY_SP='apotek:surat_pesanan';
+let OBAT=[], TX=[], BELI=[], OPN=[], PENG=[], SALES=[], KLAS=[], PEL=[], SP=[], CTR=1, CTRB=1, CTRO=1, CTRP=1, SET=defaultSet();
 function defaultSet(){return {pkp:false,ppn:11,inclusive:true,pph:0.5,defaultMargin:30,marginMethod:'markup',apotekNama:'SehatFarma',apotekAlamat:'',apotekKota:'',apotekTelepon:'',noSIA:'',noSIPA:'',rekening:[],logo:'',penanggungJawab:'',operatorNama:'Admin',operatorRole:'Apoteker',pinEnabled:false,pin:'',printerJenis:'thermal',autoPrint:false,strukFooter:'Terima kasih atas kunjungan Anda',strukUkuran:'80',templates:{},labelUkuran:'sedang',labelHarga:true};}
 function defaultKlasifikasi(){return[
   {id:'kl_umum',nama:'Umum',warna:'#6b7280',diskon:0},
@@ -897,6 +905,7 @@ async function sset(k,v){
   try{await apiFetch('/api/store/'+encodeURIComponent(k),{method:'PUT',body:{value:v}});}catch{}
 }
 const saveObat=()=>{sset(KEY_OBAT,OBAT);syncObatToBackend();}, saveTx=()=>sset(KEY_TX,TX), saveBeliData=()=>sset(KEY_BELI,BELI);
+const saveSPList=()=>sset(KEY_SP,SP);
 function syncObatToBackend(silent=true){
   const token=localStorage.getItem('token')||'';
   // Strip field berat (barcode SVG, dll) sebelum kirim
@@ -946,10 +955,11 @@ async function init(){
   if(!OBAT){OBAT=SEED.map(o=>({...o,id:'o'+Math.random().toString(36).slice(2,9),barcode:genEAN13()}));await saveObat();}
   else{OBAT=OBAT.map(migrate);await saveObat();}
   syncObatToBackend();
-  const kl=await sget(KEY_KLAS); const pl=await sget(KEY_PEL);
+  const kl=await sget(KEY_KLAS); const pl=await sget(KEY_PEL); const sp=await sget(KEY_SP);
   if(!TX)TX=[]; if(!BELI)BELI=[]; if(!OPN)OPN=[]; if(!PENG)PENG=[]; if(!SALES)SALES=[]; if(!CTR)CTR=1; if(!CTRB)CTRB=1; if(!CTRO)CTRO=1; if(!CTRP)CTRP=1; if(s)SET={...SET,...s};
   KLAS=kl&&kl.length?kl:defaultKlasifikasi();
   PEL=pl||[];
+  SP=sp||[];
   $('#loader').style.display='none'; $('#app').style.display='grid';
   buildCatFilter(); renderAll(); applyOperator(); tickClock(); setInterval(tickClock,1000);
   if(SET.pinEnabled&&SET.pin)showLock();
@@ -2544,7 +2554,7 @@ function lockReset(){if(confirm('Reset akan menghapus PIN dan SEMUA data, lalu m
 
 /* ---- Backup / Restore / Reset ---- */
 function exportBackup(){
-  const data={app:'SehatFarma',version:4,exportedAt:new Date().toISOString(),obat:OBAT,tx:TX,beli:BELI,opn:OPN,peng:PENG,salesman:SALES,pelanggan:PEL,klasifikasi:KLAS,set:SET,counters:{CTR,CTRB,CTRO,CTRP}};
+  const data={app:'SehatFarma',version:5,exportedAt:new Date().toISOString(),obat:OBAT,tx:TX,beli:BELI,opn:OPN,peng:PENG,salesman:SALES,pelanggan:PEL,klasifikasi:KLAS,sp:SP,set:SET,counters:{CTR,CTRB,CTRO,CTRP}};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
   a.href=url;a.download='backup-sehatfarma-'+new Date().toISOString().slice(0,10)+'.json';a.click();URL.revokeObjectURL(url);toast('Backup berhasil diunduh','ok');
 }
@@ -2556,9 +2566,10 @@ function importBackup(input){
       const d=JSON.parse(r.result); if(!Array.isArray(d.obat))throw 0;
       OBAT=d.obat.map(migrate); TX=d.tx||[]; BELI=d.beli||[]; OPN=d.opn||[]; PENG=d.peng||[]; SALES=d.salesman||[];
       PEL=d.pelanggan||[]; KLAS=d.klasifikasi&&d.klasifikasi.length?d.klasifikasi:defaultKlasifikasi();
+      SP=d.sp||[];
       if(d.set)SET={...defaultSet(),...d.set};
       if(d.counters){CTR=d.counters.CTR||1;CTRB=d.counters.CTRB||1;CTRO=d.counters.CTRO||1;CTRP=d.counters.CTRP||1;}
-      saveObat();saveTx();saveBeliData();saveOpn();savePeng();saveSales();savePel();saveKlas();saveSet();saveCtr();saveCtrB();saveCtrO();saveCtrP();
+      saveObat();saveTx();saveBeliData();saveOpn();savePeng();saveSales();savePel();saveKlas();saveSPList();saveSet();saveCtr();saveCtrB();saveCtrO();saveCtrP();
       applyOperator();buildCatFilter();renderAll();toast('Data berhasil dipulihkan dari backup','ok');
     }catch(e){toast('File backup tidak valid','err');}
     input.value='';
@@ -2571,8 +2582,8 @@ function confirmReset(){
 }
 function resetApp(){
   OBAT=SEED.map(o=>({...o,id:'o'+Math.random().toString(36).slice(2,9),barcode:genEAN13()}));
-  TX=[];BELI=[];OPN=[];PENG=[];SALES=[];PEL=[];KLAS=defaultKlasifikasi();currentSalesman='';currentPelanggan='';CTR=1;CTRB=1;CTRO=1;CTRP=1;SET=defaultSet();
-  saveObat();saveTx();saveBeliData();saveOpn();savePeng();saveSales();savePel();saveKlas();saveSet();saveCtr();saveCtrB();saveCtrO();saveCtrP();
+  TX=[];BELI=[];OPN=[];PENG=[];SALES=[];PEL=[];SP=[];KLAS=defaultKlasifikasi();currentSalesman='';currentPelanggan='';CTR=1;CTRB=1;CTRO=1;CTRP=1;SET=defaultSet();
+  saveObat();saveTx();saveBeliData();saveOpn();savePeng();saveSales();savePel();saveKlas();saveSPList();saveSet();saveCtr();saveCtrB();saveCtrO();saveCtrP();
   $('#lockScreen').classList.remove('show');closeModal();applyOperator();buildCatFilter();renderAll();toast('Aplikasi direset ke data contoh','ok');
 }
 
@@ -3964,17 +3975,98 @@ function renderSuratPesanan() {
   if(el('spBiasaCount'))    el('spBiasaCount').textContent    = `${biasa.length} item terdaftar`;
   if(el('spPrekursorCount'))el('spPrekursorCount').textContent= `${prekur.length} item terdaftar`;
   if(el('spOOTCount'))      el('spOOTCount').textContent      = `${oot.length} item terdaftar`;
+
+  // Daftar SP tersimpan
+  const tb=el('spListTable'); if(!tb) return;
+  if(el('spCount')) el('spCount').textContent = `${SP.length} SP`;
+  const chip={Biasa:'chip-gray',Prekursor:'chip-amber',OOT:'chip-red'};
+  const label={Biasa:'Biasa',Prekursor:'Prekursor',OOT:'OOT'};
+  tb.innerHTML = SP.length ? SP.map(s=>`<tr>
+    <td><b style="font-weight:600">${esc(s.no||'(tanpa nomor)')}</b><div style="font-size:11px;color:var(--ink-3)">${s.updated?'Diubah':'Dibuat'} ${new Date(s.updated||s.time).toLocaleString('id-ID',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</div></td>
+    <td><span class="chip ${chip[s.jenis]||'chip-gray'}">${label[s.jenis]||s.jenis}</span></td>
+    <td class="num" style="font-size:12.5px">${s.tgl?fmtDate(s.tgl):'—'}</td>
+    <td style="font-size:12.5px">${esc(s.pbf||'—')}</td>
+    <td class="t-center num">${(s.items||[]).length}</td>
+    <td class="t-right">
+      <button class="icon-btn" onclick="bukaSP('${s.jenis}','${s.id}')" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+      <button class="icon-btn" onclick="cetakSPTersimpan('${s.id}')" title="Cetak"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/></svg></button>
+      <button class="icon-btn" onclick="hapusSP('${s.id}')" title="Hapus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>
+    </td></tr>`).join('') : `<tr><td colspan="6">${emptyBox('Belum ada Surat Pesanan tersimpan','SP akan tersimpan otomatis saat dibuat')}</td></tr>`;
 }
 
-function spBuatBaris(jenis, o) {
+// Cetak SP tersimpan: buka form (terisi) lalu cetak
+function cetakSPTersimpan(id){
+  const s=SP.find(x=>x.id===id); if(!s)return;
+  bukaSP(s.jenis,id);
+  setTimeout(()=>cetakSP(s.jenis),120);
+}
+
+// Bangun 1 baris item SP dari array nilai per kolom
+// Biasa : [nama, jumlah, satuan, ket]
+// Lainnya: [nama, zat, bentuk, jumlah, satuan, ket]
+function spBarisVals(jenis, vals) {
+  const v = vals || [];
   const td = (val) => `<td style="padding:3px 4px"><input style="width:100%;border:1px solid var(--line);border-radius:5px;padding:5px 7px;font-size:12.5px" value="${esc(val||'')}"></td>`;
-  const namaTd = `<td style="padding:3px 4px"><input class="sp-nama-input" autocomplete="off" style="width:100%;border:1px solid var(--line);border-radius:5px;padding:5px 7px;font-size:12.5px" value="${esc(o?o.nama:'')}" oninput="spCariObat(this,'${jenis}')" onblur="setTimeout(()=>spHideSuggest(),200)"></td>`;
-  const hapusBtn = `<td style="padding:3px 4px;width:30px"><button onclick="this.closest('tr').remove();spNomorUlang()" style="background:var(--danger-soft);color:var(--danger);border:none;border-radius:5px;width:26px;height:26px;cursor:pointer;font-size:13px">✕</button></td>`;
-  if (jenis === 'Biasa') {
-    return `<tr>${namaTd}${td('')}${td(o?o.satuanKecil:'')}${td('')}${hapusBtn}</tr>`;
+  const namaTd = `<td style="padding:3px 4px"><input class="sp-nama-input" autocomplete="off" style="width:100%;border:1px solid var(--line);border-radius:5px;padding:5px 7px;font-size:12.5px" value="${esc(v[0]||'')}" oninput="spCariObat(this,'${jenis}')" onblur="setTimeout(()=>spHideSuggest(),200)"></td>`;
+  const hapusBtn = `<td style="padding:3px 4px;width:30px"><button onclick="this.closest('tr').remove();spNomorUlang();spAutoSave()" style="background:var(--danger-soft);color:var(--danger);border:none;border-radius:5px;width:26px;height:26px;cursor:pointer;font-size:13px">✕</button></td>`;
+  const n = jenis === 'Biasa' ? 4 : 6;
+  const rest = Array.from({length:n-1},(_,i)=>td(v[i+1])).join('');
+  return `<tr>${namaTd}${rest}${hapusBtn}</tr>`;
+}
+function spBuatBaris(jenis, o) {
+  if (jenis === 'Biasa') return spBarisVals(jenis, [o?o.nama:'', '', o?o.satuanKecil:'', '']);
+  return spBarisVals(jenis, [o?o.nama:'', '', o?o.satuanKecil:'', '', o?o.satuanKecil:'', '']);
+}
+
+/* ---- Simpan & Edit Surat Pesanan ---- */
+let _spEditId=null, _spJenis='Biasa', _spAutoTimer=null;
+
+function spCollect(){
+  const jenis=_spJenis;
+  const items=[];
+  const tbody=document.getElementById('spItemTable');
+  if(tbody) Array.from(tbody.querySelectorAll('tr')).forEach(tr=>{
+    const v=Array.from(tr.querySelectorAll('input')).map(x=>x.value.trim());
+    if(!v[0] && !v[1]) return; // baris kosong dilewati
+    if(jenis==='Biasa') items.push({nama:v[0]||'',jumlah:v[1]||'',satuan:v[2]||'',ket:v[3]||''});
+    else items.push({nama:v[0]||'',zat:v[1]||'',bentuk:v[2]||'',jumlah:v[3]||'',satuan:v[4]||'',ket:v[5]||''});
+  });
+  const g=id=>{const e=document.getElementById(id);return e?e.value.trim():'';};
+  return {jenis,no:g('sp_no'),tgl:document.getElementById('sp_tgl')?.value||'',pbf:g('sp_pbf'),alamatPbf:g('sp_alamat_pbf'),telpPbf:g('sp_telp_pbf'),items};
+}
+
+function simpanSP(silent){
+  const d=spCollect();
+  // Jangan simpan bila benar-benar kosong
+  if(!d.no && !d.pbf && !d.items.length){ if(!silent)toast('Isi minimal nomor SP / PBF / item','warn'); return null; }
+  const now=new Date().toISOString();
+  if(_spEditId){
+    const i=SP.findIndex(x=>x.id===_spEditId);
+    if(i>=0) SP[i]={...SP[i],...d,updated:now};
+    else SP.unshift({id:_spEditId,...d,time:now});
   } else {
-    return `<tr>${namaTd}${td('')}${td(o?o.satuanKecil:'')}${td('')}${td(o?o.satuanKecil:'')}${td('')}${hapusBtn}</tr>`;
+    _spEditId='sp'+Date.now().toString(36);
+    SP.unshift({id:_spEditId,...d,time:now});
   }
+  saveSPList(); renderSuratPesanan();
+  if(!silent) toast('Surat Pesanan tersimpan','ok');
+  return _spEditId;
+}
+
+function spAutoSave(){
+  clearTimeout(_spAutoTimer);
+  _spAutoTimer=setTimeout(()=>{
+    if(simpanSP(true)){
+      const s=document.getElementById('spSaveStatus');
+      if(s){ s.textContent='✓ Tersimpan otomatis'; s.style.color='var(--green)'; }
+    }
+  },700);
+}
+
+function hapusSP(id){
+  if(!confirm('Hapus Surat Pesanan ini?'))return;
+  SP=SP.filter(x=>x.id!==id); saveSPList(); renderSuratPesanan();
+  toast('Surat Pesanan dihapus','ok');
 }
 
 // Dropdown SP — di body agar tidak terpotong modal overflow
@@ -4037,7 +4129,7 @@ function spTambahBaris(jenis) {
   const tbody = document.getElementById('spItemTable');
   if(!tbody) return;
   const tr = document.createElement('tr');
-  tr.innerHTML = spBuatBaris(jenis, null).replace('<tr>','').replace('</tr>','');
+  tr.innerHTML = spBuatBaris(jenis||_spJenis, null).replace('<tr>','').replace('</tr>','');
   // prepend no cell
   const noTd = document.createElement('td');
   noTd.className='sp-no'; noTd.style.cssText='padding:3px 8px;text-align:center;font-size:12.5px;width:34px;color:var(--ink-3)';
@@ -4046,7 +4138,11 @@ function spTambahBaris(jenis) {
   tbody.appendChild(tr);
 }
 
-function bukaSP(jenis) {
+function bukaSP(jenis, id) {
+  const rec = id ? SP.find(x=>x.id===id) : null;
+  if (rec) jenis = rec.jenis || jenis;
+  _spEditId = rec ? rec.id : null;
+  _spJenis = jenis;
   const labelMap = { Biasa:'Obat Biasa', Prekursor:'Prekursor Farmasi', OOT:'Obat-Obat Tertentu' };
   const isBiasa = jenis === 'Biasa';
   const theadCols = isBiasa
@@ -4061,21 +4157,27 @@ function bukaSP(jenis) {
        <th style="padding:7px 8px;background:#f0f4fa;border:1px solid #c7d4e0;width:70px">Satuan</th>
        <th style="padding:7px 8px;background:#f0f4fa;border:1px solid #c7d4e0;width:60px">Ket</th>`;
 
-  const initRows = Array(5).fill(null).map((_,i) => {
-    const baris = spBuatBaris(jenis, null);
+  // Baris: dari data tersimpan bila edit, selain itu 5 baris kosong
+  const srcRows = (rec && rec.items && rec.items.length)
+    ? rec.items.map(it => isBiasa
+        ? [it.nama, it.jumlah, it.satuan, it.ket]
+        : [it.nama, it.zat, it.bentuk, it.jumlah, it.satuan, it.ket])
+    : Array(5).fill(null);
+  const initRows = srcRows.map((vals,i) => {
+    const baris = vals ? spBarisVals(jenis, vals) : spBuatBaris(jenis, null);
     const noTd = `<td class="sp-no" style="padding:3px 8px;text-align:center;font-size:12.5px;color:var(--ink-3);width:34px">${i+1}</td>`;
     return baris.replace('<tr>', `<tr>${noTd}`);
   }).join('');
 
   $('#modal').innerHTML = `
-    <div class="modal-head"><h3>🗒️ Buat SP ${labelMap[jenis]}</h3><button class="icon-btn" onclick="closeModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
-    <div class="modal-body">
+    <div class="modal-head"><h3>🗒️ ${rec?'Edit':'Buat'} SP ${labelMap[jenis]}</h3><button class="icon-btn" onclick="closeModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+    <div class="modal-body" oninput="spAutoSave()">
       <div class="form-grid" style="margin-bottom:16px">
-        <div class="field"><label>Nomor SP</label><input id="sp_no" placeholder="001/SP/${new Date().getFullYear()}"></div>
-        <div class="field"><label>Tanggal</label><input type="date" id="sp_tgl" value="${new Date().toISOString().slice(0,10)}"></div>
-        <div class="field full"><label>Nama Distributor / PBF</label><input id="sp_pbf" placeholder="cth: PT Kimia Farma Trading & Distribution"></div>
-        <div class="field full"><label>Alamat PBF</label><input id="sp_alamat_pbf" placeholder="Alamat distributor (opsional)"></div>
-        <div class="field"><label>No. Telepon PBF</label><input id="sp_telp_pbf" placeholder="021-xxxxxxx (opsional)"></div>
+        <div class="field"><label>Nomor SP</label><input id="sp_no" value="${esc(rec?.no||'')}" placeholder="001/SP/${new Date().getFullYear()}"></div>
+        <div class="field"><label>Tanggal</label><input type="date" id="sp_tgl" value="${rec?.tgl||new Date().toISOString().slice(0,10)}"></div>
+        <div class="field full"><label>Nama Distributor / PBF</label><input id="sp_pbf" value="${esc(rec?.pbf||'')}" placeholder="cth: PT Kimia Farma Trading & Distribution"></div>
+        <div class="field full"><label>Alamat PBF</label><input id="sp_alamat_pbf" value="${esc(rec?.alamatPbf||'')}" placeholder="Alamat distributor (opsional)"></div>
+        <div class="field"><label>No. Telepon PBF</label><input id="sp_telp_pbf" value="${esc(rec?.telpPbf||'')}" placeholder="021-xxxxxxx (opsional)"></div>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
         <span style="font-size:13px;font-weight:600;color:var(--ink)">Daftar Item Pesanan</span>
@@ -4091,16 +4193,21 @@ function bukaSP(jenis) {
           <tbody id="spItemTable">${initRows}</tbody>
         </table>
       </div>
-      <p style="font-size:11.5px;color:var(--ink-3);margin-top:8px">💡 Item diisi otomatis dari Data Obat jenis <strong>${labelMap[jenis]}</strong>. Tambah/hapus baris atau edit langsung di tabel.</p>
+      <p style="font-size:11.5px;color:var(--ink-3);margin-top:8px">💡 Ketik nama obat untuk mencari dari Data Obat. Perubahan <strong>tersimpan otomatis</strong> dan bisa diedit lagi dari daftar SP Tersimpan.</p>
     </div>
     <div class="modal-foot">
-      <button class="btn btn-ghost" onclick="closeModal()">Batal</button>
-      <button class="btn btn-primary" onclick="cetakSP('${jenis}')">🖨️ Cetak Surat Pesanan</button>
+      <span id="spSaveStatus" style="font-size:12px;color:var(--ink-3);margin-right:auto">${rec?'Tersimpan':'Belum tersimpan'}</span>
+      <button class="btn btn-ghost" onclick="closeModal()">Tutup</button>
+      <button class="btn btn-ghost" onclick="simpanSP()">💾 Simpan</button>
+      <button class="btn btn-primary" onclick="cetakSP()">🖨️ Cetak</button>
     </div>`;
   showModal();
 }
 
 function cetakSP(jenis) {
+  jenis = jenis || _spJenis;
+  clearTimeout(_spAutoTimer);
+  simpanSP(true); // auto-simpan sebelum cetak
   const no       = $('#sp_no').value.trim() || '_______________';
   const tgl      = $('#sp_tgl').value;
   const pbf      = $('#sp_pbf').value.trim() || '_______________';
