@@ -1,11 +1,12 @@
-FROM node:20-alpine
-
-RUN apk add --no-cache python3 make g++
+# node:20-slim (Debian/glibc) dipakai agar better-sqlite3 memakai binary siap-pakai
+# (prebuilt). Versi -alpine (musl) tidak punya prebuilt sehingga harus compile dari
+# sumber — sangat lambat/menggantung saat build arm64 lewat emulasi QEMU.
+FROM node:20-slim
 
 WORKDIR /app
 
 COPY backend/package.json .
-RUN npm install --production
+RUN npm install --omit=dev --no-audit --no-fund
 
 COPY backend/ .
 COPY frontend/ /frontend/
