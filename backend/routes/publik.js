@@ -88,6 +88,25 @@ router.get('/produk/:id', (req, res) => {
   }
 });
 
+// GET /api/publik/pembayaran — info pembayaran (QRIS statis & rekening) untuk apotek-online
+router.get('/pembayaran', (req, res) => {
+  try {
+    const row = db.prepare("SELECT value FROM store WHERE key='apotek:pengaturan'").get();
+    const s = row ? JSON.parse(row.value) : {};
+    const rek = Array.isArray(s.rekening) ? s.rekening : [];
+    res.json({
+      success: true,
+      data: {
+        qris: s.qris || '',
+        namaApotek: s.apotekNama || '',
+        rekening: rek.map(r => ({ bank: r.bank || '', nomor: r.nomor || '', atasNama: r.atasNama || '' }))
+      }
+    });
+  } catch (err) {
+    res.json({ success: true, data: { qris: '', rekening: [] } });
+  }
+});
+
 // POST /api/publik/pelanggan — sync pelanggan dari apotek-online (public, tidak butuh token)
 router.post('/pelanggan', (req, res) => {
   try {

@@ -547,6 +547,7 @@
             <div class="field"><label>Satuan</label><select id="beliUnit"></select></div>
             <div class="field"><label>Jumlah</label><input type="number" id="beliQty" min="1" placeholder="0"></div>
             <div class="field"><label>Harga Beli / satuan</label><input type="number" id="beliHarga" min="0" placeholder="0"></div>
+            <div class="field"><label>Diskon / item (Rp)</label><input type="number" id="beliDiscItem" min="0" placeholder="0"><div class="hint">Potongan khusus item ini</div></div>
             <div class="field"><label>Update Tgl Expired</label><input type="date" id="beliExp"></div>
           </div>
           <button class="btn btn-ghost" style="margin-top:18px;width:100%;justify-content:center" onclick="addBeliCart()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Tambah ke Nota</button>
@@ -803,6 +804,7 @@
 <div class="print-area" id="printArea"></div>
 <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importBackup(this)">
 <input type="file" id="logoFile" accept="image/*" style="display:none" onchange="handleLogoUpload(this)">
+<input type="file" id="qrisFile" accept="image/*" style="display:none" onchange="handleQrisUpload(this)">
 <input type="file" id="importObatFile" accept=".xlsx,.xls" style="display:none" onchange="importObatExcel(this)">
 <div class="toast-wrap" id="toastWrap"></div>
 
@@ -1512,15 +1514,16 @@ function addBeliCart(){
   if(!o){toast('Pilih obat dulu','warn');return;}
   if(qty<=0){toast('Jumlah harus lebih dari 0','warn');return;}
   if(harga<=0){toast('Harga beli harus diisi','warn');return;}
-  beliCart.push({id:o.id,nama:o.nama,unit,satuan:unitName(o,unit),qty,harga,exp,factor:factor(o,unit)});
-  $('#beliQty').value='';$('#beliHarga').value='';$('#beliExp').value='';
+  const disc=Math.max(0,Math.min(qty*harga,+($('#beliDiscItem')?.value)||0));
+  beliCart.push({id:o.id,nama:o.nama,unit,satuan:unitName(o,unit),qty,harga,disc,exp,factor:factor(o,unit)});
+  $('#beliQty').value='';$('#beliHarga').value='';$('#beliExp').value='';if($('#beliDiscItem'))$('#beliDiscItem').value='';
   renderBeliCart();toast('Item ditambahkan ke nota','ok');
 }
 function rmBeliCart(i){beliCart.splice(i,1);renderBeliCart();}
 function renderBeliCart(){
   $('#beliBody').innerHTML=beliCart.length?beliCart.map((c,i)=>`<div class="cart-item"><div class="ci-top">
-    <div class="ci-info"><b>${esc(c.nama)}</b><span class="num">${c.qty} ${esc(c.satuan)} × ${rp(c.harga)}</span></div>
-    <div class="ci-sub num">${rp(c.qty*c.harga)}</div>
+    <div class="ci-info"><b>${esc(c.nama)}</b><span class="num">${c.qty} ${esc(c.satuan)} × ${rp(c.harga)}${c.disc?` <span style="color:var(--danger)">− ${rp(c.disc)}</span>`:''}</span></div>
+    <div class="ci-sub num">${rp(c.qty*c.harga-(c.disc||0))}</div>
     <button class="icon-btn" onclick="rmBeliCart(${i})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
   </div></div>`).join(''):`<div class="empty" style="padding:34px 20px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3h2l.4 2M7 13h10l3-8H5.4"/><circle cx="9" cy="20" r="1.2"/><circle cx="16" cy="20" r="1.2"/></svg><p>Nota kosong</p><span>Tambah item dari kiri</span></div>`;
   const t=beliTotals();
@@ -1533,12 +1536,14 @@ function renderBeliCart(){
   $('#beliTotal').textContent=rp(t.total);
 }
 function beliTotals(){
-  const sub=beliCart.reduce((s,c)=>s+c.qty*c.harga,0);
+  const bruto=beliCart.reduce((s,c)=>s+c.qty*c.harga,0);
+  const discItem=beliCart.reduce((s,c)=>s+(c.disc||0),0);
+  const sub=bruto-discItem;                       // subtotal setelah diskon per item
   const diskon=Math.min(sub,Math.max(0,+($('#beliDiskon')?.value)||0));
   const ppnPct=Math.max(0,+($('#beliPpn')?.value)||0);
   const dpp=sub-diskon;
   const ppnNom=Math.round(dpp*ppnPct/100);
-  return {sub,diskon,ppnPct,dpp,ppnNom,total:dpp+ppnNom};
+  return {bruto,discItem,sub,diskon,ppnPct,dpp,ppnNom,total:dpp+ppnNom};
 }
 function saveBeli(){
   if(!beliCart.length){toast('Nota pembelian masih kosong','warn');return;}
@@ -1551,7 +1556,7 @@ function saveBeli(){
     o.stok+=c.qty*c.factor;
     const perKecil=Math.round(c.harga/c.factor); if(perKecil>0)o.beli=perKecil;
     if(c.exp)o.exp=c.exp;
-    return{nama:c.nama,unit:c.satuan,qty:c.qty,harga:c.harga,sub:c.qty*c.harga};
+    return{nama:c.nama,unit:c.satuan,qty:c.qty,harga:c.harga,disc:c.disc||0,sub:c.qty*c.harga-(c.disc||0)};
   });
   const total=t.total;
   const sisa=Math.max(0,total-dp);
@@ -1589,7 +1594,7 @@ function viewBeli(no){
   $('#modal').innerHTML=`<div class="modal-head"><h3>Detail Pembelian</h3><button class="icon-btn" onclick="closeModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
   <div class="modal-body"><div class="receipt">
     <div style="margin-bottom:12px"><b>${b.no}</b><div style="font-size:12px;color:var(--ink-3)">${esc(b.supplier)} · ${new Date(b.time).toLocaleString('id-ID')}</div></div>
-    ${b.items.map(i=>`<div class="r-line"><span>${esc(i.nama)} ${i.qty} ${esc(i.unit)} × ${rp(i.harga)}</span><span class="num">${rp(i.sub)}</span></div>`).join('')}
+    ${b.items.map(i=>`<div class="r-line"><span>${esc(i.nama)} ${i.qty} ${esc(i.unit)} × ${rp(i.harga)}${i.disc?` <span style="color:var(--danger)">− ${rp(i.disc)}</span>`:''}</span><span class="num">${rp(i.sub)}</span></div>`).join('')}
     ${b.sub!=null?`<div class="r-line" style="border:none;margin-top:6px"><span>Subtotal</span><span class="num">${rp(b.sub)}</span></div>`:''}
     ${b.diskon?`<div class="r-line" style="border:none"><span>Diskon</span><span class="num" style="color:var(--danger)">- ${rp(b.diskon)}</span></div>`:''}
     ${b.ppnNom?`<div class="r-line" style="border:none"><span>PPN ${b.ppnPersen?b.ppnPersen+'%':''}</span><span class="num">${rp(b.ppnNom)}</span></div>`:''}
@@ -2213,6 +2218,16 @@ const PANELS={
         </div>
         <div class="hint" style="margin-top:6px">Gambar akan diperkecil otomatis. Tampil di kop struk & slip.</div>
       </div>
+      <div class="field full" style="margin-bottom:18px"><label>Barcode / QRIS Pembayaran <span class="hint">(tampil saat checkout di toko online)</span></label>
+        <div class="logo-up">
+          ${SET.qris?`<img src="${SET.qris}" class="logo-prev">`:'<div class="logo-ph">Belum ada<br>QRIS</div>'}
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-ghost btn-sm" type="button" onclick="document.getElementById('qrisFile').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 8l5-5 5 5M12 3v12"/></svg>Unggah QRIS</button>
+            ${SET.qris?`<button class="btn btn-danger btn-sm" type="button" onclick="removeQris()">Hapus</button>`:''}
+          </div>
+        </div>
+        <div class="hint" style="margin-top:6px">Unggah foto/screenshot QRIS statis Anda. Pelanggan toko online akan memindainya saat memilih pembayaran QRIS.</div>
+      </div>
       <div class="form-grid">
       <div class="field full"><label>Nama Apotek</label><input id="s_nama" value="${esc(SET.apotekNama||'')}"></div>
       <div class="field full"><label>Alamat</label><input id="s_alamat" value="${esc(SET.apotekAlamat||'')}"></div>
@@ -2459,6 +2474,23 @@ function handleLogoUpload(input){
   rd.readAsDataURL(f); input.value='';
 }
 function removeLogo(){SET.logo='';saveSet();applyOperator();applyLoginBranding(SET);renderSettings();toast('Logo dihapus','ok');}
+
+// QRIS statis untuk pembayaran di toko online
+function handleQrisUpload(input){
+  const f=input.files[0]; if(!f)return;
+  if(!f.type.startsWith('image/')){toast('File harus berupa gambar','warn');input.value='';return;}
+  const rd=new FileReader();
+  rd.onload=()=>{const img=new Image();img.onload=()=>{
+    const max=640;let w=img.width,h=img.height;            // QR perlu resolusi cukup agar tetap terpindai
+    if(w>max){h=Math.round(h*max/w);w=max;}
+    const c=document.createElement('canvas');c.width=w;c.height=h;
+    const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);ctx.drawImage(img,0,0,w,h);
+    try{SET.qris=c.toDataURL('image/png');saveSet();renderSettings();toast('QRIS berhasil diunggah','ok');}
+    catch(e){toast('Gagal memproses gambar','err');}
+  };img.onerror=()=>toast('Gambar tidak valid','err');img.src=rd.result;};
+  rd.readAsDataURL(f); input.value='';
+}
+function removeQris(){SET.qris='';saveSet();renderSettings();toast('QRIS dihapus','ok');}
 
 /* ---- Template Kertas ---- */
 let tplPaper=null;
