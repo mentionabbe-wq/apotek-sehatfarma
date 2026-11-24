@@ -98,6 +98,7 @@ footer{border-top:1px solid var(--line);background:#fff;padding:20px 0;color:var
 <header><div class="wrap hd">
   <div class="brand" onclick="go('')"><span id="bLogo"></span><div style="min-width:0"><b id="bNama">Apotek</b><small id="bTag"></small></div></div>
   <div class="sp"></div>
+  <button class="hbtn" onclick="go('tagihan')"><svg class="i" viewBox="0 0 24 24"><path d="M5 3h14v18l-3-2-2 2-2-2-2 2-2-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg><span class="t">Tagihan</span></button>
   <button class="hbtn" onclick="go('cek')"><svg class="i" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span class="t">Cek Pesanan</span></button>
   <button class="hbtn cartbtn" onclick="openCart()"><svg class="i" viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.7 12.4a1 1 0 0 0 1 .8h9.6a1 1 0 0 0 1-.8L21 7H6"/></svg><span class="t">Keranjang</span><span class="cnt" id="cnt" style="display:none">0</span></button>
 </div></header>
@@ -107,6 +108,7 @@ footer{border-top:1px solid var(--line);background:#fff;padding:20px 0;color:var
   <section class="page" id="p-checkout"></section>
   <section class="page" id="p-sukses"></section>
   <section class="page" id="p-cek"></section>
+  <section class="page" id="p-tagihan"></section>
 </main>
 <footer><div class="wrap" id="foot"></div></footer>
 
@@ -132,6 +134,7 @@ function go(h){location.hash=h}
 function route(){const h=location.hash.slice(1);document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   if(h==='checkout'){if(!CART.length)return go('');$('#p-checkout').classList.add('on');renderCheckout()}
   else if(h==='sukses'&&LAST){$('#p-sukses').classList.add('on');renderSukses()}
+  else if(h==='tagihan'){$('#p-tagihan').classList.add('on');renderTagihan()}
   else if(h.startsWith('cek')){$('#p-cek').classList.add('on');renderCek(decodeURIComponent(h.split('/')[1]||''))}
   else{$('#p-home').classList.add('on');renderHome()}
   window.scrollTo(0,0)}
@@ -257,6 +260,27 @@ async function renderCek(kode,telp){const mine=ls.get('toko-pesananku',[]);if(!t
      ${o.status==='baru'&&o.bayar!=='cod'?`<div style="margin-bottom:12px">${bayarInfo(o.bayar,o.total)}${o.adaBukti?'<div class="note info" style="margin-top:8px">Bukti pembayaran sudah diterima.</div>':buktiBox(o.kode,telp)}</div>`:''}
      <h3 style="font-size:14px;margin:6px 0 8px">Riwayat</h3><div class="tl">${o.riwayat.map(r=>`<div><b>${esc((STL[r.status]||[r.status])[0])}</b><br><small style="color:var(--ink3)">${new Date(r.t).toLocaleString('id-ID',{dateStyle:'medium',timeStyle:'short'})}</small></div>`).join('')}</div></div>`}
   catch(e){$('#cekRes').innerHTML=`<div class="note err">${esc(e.message)}</div>`}}
+
+/* ---------- Tagihan / sisa hutang ---------- */
+const tglID=s=>s?new Date(s+'T00:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}):'-';
+function renderTagihan(res){const tp=ls.get('toko-pembeli',{}).telp||'';
+  $('#p-tagihan').innerHTML=`<div style="max-width:620px;margin:0 auto"><h1 style="font-size:22px;margin-bottom:6px">Cek Tagihan</h1><p style="color:var(--ink2);margin-bottom:14px">Untuk pelanggan dengan pembayaran tempo. PIN 6 angka diberikan oleh apotek.</p>
+   <div class="card sec"><div class="fld"><label>Nomor HP terdaftar</label><input class="inp" id="t_telp" inputmode="tel" value="${esc(tp)}" autocomplete="tel"></div>
+   <div class="fld"><label>PIN</label><input class="inp" id="t_pin" type="password" inputmode="numeric" maxlength="6" autocomplete="off" onkeydown="if(event.key==='Enter')cekTagihan()"></div>
+   <button class="btn btn-p" id="t_btn" style="width:100%" onclick="cekTagihan()">Lihat Tagihan</button></div><div id="tagRes"></div></div>`}
+async function cekTagihan(){const b=$('#t_btn');b.disabled=true;b.textContent='Memeriksa…';
+  try{const d=(await api('/api/toko/tagihan',{method:'POST',body:{telp:$('#t_telp').value,pin:$('#t_pin').value.trim()}})).data;$('#t_pin').value='';
+    $('#tagRes').innerHTML=`<div class="card sec"><div style="color:var(--ink2)">Halo, <b>${esc(d.nama)}</b></div>
+     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0">
+      <div style="background:${d.total?'var(--red-s)':'var(--green-s)'};border-radius:10px;padding:12px"><small style="color:var(--ink2)">Sisa hutang</small><div style="font-size:22px;font-weight:800;color:${d.total?'var(--red)':'var(--green)'}">${rp(d.total)}</div></div>
+      ${d.lewat?`<div style="background:var(--amber-s);border-radius:10px;padding:12px"><small style="color:var(--ink2)">Lewat jatuh tempo</small><div style="font-size:18px;font-weight:800;color:#a55d00">${rp(d.lewat)}</div></div>`:''}
+      ${d.limit?`<div style="background:var(--bg);border-radius:10px;padding:12px"><small style="color:var(--ink2)">Sisa limit kredit</small><div style="font-size:18px;font-weight:800">${rp(Math.max(0,d.limit-d.total))}</div></div>`:''}
+      ${d.bonus>0?`<div style="background:var(--green-s);border-radius:10px;padding:12px"><small style="color:var(--ink2)">Saldo bonus</small><div style="font-size:18px;font-weight:800;color:var(--green)">${rp(d.bonus)}</div></div>`:''}</div>
+     ${d.tagihan.length?`<h3 style="font-size:14px;margin:6px 0 8px">Rincian tagihan</h3>${d.tagihan.map(h=>`<div class="ci" style="padding:10px 0"><div class="n"><b>${esc(h.ref)}</b><small>${h.tgl?'Tgl '+tglID(h.tgl)+' · ':''}Jatuh tempo ${tglID(h.jt)}</small>${h.dibayar?`<small style="display:block">Dibayar ${rp(h.dibayar)} dari ${rp(h.jumlah)}</small>`:''}</div><div style="text-align:right"><b>${rp(h.sisa)}</b>${h.lewat?'<br><span class="badge b-red">Lewat jatuh tempo</span>':''}</div></div>`).join('')}`:'<div class="note info" style="font-weight:500">Tidak ada tagihan. Terima kasih!</div>'}
+     ${d.bayar.length?`<h3 style="font-size:14px;margin:14px 0 8px">Pembayaran terakhir</h3>${d.bayar.map(x=>`<div class="sum"><span>${tglID(x.tgl)} · ${esc(x.ref)}</span><span style="color:var(--green);font-weight:700">${rp(x.jumlah)}</span></div>`).join('')}`:''}
+     ${d.total?`<div style="margin-top:14px"><h3 style="font-size:14px;margin-bottom:6px">Cara membayar</h3>${INFO.rekening.map(r=>`<div class="note info" style="margin-bottom:6px;font-weight:700">${esc(r)}</div>`).join('')||'<p style="color:var(--ink2)">Bayar langsung di apotek.</p>'}${INFO.wa?`<a class="btn btn-g" style="margin-top:6px" target="_blank" rel="noopener" href="https://wa.me/${esc(INFO.wa.replace(/^0/,'62'))}?text=${encodeURIComponent('Halo, saya '+d.nama+' ingin konfirmasi pembayaran tagihan.')}">Konfirmasi pembayaran via WhatsApp</a>`:''}</div>`:''}</div>`}
+  catch(e){$('#tagRes').innerHTML=`<div class="note err">${esc(e.message)}</div>`}
+  b.disabled=false;b.textContent='Lihat Tagihan'}
 
 init();
 </script>

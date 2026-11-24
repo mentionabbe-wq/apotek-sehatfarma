@@ -171,6 +171,25 @@ async function api(req, res, url) {
     const x = d && diskonFor(d, b.telp);
     return send(res, 200, { success: true, diskon: x ? x.diskon : 0, kategori: x ? x.kategori : null });
   }
+  if (p === '/api/toko/tagihan' && m === 'POST') {
+    if (rateLimited(ip, 'tagihan', 8, 600e3)) return fail(res, 429, 'Terlalu banyak percobaan, coba lagi 10 menit lagi');
+    const b = await readBody(req, 4e3), d = getState().data;
+    const t = normTelp(b.telp), pin = String(b.pin || '').trim();
+    const pel = d && /^\d{6}$/.test(pin) && t.length >= 9 && (d.pelanggan || []).find(x => x.nama !== 'Pelanggan Umum' && normTelp(x.telp) === t);
+    if (!pel || !pel.pin || pel.pin.length !== pin.length || !crypto.timingSafeEqual(Buffer.from(pel.pin), Buffer.from(pin)))
+      return fail(res, 404, 'Nomor HP atau PIN salah');
+    const dib = h => (h.bayar || []).reduce((s, x) => s + (+x.jumlah || 0), 0);
+    const sisa = h => h.status === 'Lunas' ? 0 : Math.max(0, h.jumlah - dib(h));
+    const today = new Date().toISOString().slice(0, 10);
+    const L = (d.piutang || []).filter(h => h.pihak === pel.nama);
+    const tagihan = L.filter(h => sisa(h) > 0).sort((a, b) => a.jt < b.jt ? -1 : 1)
+      .map(h => ({ ref: h.ref, tgl: h.tgl || null, jt: h.jt, jumlah: h.jumlah, dibayar: dib(h), sisa: sisa(h), lewat: h.jt < today }));
+    const bayar = L.flatMap(h => (h.bayar || []).map(x => ({ tgl: x.tgl, jumlah: x.jumlah, ref: h.ref }))).sort((a, b) => a.tgl < b.tgl ? 1 : -1).slice(0, 20);
+    const total = tagihan.reduce((s, h) => s + h.sisa, 0);
+    const bonus = (d.bonus || []).filter(x => x.pelanggan === pel.nama).reduce((s, x) => s + x.jumlah, 0);
+    return send(res, 200, { success: true, data: { nama: pel.nama, total, limit: +pel.limit || 0, termin: +pel.termin || 0,
+      lewat: tagihan.filter(h => h.lewat).reduce((s, h) => s + h.sisa, 0), tagihan, bayar, bonus } });
+  }
   if (p === '/api/toko/pesanan' && m === 'POST') {
     if (rateLimited(ip, 'order', 10, 600e3)) return fail(res, 429, 'Terlalu banyak pesanan dari perangkat ini, coba lagi nanti');
     const b = await readBody(req, 6e6), d = getState().data;

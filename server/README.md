@@ -43,6 +43,6 @@ Server ini berjalan di jaringan lokal. Agar pelanggan bisa membukanya dari luar,
 
 ## API (ringkas)
 
-Publik: `GET /api/toko/info`, `GET /api/toko/produk`, `POST /api/toko/diskon`, `POST /api/toko/pesanan`, `GET /api/toko/pesanan/:kode?telp=`, `POST /api/toko/pesanan/:kode/bukti`
+Publik: `GET /api/toko/info`, `GET /api/toko/produk`, `POST /api/toko/diskon`, `POST /api/toko/tagihan` (HP + PIN), `POST /api/toko/pesanan`, `GET /api/toko/pesanan/:kode?telp=`, `POST /api/toko/pesanan/:kode/bukti`
 
 Admin (Bearer token): `POST /api/auth/login`, `POST /api/auth/password`, `GET|PUT /api/state`, `GET /api/admin/orders`, `GET|PATCH /api/admin/orders/:kode`
