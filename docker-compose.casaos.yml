@@ -1,17 +1,24 @@
 # ============================================================
-#  APOTEK SEHATFARMA (apotek-app) — Install untuk CasaOS
-#  Cara pakai:
-#   1. CasaOS → App Store → "Install a customized app" (ikon +)
-#   2. Pilih "Import" lalu tempel seluruh isi file ini
-#   3. (Opsional) ganti JWT_SECRET dengan teks acak Anda sendiri
-#   4. Install, lalu buka:  http://<IP-SERVER>:3002
-#       Login awal:  admin / admin123
+#  APOTEK DIAN FARMA (apotek-app) — Install / Update untuk CasaOS
 #
-#  PENTING (agar terhubung dengan apotek-online):
-#   - Port host harus 3002 → cocok dengan SIMFAR_URL di apotek-online
-#     (SIMFAR_URL=http://<IP-SERVER>:3002)
-#   - Data tersimpan di /DATA/AppData/apotek-sehatfarma/data
-#     sehingga AMAN saat update / reinstall (tidak hilang).
+#  SUDAH TERPASANG VERSI LAMA (SehatFarma)?
+#   Cukup buka CasaOS → aplikasi apotek-sehatfarma → Update / Rebuild.
+#   Image, port (3002), dan folder data SAMA, jadi tidak perlu ubah apa pun.
+#   Saat pertama jalan, data lama otomatis diimpor ke aplikasi baru.
+#   File data lama (apotek.db) tidak diubah — tetap aman.
+#
+#  INSTAL BARU:
+#   1. CasaOS → App Store → "Install a customized app" (ikon +)
+#   2. Pilih "Import" lalu tempel seluruh isi file ini → Install
+#
+#  Setelah jalan:
+#   - Aplikasi apotek (admin) : http://<IP-SERVER>:3002/
+#   - Toko online pelanggan   : http://<IP-SERVER>:3002/toko
+#   - Login awal: admin / admin123 → aplikasi langsung minta ganti password
+#     (password lama aplikasi SehatFarma TIDAK ikut pindah)
+#
+#  Catatan: aplikasi "apotek-online" yang lama tidak dipakai lagi —
+#  penggantinya toko online bawaan di /toko.
 # ============================================================
 
 name: apotek-sehatfarma
@@ -22,10 +29,9 @@ services:
     container_name: apotek-sehatfarma
     restart: unless-stopped
     ports:
-      - "3002:3000"          # host 3002 -> container 3000 (dipakai apotek-online)
+      - "3002:3000"          # host 3002 -> container 3000
     environment:
       - PORT=3000
-      - JWT_SECRET=ganti-dengan-teks-acak-rahasia-anda
       - DB_DIR=/app/data
     volumes:
-      - /DATA/AppData/apotek-sehatfarma/data:/app/data   # database persisten
+      - /DATA/AppData/apotek-sehatfarma/data:/app/data   # database persisten (aman saat update)

@@ -1,20 +1,21 @@
-# node:20-slim (Debian/glibc) dipakai agar better-sqlite3 memakai binary siap-pakai
-# (prebuilt). Versi -alpine (musl) tidak punya prebuilt sehingga harus compile dari
-# sumber — sangat lambat/menggantung saat build arm64 lewat emulasi QEMU.
-FROM node:20-slim
+# Image untuk CasaOS (dibangun otomatis oleh GitHub Actions setiap push ke master):
+#   ghcr.io/mentionabbe-wq/apotek-sehatfarma:latest
+#
+# Sejak versi ini isinya aplikasi baru Apotek Dian Farma (server/ + toko online).
+# Port, folder data, dan nama image SAMA dengan versi lama, jadi di CasaOS cukup "Update".
+# Saat pertama jalan, data lama (/app/data/apotek.db) otomatis diimpor ke format baru;
+# file lama tidak diubah sehingga masih bisa kembali ke versi lama bila perlu.
+#
+# Tanpa npm install: server hanya memakai modul bawaan Node 24 (node:http, node:sqlite).
+FROM node:24-slim
 
 WORKDIR /app
+COPY server/server.js server/import-lama.js server/package.json ./server/
+COPY frontend/apotek-dian-farma.html frontend/toko.html ./frontend/
 
-COPY backend/package.json .
-RUN npm install --omit=dev --no-audit --no-fund
-
-COPY backend/ .
-COPY frontend/ /frontend/
-
-RUN mkdir -p data
-
-ENV PORT=3000
-ENV JWT_SECRET=apotek-sehatfarma-secret-ganti-di-produksi
+# Sama dengan instalasi CasaOS lama: PORT=3000, data di /app/data
+ENV PORT=3000 DB_DIR=/app/data FRONTEND_DIR=/app/frontend NODE_ENV=production
+RUN mkdir -p /app/data
 
 EXPOSE 3000
-CMD ["node", "server.js"]
+CMD ["node", "server/server.js"]

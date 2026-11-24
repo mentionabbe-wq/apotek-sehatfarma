@@ -7,6 +7,6 @@ if errorlevel 1 (
   pause
   exit /b
 )
-start "" http://localhost:3100/admin
+start "" http://localhost:3100/
 node server\server.js
 pause

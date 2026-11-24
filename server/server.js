@@ -12,7 +12,8 @@ const crypto = require('node:crypto');
 const { DatabaseSync } = require('node:sqlite');
 
 const PORT = +process.env.PORT || 3100;
-const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
+// DB_DIR dipakai oleh instalasi CasaOS lama (/app/data) — tetap dibaca agar data lama ikut terbaca
+const DATA_DIR = process.env.DATA_DIR || process.env.DB_DIR || path.join(__dirname, 'data');
 const FRONT = path.resolve(process.env.FRONTEND_DIR || path.join(__dirname, '..', 'frontend'));
 fs.mkdirSync(DATA_DIR, { recursive: true });
 
@@ -62,6 +63,18 @@ function readToken(t) {
 }
 
 /* ---------- Data aplikasi (state) ---------- */
+// Pertama kali jalan: pindahkan data aplikasi lama (apotek.db) bila ada. File lama hanya dibaca.
+if (!kvGet('state')) {
+  const lama = path.join(DATA_DIR, 'apotek.db');
+  try {
+    const data = require('./import-lama').imporDariLama(lama);
+    if (data) {
+      kvSet('state', JSON.stringify(data), 1);
+      kvSet('imported', JSON.stringify({ dari: lama, waktu: now() }));
+      console.log(`  Data aplikasi lama diimpor: ${data.obat.length} obat, ${data.pelanggan.length - 1} pelanggan, ${data.sales.length} penjualan`);
+    }
+  } catch (e) { console.error('  Gagal impor data lama (data lama tetap aman):', e.message); }
+}
 let STATE = null; // cache {rev, data}
 function getState() {
   if (STATE) return STATE;
@@ -310,8 +323,8 @@ async function api(req, res, url) {
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.webp': 'image/webp', '.json': 'application/json' };
 function serveStatic(req, res, url) {
   let rel = decodeURIComponent(url.pathname);
-  if (rel === '/' || rel === '/toko') rel = '/toko.html';
-  if (rel === '/admin' || rel === '/admin/') rel = '/apotek-dian-farma.html';
+  if (rel === '/toko' || rel === '/toko/') rel = '/toko.html';
+  if (rel === '/' || rel === '/admin' || rel === '/admin/' || rel === '/index.html') rel = '/apotek-dian-farma.html';
   const file = path.resolve(FRONT, '.' + rel);
   if (!file.startsWith(FRONT + path.sep)) { res.writeHead(403); return res.end('Forbidden'); }
   fs.readFile(file, (err, buf) => {
@@ -335,8 +348,8 @@ server.listen(PORT, () => {
   const u = db.prepare('SELECT must_change FROM users WHERE username=?').get('admin');
   console.log('\n==============================================');
   console.log('  Server Apotek Dian Farma berjalan');
-  console.log(`  Toko online : http://localhost:${PORT}/`);
-  console.log(`  Admin       : http://localhost:${PORT}/admin`);
+  console.log(`  Admin       : http://localhost:${PORT}/`);
+  console.log(`  Toko online : http://localhost:${PORT}/toko`);
   if (u && u.must_change) console.log('  Login awal  : admin / admin123  (segera ganti password!)');
   console.log('==============================================\n');
 });
