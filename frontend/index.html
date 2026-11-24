@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#0c2840">
+<meta name="theme-color" content="#0D2C6E">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -400,6 +400,73 @@
   .klas-info b{font-size:13.5px;font-weight:700}
   .klas-info span{font-size:12px;color:var(--ink-3)}
   .klas-badge{font-family:'Plus Jakarta Sans';font-weight:800;font-size:15px;color:var(--teal)}
+</style>
+<style id="tema-biru">
+  /* ===== TEMA BIRU SehatFarma (override warna; logika aplikasi tidak diubah) ===== */
+  :root{
+    --navy:#0D2C6E; --navy-700:#163A85;
+    --teal:#1D5FE0; --teal-bright:#3B7BF0; --teal-soft:#DCE9FF;
+    --bg:#EEF3FB; --line:#DCE4F2;
+    --ink:#14213D; --ink-2:#3E4C6B; --ink-3:#5B6A88;
+    --shadow:0 1px 2px rgba(13,44,110,.06),0 8px 24px rgba(13,44,110,.07);
+    --shadow-lg:0 12px 40px rgba(13,44,110,.18);
+  }
+  body{font-family:'Inter',sans-serif}
+  ::-webkit-scrollbar-thumb{background:#C2CFE6}
+  /* Sidebar */
+  .sidebar{background:var(--navy);color:#DCE6F8}
+  .brand{border-bottom-color:rgba(255,255,255,.10)}
+  .brand .mark,.lock-mark,.login-mark{background:#22B573;box-shadow:0 4px 12px rgba(34,181,115,.35)}
+  .brand span{color:#AFC3E8}
+  .nav-label{color:#8FA8D6}
+  .nav a{color:#DCE6F8;font-size:14px}
+  .nav a:hover{background:rgba(255,255,255,.08);color:#fff}
+  .nav a.active{background:#1D5FE0;box-shadow:none;color:#fff;font-weight:700}
+  .nav a.active .badge{color:#1446B8}
+  .side-foot{color:#8FA8D6;border-top-color:rgba(255,255,255,.10)}
+  /* Topbar */
+  .topbar{border-bottom-color:#DCE4F2}
+  .topbar .clock b{color:var(--navy)}
+  /* Kartu & header panel biru */
+  .card{border-color:#E2E9F5}
+  .panel-head,.cart-head{background:#1446B8;border-bottom:none;border-radius:var(--radius) var(--radius) 0 0;color:#fff}
+  .panel-head h3,.cart-head h3{color:#fff}
+  .cart-head svg{stroke:#fff}
+  .cart-head .icon-btn{color:#fff}
+  .cart-head .icon-btn:hover{background:rgba(255,255,255,.15);color:#fff}
+  .panel-head .search input{border-color:transparent}
+  .panel-head .search input:focus{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.35)}
+  /* Tabel */
+  thead th{background:#F1F5FC;color:#3E4C6B}
+  tbody tr:hover{background:#F6F9FF}
+  /* Tombol */
+  .btn-primary{background:#1D5FE0;box-shadow:0 4px 12px rgba(29,95,224,.25)}
+  .btn-primary:hover{background:#1446B8}
+  .btn-ghost{background:#F1F5FC;border-color:#C9D6F0}
+  .btn-ghost:hover{background:#E6EDFA}
+  #checkoutBtn{background:#17803A;box-shadow:0 4px 12px rgba(23,128,58,.28)}
+  #checkoutBtn:hover{background:#126A30}
+  .seg button.on,.seg-btn.on,.set-tabs button.on{background:#1D5FE0;border-color:#1D5FE0}
+  .seg-btn:hover{border-color:#1D5FE0;color:#1D5FE0}
+  .orient-btn.on{border-color:#1D5FE0;background:#E8F0FE;color:#1446B8}
+  /* Chip & pilihan */
+  .chip-teal{color:#133F94}
+  .seg-pick label:has(input:checked),.menu-check:has(input:checked){color:#133F94}
+  .klas-badge{color:#1D5FE0}
+  .label .lpr{color:#133F94}
+  /* Kasir */
+  .prod:hover{border-color:#1D5FE0;box-shadow:0 6px 18px rgba(29,95,224,.14)}
+  .prod .cat{color:#1446B8}
+  .bar-fill{background:#1D5FE0}
+  .cart-foot{background:#F6F9FF}
+  /* Login & kunci layar */
+  .login-screen,.lock{background:var(--navy)}
+  .login-btn{background:#1D5FE0;box-shadow:0 4px 14px rgba(29,95,224,.35)}
+  .login-btn:hover{background:#1446B8}
+  .user-avatar{background:#1D5FE0}
+  .self-badge{background:#DCE9FF;color:#133F94}
+  .toast.ok{background:#0D2C6E}.toast.ok svg{color:#7FD8A6}
+  .spinner{border-top-color:#1D5FE0}
 </style>
 </head>
 <body>
@@ -1441,7 +1508,7 @@ function _receiptModal(tx, paper){
       style="padding:5px 13px;border-radius:7px;font-size:12px;font-weight:600;
              border:1.5px solid ${paper===k?'var(--teal)':'var(--line)'};
              background:${paper===k?'var(--teal-soft)':'var(--surface)'};
-             color:${paper===k?'#0b6e64':'var(--ink-2)'};cursor:pointer">${label}</button>`).join('');
+             color:${paper===k?'#133F94':'var(--ink-2)'};cursor:pointer">${label}</button>`).join('');
   return `
     <div class="modal-head">
       <h3>Transaksi Berhasil ✓</h3>
@@ -1721,7 +1788,7 @@ function exportExcel(){
   const rows=TX.filter(t=>inPeriod(t.time,lapPeriod));
   if(!rows.length){toast('Tidak ada data untuk diekspor','warn');return;}
   const tgl=new Date().toISOString().slice(0,10);
-  const thead=`<tr style="background:#0d9488;color:#fff;font-weight:bold">
+  const thead=`<tr style="background:#1446B8;color:#fff;font-weight:bold">
     <th>Invoice</th><th>Waktu</th><th>Kasir</th><th>Pelanggan</th>
     <th>Klasifikasi</th><th>Salesman</th><th>Metode Bayar</th>
     <th>Unit Terjual</th><th>Subtotal (Rp)</th><th>Diskon (Rp)</th>
@@ -1889,7 +1956,7 @@ function exportPengExcel(){
   const rows=PENG.filter(p=>inPeriod(p.time,pengPeriod)).sort((a,b)=>new Date(b.time)-new Date(a.time));
   if(!rows.length){toast('Tidak ada data untuk diekspor','warn');return;}
   const tgl=new Date().toISOString().slice(0,10);
-  const thead=`<tr style="background:#0d9488;color:#fff;font-weight:bold">
+  const thead=`<tr style="background:#1446B8;color:#fff;font-weight:bold">
     <th>Tanggal</th><th>Kategori</th><th>Keterangan</th><th>Penerima</th><th>Nominal (Rp)</th></tr>`;
   const tbody=rows.map((p,i)=>`<tr style="${i%2?'background:#f9fafb':''}">
     <td>${new Date(p.time).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'})}</td>
