@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1d5fe0">
+<title>Apotek Dian Farma</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef3fb;--surface:#fff;--line:#e2e8f3;--line2:#eef2f8;
+  --ink:#16233f;--ink2:#46557a;--ink3:#7d8aa5;
+  --pri:#1d5fe0;--pri-d:#1648b3;--pri-s:#e5eeff;--navy:#123a8c;
+  --green:#16a34a;--green-s:#e2f6e9;--red:#e0353b;--red-s:#fde8e8;--amber:#f59e0b;--amber-s:#fff4dc;
+  --r:12px;--sh:0 1px 2px rgba(20,50,110,.05),0 6px 20px rgba(20,50,110,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:13.5px;line-height:1.45;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select,textarea{font-family:inherit;font-size:13.5px;color:var(--ink)}
+svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.num{font-variant-numeric:tabular-nums}
+::-webkit-scrollbar{width:9px;height:9px}::-webkit-scrollbar-thumb{background:#c7d3ea;border-radius:8px}
+
+/* ===== Layout ===== */
+.top{position:sticky;top:0;z-index:30;height:64px;background:var(--surface);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding:0 22px;box-shadow:0 1px 0 rgba(20,50,110,.03)}
+.logo{display:flex;align-items:center;gap:11px}
+.logo .cross{width:38px;height:38px;flex-shrink:0}
+.logo b{display:block;font-size:19px;font-weight:800;color:var(--navy);letter-spacing:-.02em;line-height:1.05}
+.logo small{font-size:11.5px;color:var(--ink2);font-weight:600}
+.top .sp{flex:1}
+.bell{position:relative;width:38px;height:38px;border-radius:10px;display:grid;place-items:center;color:var(--ink2)}
+.bell:hover{background:var(--bg)}
+.bell .dot{position:absolute;top:8px;right:9px;width:8px;height:8px;border-radius:50%;background:var(--red);border:2px solid #fff}
+.user{display:flex;align-items:center;gap:10px;padding:4px 8px 4px 4px;border-radius:30px}
+.user .av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#ffd9b8,#f2a97e);display:grid;place-items:center;font-weight:800;color:#7a3a14;font-size:14px}
+.user b{display:block;font-size:13px;color:var(--pri);font-weight:700;line-height:1.1}
+.user small{font-size:11.5px;color:var(--ink3)}
+.burger{display:none;width:38px;height:38px;border-radius:10px;place-items:center}
+.wrap{display:grid;grid-template-columns:224px 1fr;min-height:calc(100vh - 64px)}
+.side{background:var(--surface);border-right:1px solid var(--line);padding:14px 12px;position:sticky;top:64px;height:calc(100vh - 64px);overflow-y:auto;display:flex;flex-direction:column}
+.nav a{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:9px;color:var(--ink2);font-weight:500;text-decoration:none;margin-bottom:2px;cursor:pointer;font-size:13.5px}
+.nav a:hover{background:#f3f6fc;color:var(--ink)}
+.nav a.on{background:var(--pri-s);color:var(--pri);font-weight:700}
+.nav a.on svg{stroke:var(--pri)}
+.ver{margin-top:auto;padding:12px;font-size:11.5px;color:var(--ink3)}
+main{padding:22px 26px 40px;min-width:0}
+.ph{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.ph h1{font-size:22px;font-weight:800;letter-spacing:-.02em}
+.ph .sp{flex:1}
+.scrim{display:none}
+
+/* ===== Komponen ===== */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:18px}
+.card h3{font-size:14.5px;font-weight:700;margin-bottom:12px}
+.card-h{display:flex;align-items:center;gap:10px;margin-bottom:12px}.card-h h3{margin:0}.card-h .sp{flex:1}
+.grid{display:grid;gap:16px}
+.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:repeat(2,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:38px;padding:0 16px;border-radius:9px;font-weight:600;font-size:13.5px;white-space:nowrap;transition:.15s}
+.btn svg.i{width:16px;height:16px}
+.btn-p{background:var(--pri);color:#fff;box-shadow:0 3px 10px rgba(29,95,224,.25)}.btn-p:hover{background:var(--pri-d)}
+.btn-g{background:#eef2f8;color:var(--ink)}.btn-g:hover{background:#e2e8f3}
+.btn-o{background:#fff;border:1px solid var(--line);color:var(--ink2)}.btn-o:hover{border-color:var(--pri);color:var(--pri)}
+.btn-green{background:var(--green-s);color:#11793a;border:1px solid #bfe8cd}.btn-green:hover{background:#d2f0dd}
+.btn-red{background:var(--red-s);color:#b8232a;border:1px solid #f6c5c7}.btn-red:hover{background:#fbd9da}
+.btn-lg{height:46px;font-size:15px;padding:0 24px}
+.btn-sm{height:30px;padding:0 11px;font-size:12.5px;border-radius:7px}
+.ib{width:30px;height:30px;border-radius:7px;display:inline-grid;place-items:center;color:var(--pri)}
+.ib:hover{background:var(--pri-s)}.ib.del{color:var(--red)}.ib.del:hover{background:var(--red-s)}
+.ib svg.i{width:16px;height:16px}
+.inp,.sel{height:38px;border:1px solid var(--line);border-radius:9px;padding:0 12px;background:#fff;outline:none;width:100%;transition:.15s}
+.inp:focus,.sel:focus{border-color:var(--pri);box-shadow:0 0 0 3px rgba(29,95,224,.14)}
+textarea.inp{height:auto;padding:10px 12px;resize:vertical}
+.srch{position:relative}.srch svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--ink3);width:16px;height:16px}.srch .inp{padding-left:34px}
+.frm{display:grid;grid-template-columns:110px 1fr;gap:10px 12px;align-items:center}
+.frm label,.lbl{font-weight:600;color:var(--ink2);font-size:13px}
+.fgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px 18px}
+.fld label{display:block;font-weight:600;color:var(--ink2);font-size:12.5px;margin-bottom:5px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:18px;overflow-x:auto}
+.tabs button{padding:10px 14px;font-weight:600;color:var(--ink2);border-bottom:2.5px solid transparent;margin-bottom:-1px;white-space:nowrap;border-radius:8px 8px 0 0}
+.tabs button:hover{color:var(--pri)}
+.tabs button.on{color:var(--pri);border-bottom-color:var(--pri);background:var(--pri-s)}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{width:100%;border-collapse:collapse}
+th{background:#f4f7fc;color:var(--ink2);font-weight:700;font-size:12.5px;text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:9px 12px;border-bottom:1px solid var(--line2);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:#f8faff}
+td.r,th.r{text-align:right}td.c,th.c{text-align:center}
+.empty{padding:26px;text-align:center;color:var(--ink3)}
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11.5px;font-weight:700}
+.b-green{background:var(--green-s);color:#11793a}.b-red{background:var(--red-s);color:#b8232a}.b-amber{background:var(--amber-s);color:#a55d00}.b-blue{background:var(--pri-s);color:var(--pri-d)}.b-gray{background:#eef2f8;color:var(--ink2)}
+.up{color:var(--green);font-weight:700;font-size:12px}.down{color:var(--red);font-weight:700;font-size:12px}
+.muted{color:var(--ink3)}.tr{text-align:right}
+.alert{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:10px;font-weight:600}
+.alert-amber{background:var(--amber-s);color:#8a4d00;border:1px solid #fbdc9c}.alert-amber svg{color:var(--amber)}
+.alert-blue{background:var(--pri-s);color:var(--pri-d);border:1px solid #c6d8fb}
+
+/* Dashboard */
+.kpi{display:flex;gap:14px;align-items:flex-start}
+.kpi .ic{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;flex-shrink:0}
+.kpi .ic svg{width:26px;height:26px}
+.kpi small{font-size:12.5px;color:var(--ink2);font-weight:600}
+.kpi b{display:block;font-size:20px;font-weight:800;margin:2px 0;letter-spacing:-.02em}
+.chart svg{width:100%;height:220px;display:block}
+.stk{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line2)}
+.stk:last-child{border:none}
+.stk .x{width:22px;height:22px;border-radius:50%;background:var(--red);color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px;flex-shrink:0}
+.stk b{font-weight:600;font-size:13px;display:block}.stk small{color:var(--ink3);font-size:12px}
+.mini{display:flex;align-items:center;gap:14px}
+.mini .ic{width:44px;height:44px;border-radius:11px;display:grid;place-items:center}
+.mini b{font-size:20px;font-weight:800}
+
+/* Master tiles */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:12px;margin-bottom:22px}
+.tile{padding:16px 8px!important;font-size:13px}
+.tile{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:18px 10px;display:flex;flex-direction:column;align-items:center;gap:10px;font-weight:600;color:var(--ink);box-shadow:var(--sh);transition:.15s}
+.tile svg{width:38px;height:38px;color:var(--pri);stroke-width:1.8}
+.tile:hover{border-color:var(--pri);transform:translateY(-2px)}
+.tile.on{border-color:var(--pri);background:var(--pri-s)}
+
+/* POS */
+.pos{display:grid;grid-template-columns:1fr 330px;gap:16px}
+.pos-bar{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.pos-bar .srch{flex:1}
+.kbd{font-size:11px;color:var(--ink3);border:1px solid var(--line);border-radius:5px;padding:1px 6px;background:#f6f8fc}
+.sugg{position:absolute;left:0;right:0;top:42px;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 30px rgba(20,50,110,.14);z-index:20;max-height:280px;overflow:auto}
+.sugg div{padding:9px 12px;display:flex;justify-content:space-between;gap:10px;cursor:pointer}
+.sugg div:hover,.sugg div.on{background:var(--pri-s)}
+.sum-row{display:flex;justify-content:space-between;padding:7px 0;color:var(--ink2)}
+.sum-tot{display:flex;justify-content:space-between;align-items:baseline;padding:14px 0 16px;border-top:1px solid var(--line);margin-top:6px}
+.sum-tot span{font-size:18px;font-weight:800}.sum-tot b{font-size:24px;font-weight:800;color:var(--pri)}
+.fkeys{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+.fkey{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 4px;display:flex;flex-direction:column;align-items:center;gap:3px;font-weight:600;font-size:12.5px;color:var(--ink);box-shadow:var(--sh)}
+.fkey svg{color:var(--pri)}.fkey small{color:var(--ink3);font-size:10.5px}
+.fkey:hover{border-color:var(--pri)}.fkey.on{background:var(--pri-s);border-color:var(--pri)}
+.bayar{width:100%;height:58px;font-size:20px;font-weight:800;border-radius:11px;margin-top:4px}
+.seg2{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}.seg2 button{padding:4px 10px;font-size:12px;font-weight:600;color:var(--ink2);border-left:1px solid var(--line)}.seg2 button:first-child{border-left:none}.seg2 button.on{background:var(--pri);color:#fff}
+.qty{width:62px;height:30px;text-align:center;border:1px solid var(--line);border-radius:7px}
+
+/* Barcode */
+.lbl-prev{border:1.5px dashed #b9c8e6;border-radius:10px;padding:16px;display:flex;justify-content:center;background:#fafcff}
+.label{width:240px;background:#fff;border:1px solid #222;border-radius:4px;padding:8px 10px 6px;text-align:center;color:#000}
+.label .ap{font-weight:800;font-size:12px;letter-spacing:.04em}
+.label .nm{font-size:10.5px;margin-top:1px}
+.label svg{width:100%;height:56px;display:block;margin:4px 0 2px}
+.label .no{font-size:15px;font-weight:600;letter-spacing:.08em;font-family:ui-monospace,Consolas,monospace}
+
+/* Modal & toast */
+.mbg{position:fixed;inset:0;background:rgba(15,30,60,.42);display:none;align-items:center;justify-content:center;z-index:100;padding:16px}
+.mbg.show{display:flex}
+.modal{background:#fff;border-radius:14px;width:100%;max-width:560px;max-height:calc(100vh - 32px);display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(15,30,60,.3)}
+.mh{display:flex;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line)}.mh h3{flex:1;font-size:16px}
+.mb{padding:18px 20px;overflow-y:auto}
+.mf{display:flex;justify-content:flex-end;gap:10px;padding:14px 20px;border-top:1px solid var(--line)}
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:200;display:flex;flex-direction:column;gap:8px;align-items:center}
+.tst{background:#123a8c;color:#fff;padding:11px 18px;border-radius:10px;font-weight:600;box-shadow:0 10px 30px rgba(15,30,60,.3);display:flex;gap:8px;align-items:center;animation:tin .25s}
+.tst.warn{background:#a55d00}.tst.err{background:#b8232a}
+@keyframes tin{from{opacity:0;transform:translateY(10px)}}
+.matrix td,.matrix th{text-align:center}.matrix td:first-child,.matrix th:first-child{text-align:left}
+.matrix input{width:17px;height:17px;accent-color:var(--pri)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:9px 16px}.kv span{color:var(--ink2)}.kv b{font-weight:600}
+.bigrow{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--line2);font-size:14px}
+.bigrow b{font-weight:800}
+
+/* ===== Responsif ===== */
+#loginBox{position:fixed;inset:0;z-index:300;background:linear-gradient(160deg,#e5eeff,#eef3fb 60%);display:none;align-items:center;justify-content:center;padding:16px}
+.lg-card{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 20px 60px rgba(20,50,110,.15);padding:28px 26px;width:100%;max-width:380px}
+@media (max-width:600px){#syncSt .st-t{display:none}}
+@media (max-width:1100px){.g4{grid-template-columns:repeat(2,1fr)}.pos{grid-template-columns:1fr}}
+@media (max-width:900px){
+  .wrap{grid-template-columns:1fr}
+  .side{position:fixed;left:0;top:64px;z-index:40;width:250px;transform:translateX(-100%);transition:.2s;box-shadow:10px 0 30px rgba(15,30,60,.15)}
+  body.nav-open .side{transform:none}
+  body.nav-open .scrim{display:block;position:fixed;inset:64px 0 0 0;background:rgba(15,30,60,.3);z-index:35}
+  .burger{display:grid}
+  .g3,.g2{grid-template-columns:1fr}
+  .tiles{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:600px){
+  main{padding:16px}
+  .top{padding:0 12px}
+  .user div{display:none}
+  .logo b{font-size:16px}
+  .g4{grid-template-columns:1fr}
+  .fgrid{grid-template-columns:1fr}
+  .frm{grid-template-columns:1fr;gap:4px}
+  .fkeys{grid-template-columns:repeat(2,1fr)}
+}
+@media print{.top,.side,.ph .btn{display:none}.wrap{display:block}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <button class="burger" onclick="document.body.classList.toggle('nav-open')" aria-label="Menu"><svg class="i"><use href="#i-menu"/></svg></button>
+  <div class="logo">
+    <img id="brandLogo" class="cross" alt="Logo" style="display:none;object-fit:contain;width:auto;max-width:120px;height:42px">
+    <svg class="cross" id="brandCross" viewBox="0 0 40 40"><path d="M14 3h12v11h11v12H26v11H14V26H3V14h11z" fill="#22b573"/><path d="M14 3h12v11h11v12H26v11H14V26H3V14h11z" fill="none" stroke="#1d8f5a" stroke-width="1.5"/><path d="M20 12v16M12 20h16" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/></svg>
+    <div><b id="brandName">Apotek Dian Farma</b><small id="brandTag">Sehat Bersama, Lebih Baik</small></div>
+  </div>
+  <div class="sp"></div>
+  <span id="syncSt" style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;margin-right:4px;cursor:default"></span>
+  <button class="bell" onclick="go(SRV.newCount?'toko':'persediaan')" title="Notifikasi"><svg class="i"><use href="#i-bell"/></svg><span class="dot" id="bellDot"></span></button>
+  <div class="user"><span class="av">A</span><div><b>Admin</b><small>Administrator</small></div></div>
+</header>
+
+<div class="wrap">
+  <aside class="side"><nav class="nav" id="nav"></nav><div class="ver">Versi 1.0.0</div></aside>
+  <div class="scrim" onclick="document.body.classList.remove('nav-open')"></div>
+  <main id="main"></main>
+</div>
+
+<div class="mbg" id="mbg" onclick="if(event.target===this)closeModal()"><div class="modal" id="modal"></div></div>
+<div id="toast"></div>
+
+<!-- Ikon -->
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"/></symbol>
+  <symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></symbol>
+  <symbol id="i-cart" viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.7 12.4a1 1 0 0 0 1 .8h9.6a1 1 0 0 0 1-.8L21 7H6"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></symbol>
+  <symbol id="i-barcode" viewBox="0 0 24 24"><path d="M3 5v14M6 5v14M10 5v14M13 5v14M17 5v14M21 5v14"/></symbol>
+  <symbol id="i-pos" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></symbol>
+  <symbol id="i-retur" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-4"/></symbol>
+  <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h13v2"/><rect x="3" y="7" width="18" height="13" rx="2"/><circle cx="16" cy="13.5" r="1.5"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></symbol>
+  <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M5 3h14v18l-3-2-2 2-2-2-2 2-2-2-3 2z"/><path d="M9 8h6M9 12h6"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></symbol>
+  <symbol id="i-print" viewBox="0 0 24 24"><path d="M6 9V2h12v7"/><rect x="2" y="9" width="20" height="9" rx="2"/><rect x="6" y="14" width="12" height="8"/></symbol>
+  <symbol id="i-save" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
+  <symbol id="i-truck" viewBox="0 0 24 24"><path d="M1 3h15v13H1zM16 8h4l3 3v5h-7z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></symbol>
+  <symbol id="i-pill" viewBox="0 0 24 24"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7z"/><path d="m8.5 8.5 7 7"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></symbol>
+  <symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 3v18M7 21h10M5 7h14M5 7l-3 7a3 3 0 0 0 6 0zM19 7l-3 7a3 3 0 0 0 6 0z"/></symbol>
+  <symbol id="i-hosp" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4M12 6v6M9 9h6"/></symbol>
+  <symbol id="i-tag" viewBox="0 0 24 24"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8z"/><circle cx="7" cy="7" r="1.5"/></symbol>
+  <symbol id="i-trend" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 6-6"/><path d="M15 8h5v5"/></symbol>
+  <symbol id="i-cash" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></symbol>
+  <symbol id="i-percent" viewBox="0 0 24 24"><path d="M19 5 5 19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></symbol>
+  <symbol id="i-upl" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-card" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></symbol>
+  <symbol id="i-store" viewBox="0 0 24 24"><path d="M3 9l1.5-5h15L21 9M3 9h18v1.5a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0zM5 13v8h14v-8M10 21v-5h4v5"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+</svg>
+
+<script>
+/* =====================================================================
+   Apotek Dian Farma — prototipe front-end (data demo, tersimpan di browser)
+   ===================================================================== */
+const KEY='dianfarma-demo-v1';
+const $=s=>document.querySelector(s);
+const ic=(n,c='')=>`<svg class="i ${c}"><use href="#i-${n}"/></svg>`;
+const rp=n=>'Rp '+Math.round(n||0).toLocaleString('id-ID');
+const nf=n=>Math.round(n||0).toLocaleString('id-ID');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const iso=d=>{const x=new Date(d);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0')};
+const dAgo=n=>{const d=new Date();d.setDate(d.getDate()-n);return iso(d)};
+const tgl=s=>{const [y,m,d]=String(s).slice(0,10).split('-');return `${d}/${m}/${y}`};
+const ed=s=>{const [y,m]=String(s).split('-');return `${m}/${y}`};
+const today=()=>iso(new Date());
+const BLN=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+
+/* ---------- Data awal ---------- */
+const PRINTERS0=()=>[{id:1,nama:'Printer Kantor',jenis:'Inkjet / Laser',ket:'Epson L3210 / HP LaserJet'},{id:2,nama:'Epson LX-310',jenis:'Dot Matrix',ket:'Continuous form'},{id:3,nama:'Printer Kasir',jenis:'Thermal 58 mm',ket:'Struk POS'},{id:4,nama:'Xprinter XP-365B',jenis:'Label',ket:'Label barcode'}];
+const KATPEL0=()=>[{id:1,nama:'Umum',diskon:0,diskonOff:0},{id:2,nama:'Bronze',diskon:5,diskonOff:0},{id:3,nama:'Silver',diskon:7.5,diskonOff:1},{id:4,nama:'Gold',diskon:10,diskonOff:2}];
+const SALESMAN0=()=>[{id:1,nama:'Andi Pratama',telp:'0812-3456-7890',komisi:2},{id:2,nama:'Rina Marlina',telp:'0857-1122-3344',komisi:1.5}];
+const slsBy=id=>D.salesman.find(s=>s.id==id);
+const saldoBonus=n=>sumBy(D.bonus.filter(b=>b.pelanggan===n),b=>b.jumlah);
+const komisiTerutang=n=>sumBy(D.komisi.filter(k=>k.salesman===n),k=>k.jumlah);
+const pelBy=n=>D.pelanggan.find(p=>p.nama===n);
+const katOf=n=>{const p=pelBy(n);return D.katpel.find(k=>k.nama===(p&&p.kategori))||{nama:'Umum',diskon:0}};
+const BES={'Paracetamol 500 mg':['Box',10],'Amoxicillin 500 mg':['Box',10],'Vitamin C 1000 mg':['Box',100],'Omeprazole 20 mg':['Box',30],'Cetirizine 10 mg':['Box',100],'Amlodipine 5 mg':['Box',100],'Ibuprofen 400 mg':['Box',100],'OBH Sirup 100 ml':['Dus',24],'Metformin 500 mg':['Box',100],'Antasida Doen':['Box',100],'Salbutamol 2 mg':['Box',100],'Minyak Kayu Putih 60 ml':['Dus',12]};
+const hitungJual=(beli,m)=>{const b=Math.max(1,+D.config.bulat||1);return Math.ceil(Math.round((+beli||0)*(1+(+m||0)/100))/b)*b};
+const logoCetak=(st)=>D.config.logo&&D.config.logoCetak!==false?`<img src="${D.config.logo}" alt="" style="${st}">`:'';
+const punya2=o=>!!(o.satuanBesar&&o.isi>1);
+const units=o=>[{nm:o.satuan,isi:1}].concat(punya2(o)?[{nm:o.satuanBesar,isi:o.isi}]:[]);
+const hJual=(o,isi)=>isi>1?(o.jualBesar||o.jual*isi):o.jual;
+const stokTxt=o=>{if(!punya2(o)||o.stok<o.isi)return nf(o.stok)+' '+o.satuan;const b=Math.floor(o.stok/o.isi),r=o.stok%o.isi;return b+' '+o.satuanBesar+(r?' '+r+' '+o.satuan:'')};
+const kemasan=o=>punya2(o)?`1 ${o.satuanBesar} = ${o.isi} ${o.satuan}`:'';
+const unitSel=(o,isi,on)=>units(o).length>1?`<select class="sel" style="height:30px;width:auto;padding:0 6px" onchange="${on}">${units(o).map(u=>`<option value="${u.isi}" ${u.isi==isi?'selected':''}>${esc(u.nm)}</option>`).join('')}</select>`:`<span class="muted">${esc(o.satuan)}</span>`;
+const CFG0=()=>({nama:'Apotek Dian Farma',tagline:'Sehat Bersama, Lebih Baik',alamat:'Jl. Kesehatan No. 12',telp:'0812-0000-0000',ppn:11,npwp:'00.000.000.0-000.000',nib:'',printer:'Xprinter XP-365B',ukuran:'33 mm x 15 mm',
+  apoteker:'apt. Nama Apoteker, S.Farm',ttdFaktur:'',marginDefault:25,bulat:100,ppnMode:'exclude',spPrinter:1,spKertas:'half-a4',strukPrinter:3,sipa:'0000/SIPA/0000/2024',kota:'SUBANG',sarana:'DIAN FARMA, APT/SUBANG',alamatSarana:'Dusun Majasari',kodeSP:'DF'});
+function seed(){
+  const obat=[
+    ['Paracetamol 500 mg','Analgesik','Strip',1800,2500,150,'PCM24001','2027-12'],
+    ['Amoxicillin 500 mg','Antibiotik','Strip',2800,5000,5,'AMX24001','2028-06'],
+    ['Vitamin C 1000 mg','Vitamin','Tablet',2000,3000,200,'VTC24001','2027-11'],
+    ['Omeprazole 20 mg','Lambung','Kapsul',2600,4000,80,'OME24001','2027-09'],
+    ['Cetirizine 10 mg','Antihistamin','Tablet',1200,2000,90,'CET24001','2028-08'],
+    ['Amlodipine 5 mg','Hipertensi','Tablet',900,1500,8,'AML24003',iso(new Date(Date.now()+20*864e5)).slice(0,7)],
+    ['Ibuprofen 400 mg','Analgesik','Tablet',700,1200,64,'IBU24002','2027-03'],
+    ['OBH Sirup 100 ml','Batuk & Flu','Botol',9500,14000,25,'OBH24005','2027-01'],
+    ['Metformin 500 mg','Diabetes','Tablet',500,900,140,'MET24001','2028-02'],
+    ['Antasida Doen','Lambung','Tablet',350,700,10,'ANT24002',iso(new Date(Date.now()+12*864e5)).slice(0,7)],
+    ['Salbutamol 2 mg','Pernapasan','Tablet',400,800,48,'SAL24001','2027-07'],
+    ['Minyak Kayu Putih 60 ml','Umum','Botol',16000,22000,30,'MKP24009','2029-01'],
+  ].map((o,i)=>({id:i+1,nama:o[0],kategori:o[1],satuan:o[2],beli:o[3],jual:o[4],stok:o[5],min:12,batch:o[6],ed:o[7],barcode:String(2000000001234+i),satuanBesar:(BES[o[0]]||[''])[0],isi:(BES[o[0]]||[0,1])[1],jualBesar:0}));
+  const sales=[],purch=[];
+  const base=[1.42,1.85,1.61,2.13,1.58,1.97,2.46];
+  for(let i=59;i>=0;i--){
+    const t=Math.round((1.3+((i*37)%17)/18+(i<7?base[6-i]-1.4:0))*1e6/500)*500;
+    sales.push({no:'PJ-'+dAgo(i).replace(/-/g,'')+'-R',tgl:dAgo(i),pelanggan:'Rekap harian',items:[],subtotal:t,diskon:0,pajak:Math.round(t*0.11/1.11),total:t,hpp:Math.round(t*0.66),trx:22+((i*7)%15),rekap:true});
+    if(i%3===0){const p=Math.round((2.2+((i*13)%9)/4)*1e6/1000)*1000;purch.push({no:'PB-'+dAgo(i).replace(/-/g,'')+'-0'+(i%9),tgl:dAgo(i),supplier:['PT Sejahtera Farma','CV Medika Jaya','PT Anugrah Pharmindo'][i%3],items:[],total:p,pajak:Math.round(p*0.11/1.11),status:i%2?'Lunas':'Belum Lunas',rekap:true});}
+  }
+  return {
+    config:CFG0(),
+    obat,sales,purch,
+    kategori:['Analgesik','Antibiotik','Vitamin','Lambung','Antihistamin','Hipertensi','Batuk & Flu','Diabetes','Pernapasan','Umum'],
+    satuan:['Strip','Tablet','Kapsul','Botol','Tube','Box','Dus','Pak','Sachet'],
+    supplier:[{id:1,nama:'PT Sejahtera Farma',telp:'021-555-0101',alamat:'Jakarta Barat'},{id:2,nama:'CV Medika Jaya',telp:'022-600-2020',alamat:'Bandung'},{id:3,nama:'PT Anugrah Pharmindo',telp:'031-700-3030',alamat:'Surabaya'}],
+    pelanggan:[{id:1,nama:'Pelanggan Umum',kategori:'Umum',diskonOff:0,telp:'-',alamat:'-',npwp:''},{id:2,nama:'Ibu Ratna',kategori:'Bronze',diskonOff:0,telp:'0813-1111-2222',alamat:'Perum Asri B2',npwp:''},{id:3,nama:'Klinik Sehat Medika',kategori:'Gold',diskonOff:2,telp:'021-888-1212',alamat:'Jl. Melati 5, Subang',npwp:'0123456789012345'}],
+    katpel:KATPEL0(),salesman:SALESMAN0(),bonus:[],komisi:[],
+    printers:PRINTERS0(),
+    dokter:[{id:1,nama:'dr. Andi Wijaya',sip:'SIP-446/2024',praktik:'Klinik Sehat Medika'},{id:2,nama:'dr. Maya Lestari, Sp.A',sip:'SIP-512/2023',praktik:'RS Harapan'}],
+    harga:[{obat:'Paracetamol 500 mg',pelanggan:'Klinik Sehat Medika',harga:2200}],
+    kas:[
+      {tgl:dAgo(28),uraian:'Saldo awal kas',jenis:'Pemasukan',akun:'Kas',jumlah:6745000},
+      {tgl:dAgo(28),uraian:'Saldo awal bank',jenis:'Pemasukan',akun:'Bank BCA',jumlah:25200000},
+      {tgl:dAgo(1),uraian:'Penjualan tunai',jenis:'Pemasukan',akun:'Kas',jumlah:6105000},
+      {tgl:dAgo(1),uraian:'Bayar supplier PT Sejahtera Farma',jenis:'Pengeluaran',akun:'Kas',jumlah:5000000},
+      {tgl:dAgo(0),uraian:'Penjualan tunai',jenis:'Pemasukan',akun:'Kas',jumlah:5000000},
+    ],
+    hutang:[{pihak:'PT Sejahtera Farma',ref:'PB-2025-0427-001',jumlah:3000000,jt:dAgo(-14),status:'Belum Lunas'},{pihak:'CV Medika Jaya',ref:'PB-2025-0419-004',jumlah:1850000,jt:dAgo(-3),status:'Belum Lunas'}],
+    piutang:[{pihak:'Klinik Sehat Medika',ref:'PJ-2025-0420-017',jumlah:1240000,jt:dAgo(-7),status:'Belum Lunas'}],
+    jurnal:[
+      {tgl:dAgo(1),kode:'111',akun:'Kas',uraian:'Penjualan obat',debit:6105000,kredit:0},
+      {tgl:dAgo(1),kode:'412',akun:'Pendapatan Penjualan',uraian:'Penjualan obat',debit:0,kredit:6105000},
+      {tgl:dAgo(1),kode:'121',akun:'Persediaan',uraian:'Pembelian persediaan',debit:3000000,kredit:0},
+      {tgl:dAgo(1),kode:'211',akun:'Utang Supplier',uraian:'Pembelian persediaan',debit:0,kredit:3000000},
+    ],
+    mutasi:[],retur:[],
+    sp:[{no:'SP-DF/'+dAgo(2).slice(0,4)+'/'+dAgo(2).slice(5,7)+'/000002',tgl:dAgo(2),supplier:'PT Sejahtera Farma',jenis:'Reguler',items:[{id:2,nama:'Amoxicillin 500 mg',jumlah:10,satuan:'BOX (10 strip)'},{id:10,nama:'Antasida Doen',jumlah:5,satuan:'BOX (100 tablet)'}],status:'Dipesan'},{no:'SP-DF/'+dAgo(6).slice(0,4)+'/'+dAgo(6).slice(5,7)+'/000001',tgl:dAgo(6),supplier:'CV Medika Jaya',jenis:'Reguler',items:[{id:8,nama:'OBH Sirup 100 ml',jumlah:24,satuan:'BOTOL'}],status:'Diterima'}],
+    users:[{nama:'Budi Santoso',username:'budi',level:'Admin',status:'Aktif'},{nama:'Siti Rahayu',username:'siti',level:'Kasir',status:'Aktif'},{nama:'Dewi Anggraini',username:'dewi',level:'Gudang',status:'Nonaktif'}],
+    akses:{Admin:{},Kasir:{dashboard:1,pos:1,retur:1},Gudang:{dashboard:1,master:1,pembelian:1,persediaan:1,barcode:1}},
+    audit:[{t:new Date(Date.now()-36e5).toISOString(),u:'budi',a:'Login ke aplikasi'},{t:new Date(Date.now()-864e5).toISOString(),u:'siti',a:'Transaksi penjualan PJ-0427-0842'}],
+    backup:new Date(Date.now()-864e5).toISOString(),
+    seq:{pj:842,pb:1,rj:1,fp:0},
+  };
+}
+let D;
+try{D=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!D||!D.obat)D=seed();
+function migrate(){
+D.config={...CFG0(),...D.config};D.seq.sp=D.seq.sp||D.sp.length;
+D.obat.forEach(o=>{if(o.isi===undefined){const b=BES[o.nama];o.satuanBesar=b?b[0]:'';o.isi=b?b[1]:1;o.jualBesar=0}});
+D.obat.forEach(o=>{if(o.hargaMode===undefined){o.hargaMode='manual';o.margin=o.beli?Math.round((o.jual/o.beli-1)*1000)/10:0}});
+['Box','Dus','Pak'].forEach(x=>{if(!D.satuan.includes(x))D.satuan.push(x)});
+if(!D.katpel)D.katpel=KATPEL0();if(!D.salesman)D.salesman=SALESMAN0();D.bonus=D.bonus||[];D.komisi=D.komisi||[];D.pelanggan.forEach(p=>{if(p.diskonOff===undefined){const k=D.katpel.find(k=>k.nama===p.kategori);p.diskonOff=p.nama==='Pelanggan Umum'?0:(k&&k.diskonOff)||0}});if(!D.printers)D.printers=PRINTERS0();D.seq.fp=D.seq.fp||0;
+D.pelanggan.forEach(p=>{if(p.kategori===undefined){p.kategori=p.nama==='Ibu Ratna'?'Bronze':p.nama==='Klinik Sehat Medika'?'Gold':'Umum';p.npwp=p.npwp||''}});
+D.sp.forEach(s=>{if(typeof s.items==='string')s.items=[{nama:s.items,jumlah:'',satuan:''}]});
+D.obat.forEach(o=>{if(o.online===undefined)o.online=true;if(o.resep===undefined)o.resep=['Antibiotik','Hipertensi','Diabetes'].includes(o.kategori)});
+D.config.toko={buka:true,ongkir:10000,gratisOngkir:0,minBelanja:0,bayar:['transfer','qris','cod'],rekening:'',qris:'',wa:'',jam:'',info:'',...(D.config.toko||{})};
+D.piutang=D.piutang||[];
+}
+migrate();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(D))}catch(e){}if(typeof queueSync==='function')queueSync()}
+function log(a){D.audit.unshift({t:new Date().toISOString(),u:'admin',a});D.audit=D.audit.slice(0,200)}
+const obatBy=id=>D.obat.find(o=>o.id==id);
+
+/* ---------- UI helpers ---------- */
+function toast(m,t='ok'){const el=document.createElement('div');el.className='tst '+t;el.innerHTML=ic(t==='ok'?'check':'alert')+esc(m);$('#toast').appendChild(el);setTimeout(()=>el.remove(),2600)}
+function openModal(title,body,foot,w){$('#modal').style.maxWidth=(w||560)+'px';$('#modal').innerHTML=`<div class="mh"><h3>${title}</h3><button class="ib" onclick="closeModal()">${ic('x')}</button></div><div class="mb">${body}</div>${foot?`<div class="mf">${foot}</div>`:''}`;$('#mbg').classList.add('show');setTimeout(()=>{const f=$('#modal input,#modal select');f&&f.focus()},50)}
+function closeModal(){$('#mbg').classList.remove('show')}
+function download(name,text,type='text/plain'){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function csv(rows){return rows.map(r=>r.map(v=>{v=String(v??'');return /[",;\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}).join(',')).join('\n')}
+const tabs=(page,list)=>`<div class="tabs">${list.map(t=>`<button class="${(T[page]||list[0])===t?'on':''}" onclick="setTab('${page}','${t}')">${t}</button>`).join('')}</div>`;
+const T={};
+function setTab(p,t){T[p]=t;render()}
+const opt=(arr,sel)=>arr.map(v=>`<option ${v==sel?'selected':''}>${esc(v)}</option>`).join('');
+const head=(t,right='')=>`<div class="ph"><h1>${t}</h1><div class="sp"></div>${right}</div>`;
+
+/* ---------- Navigasi ---------- */
+const MENU=[
+  ['dashboard','Dashboard','home'],['master','Master Data','db'],['pembelian','Pembelian','cart'],['persediaan','Persediaan','box'],
+  ['barcode','Barcode & Label','barcode'],['pos','Penjualan (POS)','pos'],['toko','Toko Online','store'],['retur','Retur','retur'],['keuangan','Keuangan','wallet'],
+  ['akuntansi','Akuntansi','book'],['pajak','Perpajakan','receipt'],['laporan','Laporan','file'],['pengaturan','Pengaturan','gear'],
+];
+let PAGE='dashboard';
+function go(p){PAGE=p;location.hash=p;document.body.classList.remove('nav-open');render();window.scrollTo(0,0)}
+function updateChrome(){$('#nav').innerHTML=MENU.map(([k,l,i])=>`<a class="${PAGE===k?'on':''}" onclick="go('${k}')">${ic(i)}${l}${k==='toko'&&SRV.newCount?`<span class="badge b-red" style="margin-left:auto">${SRV.newCount}</span>`:''}</a>`).join('');$('#bellDot').style.display=SRV.newCount||D.obat.some(o=>o.stok<=o.min)?'':'none'}
+function render(){
+  updateChrome();
+  $('#brandName').textContent=D.config.nama;$('#brandTag').textContent=D.config.tagline;applyLogo();
+  $('#main').innerHTML=(PAGES[PAGE]||PAGES.dashboard)();
+  AFTER[PAGE]&&AFTER[PAGE]();
+}
+window.addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(h&&h!==PAGE&&PAGES[h]){PAGE=h;render()}});
+
+/* ---------- Perhitungan ---------- */
+let PERIODE=30;
+const inP=(t,n)=>t>=dAgo(n-1);
+const sumBy=(a,f)=>a.reduce((s,x)=>s+f(x),0);
+function stats(n){
+  const s=D.sales.filter(x=>inP(x.tgl,n)),ps=D.sales.filter(x=>x.tgl<dAgo(n-1)&&x.tgl>=dAgo(2*n-1));
+  const p=D.purch.filter(x=>inP(x.tgl,n)),pp=D.purch.filter(x=>x.tgl<dAgo(n-1)&&x.tgl>=dAgo(2*n-1));
+  const jual=sumBy(s,x=>x.total),beli=sumBy(p,x=>x.total),laba=sumBy(s,x=>x.total-x.pajak-x.hpp);
+  const pj=sumBy(ps,x=>x.total),pb=sumBy(pp,x=>x.total),pl=sumBy(ps,x=>x.total-x.pajak-x.hpp);
+  const g=(a,b)=>b?((a-b)/b*100):0;
+  return {jual,beli,laba,gj:g(jual,pj),gb:g(beli,pb),gl:g(laba,pl),trx:sumBy(s,x=>x.trx||1),ppnK:sumBy(s,x=>x.pajak),ppnM:sumBy(p,x=>x.pajak||0)};
+}
+function daily(n,src='sales'){const out=[];for(let i=n-1;i>=0;i--){const d=dAgo(i);out.push({d,v:sumBy(D[src].filter(x=>x.tgl===d),x=>x.total)})}return out}
+function barChart(data,h=220){
+  const W=640,H=h,L=42,B=26,T=10,max=Math.max(1e6,...data.map(x=>x.v));
+  const step=Math.ceil(max/1e6/3)*1e6||1e6,top=step*Math.ceil(max/step);
+  const bw=(W-L-10)/data.length;let g='';
+  for(let v=0;v<=top;v+=step){const y=H-B-(v/top)*(H-B-T);g+=`<line x1="${L}" x2="${W}" y1="${y}" y2="${y}" stroke="#e8edf6"/><text x="${L-8}" y="${y+4}" text-anchor="end" font-size="11" fill="#7d8aa5">${v/1e6} jt</text>`}
+  data.forEach((x,i)=>{const bh=(x.v/top)*(H-B-T),bx=L+i*bw+bw*.22,w=bw*.56,y=H-B-bh;const [,m,d]=x.d.split('-');
+    g+=`<rect x="${bx}" y="${y}" width="${w}" height="${Math.max(bh,1)}" rx="4" fill="url(#gb)"><title>${tgl(x.d)}: ${rp(x.v)}</title></rect>`;
+    if(data.length<=10||i%Math.ceil(data.length/8)===0)g+=`<text x="${bx+w/2}" y="${H-8}" text-anchor="middle" font-size="11" fill="#7d8aa5">${+d}/${+m}</text>`});
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="height:${h}px"><defs><linearGradient id="gb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2f74f0"/><stop offset="1" stop-color="#1d5fe0"/></linearGradient></defs>${g}</svg>`;
+}
+const growth=v=>`<span class="${v>=0?'up':'down'}">${v>=0?'↑':'↓'} ${Math.abs(v).toFixed(1)}%</span>`;
+function addMutasi(id,jenis,ref,masuk,keluar){D.mutasi.unshift({tgl:today(),id,jenis,ref,masuk,keluar,saldo:obatBy(id).stok})}
+function jurnal(uraian,lines){lines.forEach(([kode,akun,debit,kredit])=>D.jurnal.unshift({tgl:today(),kode,akun,uraian,debit,kredit}))}
+
+/* =====================================================================
+   HALAMAN
+   ===================================================================== */
+const PAGES={},AFTER={};
+
+/* 1. Dashboard */
+PAGES.dashboard=()=>{
+  const s=stats(PERIODE),low=D.obat.filter(o=>o.stok<=o.min);
+  const lim=iso(new Date(Date.now()+30*864e5)).slice(0,7),exp=D.obat.filter(o=>o.ed<=lim);
+  return head('Dashboard',`<span class="lbl">Periode:</span><select class="sel" style="width:150px" onchange="PERIODE=+this.value;render()">${[[1,'Hari ini'],[7,'7 hari'],[30,'30 hari'],[90,'90 hari']].map(([v,l])=>`<option value="${v}" ${v==PERIODE?'selected':''}>${l}</option>`).join('')}</select>`)+`
+  <div class="grid g3" style="margin-bottom:16px">
+    <div class="card kpi"><div class="ic" style="background:var(--green-s);color:var(--green)">${ic('cart')}</div><div><small>Penjualan</small><b class="num">${rp(s.jual)}</b>${growth(s.gj)}</div></div>
+    <div class="card kpi"><div class="ic" style="background:var(--green-s);color:var(--green)">${ic('cart')}</div><div><small>Pembelian</small><b class="num">${rp(s.beli)}</b>${growth(s.gb)}</div></div>
+    <div class="card kpi"><div class="ic" style="background:var(--green-s);color:var(--green)">${ic('trend')}</div><div><small>Laba Kotor</small><b class="num">${rp(s.laba)}</b>${growth(s.gl)}</div></div>
+  </div>
+  <div class="grid" style="grid-template-columns:1fr 300px;margin-bottom:16px" id="dashRow">
+    <div class="card chart"><h3>Grafik Penjualan 7 Hari Terakhir</h3>${barChart(daily(7))}</div>
+    <div class="card"><h3>Stok Menipis</h3>
+      ${low.length?low.slice(0,4).map(o=>`<div class="stk"><span class="x">!</span><div><b>${esc(o.nama)}</b><small>(${stokTxt(o)})</small></div></div>`).join(''):'<div class="empty">Semua stok aman 👍</div>'}
+      <button class="btn btn-g" style="width:100%;margin-top:10px;color:var(--pri)" onclick="T.persediaan='Stok Barang';STOKF='menipis';go('persediaan')">Lihat Semua</button>
+    </div>
+  </div>
+  <div class="grid g3">
+    <div class="card mini" style="cursor:pointer" onclick="go('persediaan')"><div class="ic" style="background:var(--amber-s);color:var(--amber)">${ic('cal')}</div><div><small class="muted">Obat Kedaluwarsa<br>Dalam 30 Hari</small><br><b>${exp.length} Item</b></div></div>
+    <div class="card mini"><div class="ic" style="background:var(--green-s);color:var(--green)">${ic('users')}</div><div><small class="muted">Pelanggan Aktif</small><br><b>${nf(248+D.pelanggan.length-3)} Orang</b></div></div>
+    <div class="card mini"><div class="ic" style="background:var(--pri-s);color:var(--pri)">${ic('receipt')}</div><div><small class="muted">Jumlah Transaksi</small><br><b>${nf(s.trx)}</b></div></div>
+  </div>`;
+};
+AFTER.dashboard=()=>{if(innerWidth<900)$('#dashRow').style.gridTemplateColumns='1fr'};
+
+/* 2. Master Data */
+let MTAB='obat',MQ='';
+const MCOLS={supplier:[['nama','Nama Supplier'],['telp','Telepon'],['alamat','Alamat']],pelanggan:[['nama','Nama Pelanggan'],['kategori','Kategori'],['diskonOff','Diskon Off Faktur / Bonus (%)'],['telp','Telepon'],['alamat','Alamat'],['npwp','NPWP / NIK']],katpel:[['nama','Nama Kategori'],['diskon','Diskon On Faktur (%)']],salesman:[['nama','Nama Salesman'],['telp','Telepon'],['komisi','Komisi (%)']],dokter:[['nama','Nama Dokter'],['sip','No. SIP'],['praktik','Tempat Praktik']],harga:[['obat','Obat'],['pelanggan','Pelanggan'],['harga','Harga Khusus']]};
+const NUMK=['harga','diskon','diskonOff','komisi'];
+const mCell=(k,x)=>k==='harga'?rp(x[k]):k==='diskon'||k==='komisi'?`<span class="badge b-blue">${x[k]}%</span>`:k==='diskonOff'?`<span class="badge b-green">${x[k]||0}%</span>`:k==='kategori'&&MTAB==='pelanggan'?`<span class="badge b-gray">${esc(x[k])} · ${katOf(x.nama).diskon}%</span>`:esc(x[k]);
+const MTILES=[['obat','Data Obat','pill'],['kategori','Kategori','grid'],['satuan','Satuan','scale'],['barcode','Barcode','barcode'],['supplier','Supplier','truck'],['pelanggan','Pelanggan','users'],['katpel','Kategori & Diskon','percent'],['salesman','Salesman','user'],['dokter','Data Dokter','hosp'],['harga','Harga Khusus','tag']];
+PAGES.master=()=>{
+  let body='';
+  const sbox=`<div class="srch" style="flex:1;max-width:380px">${ic('search')}<input class="inp" placeholder="Cari..." value="${esc(MQ)}" oninput="MQ=this.value;renderMasterTable()"></div>`;
+  const title={katpel:'Kategori Pelanggan & Diskon On Faktur',salesman:'Salesman & Komisi',obat:'Data Obat',kategori:'Kategori',satuan:'Satuan',barcode:'Barcode Obat',supplier:'Supplier',pelanggan:'Pelanggan',dokter:'Data Dokter',harga:'Harga Khusus'}[MTAB];
+  body=`<div class="card"><div class="card-h"><h3>${title}</h3><div class="sp"></div>${MTAB==='obat'?`<button class="btn btn-o" onclick="bulkMarkup()">${ic('percent')}Atur Harga %</button>`:''}${MTAB!=='barcode'?`<button class="btn btn-p" onclick="masterForm()">${ic('plus')}Tambah</button>`:''}</div>
+    <div style="display:flex;margin-bottom:12px">${sbox}</div><div class="tw" id="mtable"></div></div>`;
+  return head('Master Data')+`<div class="tiles">${MTILES.map(([k,l,i])=>`<button class="tile ${MTAB===k?'on':''}" onclick="MTAB='${k}';MQ='';render()">${ic(i)}${l}</button>`).join('')}</div>`+body;
+};
+AFTER.master=()=>renderMasterTable();
+function renderMasterTable(){
+  const q=MQ.toLowerCase(),m=x=>JSON.stringify(x).toLowerCase().includes(q);
+  const act=(i)=>`<td class="c" style="white-space:nowrap"><button class="ib" onclick="masterForm(${i})" title="Ubah">${ic('edit')}</button><button class="ib del" onclick="masterDel(${i})" title="Hapus">${ic('trash')}</button></td>`;
+  let h='';
+  if(MTAB==='obat'){const r=D.obat.map((o,i)=>[o,i]).filter(([o])=>m(o));
+    h=`<table><thead><tr><th>No</th><th>Nama Obat</th><th>Kategori</th><th>Satuan (Kecil / Besar)</th><th class="r">Harga Beli</th><th class="r">Harga Jual</th><th class="r">Stok</th><th class="c">Aksi</th></tr></thead><tbody>${r.map(([o,i],n)=>`<tr><td>${n+1}</td><td><b style="font-weight:600">${esc(o.nama)}</b>${o.resep?' <span class="badge b-amber" style="font-size:10.5px;padding:1px 6px">Resep</span>':''}${o.online===false?' <span class="badge b-gray" style="font-size:10.5px;padding:1px 6px" title="Tidak tampil di toko online">Offline</span>':''}</td><td>${esc(o.kategori)}</td><td>${esc(o.satuan)}${punya2(o)?` / ${esc(o.satuanBesar)}<br><small class="muted">${kemasan(o)}</small>`:''}</td><td class="r num">${nf(o.beli)}${punya2(o)?`<br><small class="muted">${nf(o.beli*o.isi)}/${esc(o.satuanBesar)}</small>`:''}</td><td class="r num">${o.hargaMode==='persen'?`<span class="badge b-green" style="font-size:10.5px;padding:1px 6px" title="Harga jual dari persentase">+${o.margin}%</span> `:''}${nf(o.jual)}${punya2(o)?`<br><small class="muted">${nf(hJual(o,o.isi))}/${esc(o.satuanBesar)}</small>`:''}</td><td class="r num">${o.stok<=o.min?`<span class="badge b-red">${o.stok}</span>`:o.stok}${punya2(o)?`<br><small class="muted">${stokTxt(o)}</small>`:''}</td>${act(i)}</tr>`).join('')||'<tr><td colspan="8" class="empty">Tidak ada data</td></tr>'}</tbody></table>`}
+  else if(MTAB==='kategori'||MTAB==='satuan'){const r=D[MTAB].map((k,i)=>[k,i]).filter(([k])=>m(k));const f=MTAB==='kategori'?'kategori':'satuan';
+    h=`<table><thead><tr><th>No</th><th>Nama</th><th class="r">Jumlah Obat</th><th class="c">Aksi</th></tr></thead><tbody>${r.map(([k,i],n)=>`<tr><td>${n+1}</td><td>${esc(k)}</td><td class="r">${D.obat.filter(o=>o[f]===k).length}</td>${act(i)}</tr>`).join('')}</tbody></table>`}
+  else if(MTAB==='barcode'){const r=D.obat.filter(o=>m(o));
+    h=`<table><thead><tr><th>No</th><th>Nama Obat</th><th>Barcode</th><th>Batch</th><th class="c">Aksi</th></tr></thead><tbody>${r.map((o,n)=>`<tr><td>${n+1}</td><td>${esc(o.nama)}</td><td class="num">${o.barcode}</td><td>${o.batch}</td><td class="c"><button class="btn btn-o btn-sm" onclick="BC.obat=${o.id};go('barcode')">${ic('print')}Label</button></td></tr>`).join('')}</tbody></table>`}
+  else{const cols=MCOLS[MTAB];
+    const r=D[MTAB].map((x,i)=>[x,i]).filter(([x])=>m(x));
+    h=`<table><thead><tr><th>No</th>${cols.map(c=>`<th>${c[1]}</th>`).join('')}${MTAB==='pelanggan'?'<th class="r">Saldo Bonus</th>':''}<th class="c">Aksi</th></tr></thead><tbody>${r.map(([x,i],n)=>`<tr><td>${n+1}</td>${cols.map(c=>`<td>${mCell(c[0],x)}</td>`).join('')}${MTAB==='pelanggan'?`<td class="r" style="white-space:nowrap">${x.nama==='Pelanggan Umum'?'<span class="muted">-</span>':`<button class="btn btn-o btn-sm" onclick="bonusKartu('${esc(x.nama)}')" title="Kartu bonus">${ic('wallet')}<b class="num" style="color:${saldoBonus(x.nama)>0?'var(--green)':'var(--ink2)'}">${nf(saldoBonus(x.nama))}</b></button>`}</td>`:''}${act(i)}</tr>`).join('')||`<tr><td colspan="${cols.length+(MTAB==='pelanggan'?3:2)}" class="empty">Tidak ada data</td></tr>`}</tbody></table>`}
+  $('#mtable').innerHTML=h;
+}
+function masterForm(i){
+  const edit=i!==undefined;let f='';
+  const F=(k,l,v,t='text',extra='')=>`<div class="fld"><label>${l}</label><input class="inp" id="f_${k}" type="${t}" value="${esc(v??'')}" ${extra}></div>`;
+  const S=(k,l,arr,v)=>`<div class="fld"><label>${l}</label><select class="sel" id="f_${k}">${opt(arr,v)}</select></div>`;
+  if(MTAB==='obat'){const o=edit?D.obat[i]:{hargaMode:'persen',margin:D.config.marginDefault,satuan:'Strip',kategori:D.kategori[0],min:12,ed:iso(new Date(Date.now()+730*864e5)).slice(0,7)};
+    f=`<div class="fgrid">${F('nama','Nama Obat',o.nama)}${S('kategori','Kategori',D.kategori,o.kategori)}${F('barcode','Barcode',o.barcode||String(2000000001234+D.obat.length+Math.floor(Math.random()*900)))}</div><h4 style="margin:16px 0 8px;font-size:13.5px">Satuan</h4><div class="fgrid" style="grid-template-columns:repeat(3,1fr)">${S('satuan','Satuan Kecil (eceran)',D.satuan,o.satuan)}<div class="fld"><label>Satuan Besar</label><select class="sel" id="f_satuanBesar" onchange="obHint()"><option value="">— tidak ada —</option>${opt(D.satuan,o.satuanBesar)}</select></div>${F('isi','Isi per Satuan Besar',o.isi||1,'number','min="1" oninput="obHint()"')}</div><div class="muted" id="obHint" style="margin:6px 0 0;font-size:12.5px"></div><h4 style="margin:16px 0 8px;font-size:13.5px">Harga &amp; Stok</h4><div class="fgrid">${F('beli','Harga Beli per Satuan Kecil',o.beli,'number','oninput="obHint()"')}<div class="fld"><label>Harga Jual Ditentukan</label><select class="sel" id="f_hargaMode" onchange="obHint()"><option value="persen" ${o.hargaMode!=='manual'?'selected':''}>Persentase dari harga beli</option><option value="manual" ${o.hargaMode==='manual'?'selected':''}>Manual (ketik harga)</option></select></div>${F('margin','Persentase Keuntungan / Markup (%)',o.margin??D.config.marginDefault,'number','step="0.5" oninput="obHint()"')}${F('jual','Harga Jual per Satuan Kecil',o.jual,'number','oninput="obHint()"')}<div class="fld"><label>&nbsp;</label><div class="muted" id="obMg" style="font-size:12.5px;padding-top:9px"></div></div>${F('jualBesar','Harga Jual per Satuan Besar (kosong = otomatis)',o.jualBesar||'','number','oninput="obHint()"')}${F('stok','Stok (dalam satuan kecil)',o.stok??0,'number')}${F('min','Stok Minimum (satuan kecil)',o.min,'number')}${F('batch','Batch',o.batch)}${F('ed','Kedaluwarsa',o.ed,'month')}</div><h4 style="margin:16px 0 8px;font-size:13.5px">Toko Online</h4><div style="display:flex;gap:22px;flex-wrap:wrap"><label style="display:flex;gap:7px;align-items:center;font-weight:500"><input type="checkbox" id="f_online" ${o.online!==false?'checked':''}>Tampil di toko online</label><label style="display:flex;gap:7px;align-items:center;font-weight:500"><input type="checkbox" id="f_resep" ${o.resep?'checked':''}>Wajib resep dokter (obat keras)</label></div>`}
+  else if(MTAB==='kategori'||MTAB==='satuan')f=F('nama','Nama',edit?D[MTAB][i]:'');
+  else{const cols=MCOLS[MTAB];const x=edit?D[MTAB][i]:(MTAB==='pelanggan'?{kategori:'Umum'}:MTAB==='katpel'?{diskon:0}:{});
+    f=`<div class="fgrid">${cols.map(([k,l])=>k==='obat'?S(k,l,D.obat.map(o=>o.nama),x[k]):k==='pelanggan'&&MTAB==='harga'?S(k,l,D.pelanggan.map(o=>o.nama),x[k]):k==='kategori'&&MTAB==='pelanggan'?S(k,l,D.katpel.map(c=>c.nama),x[k]):F(k,l,x[k]??(NUMK.includes(k)?0:''),NUMK.includes(k)?'number':'text',k!=='harga'&&NUMK.includes(k)?'min="0" max="100" step="0.5"':k==='npwp'?'placeholder="16 digit NPWP / NIK — untuk faktur pajak"':'')).join('')}</div>`}
+  openModal((edit?'Ubah ':'Tambah ')+MTILES.find(t=>t[0]===MTAB)[1],f,`<button class="btn btn-g" onclick="closeModal()">Batal</button><button class="btn btn-p" onclick="masterSave(${edit?i:''})">${ic('save')}Simpan</button>`,MTAB==='obat'?680:520);
+  if(MTAB==='obat'){$('#f_satuan').onchange=obHint;obHint()}
+}
+function obCalc(){const mode=$('#f_hargaMode').value,beli=+$('#f_beli').value||0,mg=$('#f_margin'),ju=$('#f_jual');
+  if(mode==='persen'){ju.value=hitungJual(beli,+mg.value||0);ju.readOnly=true;mg.readOnly=false;ju.style.background='#f4f7fc';mg.style.background=''}
+  else{ju.readOnly=false;mg.readOnly=true;ju.style.background='';mg.style.background='#f4f7fc';mg.value=beli?Math.round(((+ju.value||0)/beli-1)*1000)/10:0}
+  const j=+ju.value||0;$('#obMg').innerHTML=beli?`Untung per ${esc($('#f_satuan').value)}: <b style="color:${j>=beli?'var(--green)':'var(--red)'}">${rp(j-beli)}</b>${mode==='persen'&&+D.config.bulat>1?` · dibulatkan ke atas per ${rp(D.config.bulat)}`:''}`:'Isi harga beli dulu'}
+function obHint(){const e=$('#obHint');if(!e)return;obCalc();const k=$('#f_satuan').value,b=$('#f_satuanBesar').value,isi=+$('#f_isi').value||1,beli=+$('#f_beli').value||0,jual=+$('#f_jual').value||0,jb=+$('#f_jualBesar').value||0;
+  $('#f_isi').disabled=!b;$('#f_jualBesar').disabled=!b;e.innerHTML=b&&isi>1?`1 ${esc(b)} = ${isi} ${esc(k)} · Harga beli per ${esc(b)}: <b>${rp(beli*isi)}</b> · Harga jual per ${esc(b)}: <b>${rp(jb||jual*isi)}</b>`:b?'Isi per satuan besar harus lebih dari 1':'Obat hanya memakai satuan kecil'}
+function masterSave(i){
+  const v=k=>{const e=$('#f_'+k);return e?e.value.trim():''};const edit=i!==undefined;
+  if(MTAB==='obat'){if(!v('nama'))return toast('Nama obat wajib diisi','warn');
+    const sb=v('satuanBesar'),isi=Math.max(1,+v('isi')||1);if(sb&&sb===v('satuan'))return toast('Satuan besar harus beda dengan satuan kecil','warn');if(sb&&isi<2)return toast('Isi per satuan besar minimal 2','warn');
+    const o={nama:v('nama'),kategori:v('kategori'),satuan:v('satuan'),satuanBesar:sb,isi:sb?isi:1,jualBesar:sb?(+v('jualBesar')||0):0,barcode:v('barcode'),beli:+v('beli')||0,jual:+v('jual')||0,stok:+v('stok')||0,min:+v('min')||0,batch:v('batch'),ed:v('ed'),hargaMode:v('hargaMode'),margin:+v('margin')||0,online:$('#f_online').checked,resep:$('#f_resep').checked};
+    if(o.hargaMode==='persen')o.jual=hitungJual(o.beli,o.margin);
+    if(o.jual<o.beli&&!confirm('Harga jual lebih kecil dari harga beli. Tetap simpan?'))return;
+    if(edit)Object.assign(D.obat[i],o);else D.obat.push({id:Math.max(0,...D.obat.map(x=>x.id))+1,...o});}
+  else if(MTAB==='kategori'||MTAB==='satuan'){if(!v('nama'))return toast('Nama wajib diisi','warn');edit?D[MTAB][i]=v('nama'):D[MTAB].push(v('nama'))}
+  else{const keys=MCOLS[MTAB].map(c=>c[0]);const x={};keys.forEach(k=>x[k]=NUMK.includes(k)?+v(k)||0:v(k));if(keys.some(k=>k!=='harga'&&NUMK.includes(k)&&(x[k]<0||x[k]>100)))return toast('Persentase harus 0–100%','warn');
+    if(MTAB==='pelanggan'&&x.nama==='Pelanggan Umum'&&x.diskonOff)return toast('Pelanggan Umum tidak bisa diberi diskon off faktur','warn');
+    if(MTAB==='salesman'&&edit){const old=D.salesman[i].nama;if(old!==x.nama){D.komisi.forEach(k=>{if(k.salesman===old)k.salesman=x.nama})}}
+    if(MTAB==='katpel'&&edit){const old=D.katpel[i].nama;if(old!==x.nama)D.pelanggan.forEach(p=>{if(p.kategori===old)p.kategori=x.nama})}
+    if(!x[keys[0]])return toast('Data wajib diisi','warn');if(edit)Object.assign(D[MTAB][i],x);else D[MTAB].push({id:Date.now(),...x})}
+  log((edit?'Mengubah ':'Menambah ')+MTAB);save();closeModal();render();toast('Data tersimpan');
+}
+function bulkMarkup(){openModal('Atur Harga Jual dengan Persentase',`<div class="fgrid"><div class="fld"><label>Kategori Obat</label><select class="sel" id="bm_k" onchange="bmPrev()">${opt(['Semua',...D.kategori])}</select></div><div class="fld"><label>Markup (%)</label><input class="inp" type="number" step="0.5" id="bm_m" value="${D.config.marginDefault}" oninput="bmPrev()"></div></div>
+  <label style="display:flex;gap:8px;align-items:center;margin-top:12px;font-weight:500"><input type="checkbox" id="bm_x" checked onchange="bmPrev()">Lewati obat yang harganya diatur manual</label>
+  <div class="tw" style="margin-top:12px;max-height:280px;overflow:auto"><table><thead><tr><th>Obat</th><th class="r">Beli</th><th class="r">Jual Lama</th><th class="r">Jual Baru</th></tr></thead><tbody id="bm_t"></tbody></table></div>`,
+  `<button class="btn btn-g" onclick="closeModal()">Batal</button><button class="btn btn-p" onclick="bmApply()">${ic('check')}Terapkan</button>`,620);bmPrev()}
+function bmList(){const k=$('#bm_k').value,x=$('#bm_x').checked;return D.obat.filter(o=>(k==='Semua'||o.kategori===k)&&!(x&&o.hargaMode==='manual'))}
+function bmPrev(){const m=+$('#bm_m').value||0,l=bmList();$('#bm_t').innerHTML=l.map(o=>{const j=hitungJual(o.beli,m);return `<tr><td>${esc(o.nama)}</td><td class="r num">${nf(o.beli)}</td><td class="r num">${nf(o.jual)}</td><td class="r num" style="color:${j>o.jual?'var(--green)':j<o.jual?'var(--red)':''};font-weight:600">${nf(j)}</td></tr>`}).join('')||'<tr><td colspan="4" class="empty">Tidak ada obat yang cocok — hilangkan centang "Lewati" untuk menyertakan obat berharga manual</td></tr>'}
+function bmApply(){const m=+$('#bm_m').value||0,l=bmList();if(!l.length)return toast('Tidak ada obat yang diubah','warn');l.forEach(o=>{o.hargaMode='persen';o.margin=m;o.jual=hitungJual(o.beli,m)});log(`Atur markup ${m}% untuk ${l.length} obat`);save();closeModal();render();toast(`Harga jual ${l.length} obat diperbarui`)}
+function masterDel(i){
+  const nm=MTAB==='obat'?D.obat[i].nama:(typeof D[MTAB][i]==='string'?D[MTAB][i]:D[MTAB][i].nama||D[MTAB][i].obat);
+  openModal('Hapus data?',`<p>Data <b>${esc(nm)}</b> akan dihapus dari daftar.</p>`,`<button class="btn btn-g" onclick="closeModal()">Batal</button><button class="btn btn-red" onclick="D[MTAB].splice(${i},1);log('Menghapus '+MTAB);save();closeModal();render();toast('Data dihapus')">${ic('trash')}Hapus</button>`,420);
+}
+
+/* 3. Pembelian */
+let PB={supplier:'PT Sejahtera Farma',faktur:'',tgl:today(),items:[],ppn:true};
+PAGES.pembelian=()=>{
+  const t=T.pembelian||'Penerimaan Barang';let b='';
+  if(t==='Pesan Pembelian'){
+    b=`<div class="card"><div class="card-h"><h3>Surat Pesanan (SP)</h3><div class="sp"></div><button class="btn btn-p" onclick="spForm()">${ic('plus')}Buat SP</button></div>
+    <div class="tw"><table><thead><tr><th>No. SP</th><th>Tanggal</th><th>Distributor</th><th>Jenis</th><th>Item</th><th>Status</th><th class="c">Aksi</th></tr></thead><tbody>${D.sp.map((s,i)=>`<tr><td><b style="font-weight:600">${esc(s.no)}</b></td><td>${tgl(s.tgl)}</td><td>${esc(s.supplier)}</td><td>${esc(s.jenis||'Reguler')}</td><td style="max-width:320px">${s.items.map(x=>esc(x.nama)+(x.jumlah?` <span class="muted">(${x.jumlah} ${esc(x.satuan.split(' ')[0])})</span>`:'')).join(', ')}</td><td><span class="badge ${s.status==='Diterima'?'b-green':s.status==='Dipesan'?'b-blue':'b-gray'}">${s.status}</span></td><td class="c" style="white-space:nowrap"><button class="ib" onclick="spPrintDlg(${i})" title="Cetak SP">${ic('print')}</button><button class="ib" onclick="spForm(${i})" title="Ubah">${ic('edit')}</button>${s.status!=='Diterima'?`<button class="ib" onclick="spTerima(${i})" title="Terima barang (isi Penerimaan)">${ic('box')}</button>`:''}<button class="ib del" onclick="spDel(${i})" title="Hapus">${ic('trash')}</button></td></tr>`).join('')||'<tr><td colspan="7" class="empty">Belum ada SP</td></tr>'}</tbody></table></div></div>`;
+  }else if(t==='Faktur Supplier'){
+    b=`<div class="card"><h3>Faktur Supplier</h3><div class="tw"><table><thead><tr><th>No. Faktur</th><th>Tanggal</th><th>Supplier</th><th class="r">Total</th><th>Status</th></tr></thead><tbody>${D.purch.slice().reverse().map(p=>`<tr><td><b style="font-weight:600">${p.no}</b></td><td>${tgl(p.tgl)}</td><td>${esc(p.supplier)}</td><td class="r num">${rp(p.total)}</td><td><span class="badge ${p.status==='Lunas'?'b-green':'b-amber'}">${p.status}</span></td></tr>`).join('')}</tbody></table></div></div>`;
+  }else{
+    if(!PB.faktur)PB.faktur='PB-'+today().replace(/-/g,'').slice(0,4)+'-'+today().slice(5).replace('-','')+'-'+String(D.seq.pb).padStart(3,'0');
+    const sub=sumBy(PB.items,x=>x.qty*x.harga),pajak=PB.ppn?Math.round(sub*D.config.ppn/100):0;
+    b=`<div class="card"><h3 style="font-size:16px">Penerimaan Barang</h3>
+      <div class="grid g2" style="gap:12px 26px;margin-bottom:16px">
+        <div class="frm"><label>Supplier :</label><select class="sel" onchange="PB.supplier=this.value">${opt(D.supplier.map(s=>s.nama),PB.supplier)}</select></div><div></div>
+        <div class="frm"><label>No. Faktur :</label><input class="inp" value="${esc(PB.faktur)}" onchange="PB.faktur=this.value"></div>
+        <div class="frm"><label>Tanggal :</label><input class="inp" type="date" value="${PB.tgl}" onchange="PB.tgl=this.value"></div>
+      </div>
+      <div class="tw"><table><thead><tr><th>No</th><th>Nama Obat</th><th>Batch</th><th>ED</th><th class="r">Jumlah</th><th class="r">Harga Beli</th><th class="r">Subtotal</th><th></th></tr></thead><tbody>
+      ${PB.items.map((x,i)=>{const o=obatBy(x.id);return `<tr><td>${i+1}</td><td>${esc(o.nama)}</td><td><input class="inp" style="height:30px;width:110px" value="${esc(x.batch)}" onchange="PB.items[${i}].batch=this.value"></td><td><input class="inp" type="month" style="height:30px;width:140px" value="${x.ed}" onchange="PB.items[${i}].ed=this.value"></td><td class="r" style="white-space:nowrap"><input class="qty" type="number" min="1" value="${x.qty}" onchange="PB.items[${i}].qty=Math.max(1,+this.value);render()"> ${unitSel(o,x.isi||1,`pbUnit(${i},+this.value)`)}${(x.isi||1)>1?`<br><small class="muted">= ${nf(x.qty*x.isi)} ${esc(o.satuan)}</small>`:''}</td><td class="r"><input class="inp num" style="height:30px;width:100px;text-align:right" type="number" value="${x.harga}" onchange="PB.items[${i}].harga=+this.value;render()"><br><small class="muted">per ${esc((x.isi||1)>1?o.satuanBesar:o.satuan)}</small></td><td class="r num">${nf(x.qty*x.harga)}</td><td><button class="ib del" onclick="PB.items.splice(${i},1);render()">${ic('trash')}</button></td></tr>`}).join('')}
+      <tr><td></td><td colspan="7"><select class="sel" style="max-width:340px;height:34px" onchange="if(this.value){pbAdd(+this.value)}"><option value="">+ Tambah obat…</option>${D.obat.map(o=>`<option value="${o.id}">${esc(o.nama)}</option>`).join('')}</select></td></tr>
+      </tbody></table></div>
+      <div style="display:flex;justify-content:flex-end;margin:14px 0 18px"><div style="min-width:280px">
+        <div class="sum-row"><span>Subtotal</span><b class="num">${rp(sub)}</b></div>
+        <div class="sum-row"><label style="display:flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" ${PB.ppn?'checked':''} onchange="PB.ppn=this.checked;render()"> PPN ${D.config.ppn}%</label><b class="num">${rp(pajak)}</b></div>
+        <div class="sum-row" style="font-size:16px;color:var(--ink)"><b>Total :</b><b class="num" style="font-size:18px">${rp(sub+pajak)}</b></div>
+      </div></div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <button class="btn btn-o btn-lg" onclick="pbLabel()">${ic('print')}Cetak Barcode Label <small>(${esc(D.config.ukuran)})</small></button>
+        <div class="sp" style="flex:1"></div>
+        <button class="btn btn-p btn-lg" onclick="pbSave()">${ic('save')}Simpan</button>
+        <button class="btn btn-g btn-lg" onclick="PB.items=[];PB.faktur='';render()">Batal</button>
+      </div></div>`;
+  }
+  return head('Pembelian')+tabs('pembelian',['Pesan Pembelian','Penerimaan Barang','Faktur Supplier'])+b;
+};
+function pbAdd(id){const o=obatBy(id);const e=PB.items.find(x=>x.id===id);const isi=punya2(o)?o.isi:1;if(e)e.qty+=1;else PB.items.push({id,batch:o.batch,ed:o.ed,qty:isi>1?1:100,isi,harga:o.beli*isi});render()}
+function pbUnit(i,isi){const x=PB.items[i],per=x.harga/(x.isi||1);x.isi=isi;x.harga=Math.round(per*isi);render()}
+function pbSave(){
+  if(!PB.items.length)return toast('Tambahkan minimal 1 obat','warn');
+  if(!PB.faktur)return toast('Isi nomor faktur supplier','warn');
+  const sub=sumBy(PB.items,x=>x.qty*x.harga),pajak=PB.ppn?Math.round(sub*D.config.ppn/100):0,total=sub+pajak;
+  let nUp=0;PB.items.forEach(x=>{const o=obatBy(x.id),isi=x.isi||1,n=x.qty*isi;o.stok+=n;o.batch=x.batch;o.ed=x.ed;o.beli=Math.round(x.harga/isi);if(o.hargaMode==='persen'){const j=hitungJual(o.beli,o.margin);if(j!==o.jual){o.jual=j;nUp++}}addMutasi(x.id,'Pembelian',PB.faktur,n,0)});
+  D.purch.push({no:PB.faktur,tgl:PB.tgl,supplier:PB.supplier,items:PB.items,total,pajak,status:'Belum Lunas'});
+  D.hutang.push({pihak:PB.supplier,ref:PB.faktur,jumlah:total,jt:iso(new Date(Date.now()+30*864e5)),status:'Belum Lunas'});
+  jurnal('Pembelian '+PB.faktur,[['121','Persediaan',sub,0],['117','PPN Masukan',pajak,0],['211','Utang Supplier',0,total]]);
+  if(PB.sp!==undefined&&D.sp[PB.sp]){D.sp[PB.sp].status='Diterima';D.sp[PB.sp].faktur=PB.faktur}
+  log('Penerimaan barang '+PB.faktur);D.seq.pb++;PB.items=[];PB.faktur='';delete PB.sp;save();render();toast('Penerimaan barang tersimpan, stok bertambah'+(nUp?` · harga jual ${nUp} obat ikut diperbarui`:''));
+}
+function pbLabel(){if(!PB.items.length)return toast('Belum ada obat','warn');BC.obat=PB.items[0].id;BC.jumlah=PB.items[0].qty*(PB.items[0].isi||1);go('barcode')}
+/* --- Surat Pesanan (SP) --- */
+let SPD=null;
+function terbilang(n){n=Math.floor(Math.abs(+n||0));const s=['','satu','dua','tiga','empat','lima','enam','tujuh','delapan','sembilan','sepuluh','sebelas'];const f=n=>{n=Math.floor(n);if(n<12)return s[n];if(n<20)return f(n-10)+' belas';if(n<100)return f(n/10)+' puluh'+(n%10?' '+f(n%10):'');if(n<200)return 'seratus'+(n-100?' '+f(n-100):'');if(n<1000)return f(n/100)+' ratus'+(n%100?' '+f(n%100):'');if(n<2000)return 'seribu'+(n-1000?' '+f(n-1000):'');if(n<1e6)return f(n/1000)+' ribu'+(n%1000?' '+f(n%1000):'');return f(n/1e6)+' juta'+(n%1e6?' '+f(n%1e6):'')};return n?f(n):'nol'}
+function spNo(t){const y=t.slice(0,4);const n=D.sp.filter(s=>String(s.no).includes('/'+y+'/')).length+1;return `SP-${D.config.kodeSP}/${y}/${t.slice(5,7)}/${String(n).padStart(6,'0')}`}
+function spForm(i){
+  const s=i!==undefined?D.sp[i]:null;
+  SPD=s?{i,tgl:s.tgl,supplier:s.supplier,jenis:s.jenis||'Reguler',no:s.no,items:s.items.map(x=>({...x}))}:{tgl:today(),supplier:D.supplier[0]?.nama||'',jenis:'Reguler',no:'',items:[{nama:'',jumlah:1,satuan:''}]};
+  spModal();
+}
+function spModal(){
+  const d=SPD,sup=D.supplier.find(x=>x.nama===d.supplier);
+  openModal(d.i!==undefined?'Ubah Surat Pesanan':'Buat Surat Pesanan',`
+   <datalist id="dl_obat">${D.obat.map(o=>`<option value="${esc(o.nama)}">`).join('')}</datalist>
+   <div class="fgrid" style="grid-template-columns:repeat(3,1fr)">
+     <div class="fld"><label>Distributor</label><select class="sel" onchange="SPD.supplier=this.value;spModal()">${opt(D.supplier.map(s=>s.nama),d.supplier)}</select></div>
+     <div class="fld"><label>Tanggal</label><input class="inp" type="date" value="${d.tgl}" onchange="SPD.tgl=this.value"></div>
+     <div class="fld"><label>Jenis SP</label><select class="sel" onchange="SPD.jenis=this.value">${opt(['Reguler','Prekursor','Obat-Obat Tertentu','Psikotropika','Narkotika'],d.jenis)}</select></div>
+   </div>
+   <div class="muted" style="margin:6px 0 12px;font-size:12.5px">${sup?esc((sup.alamat||'-')+' · Telp '+(sup.telp||'-')):''}${d.no?' · No. '+esc(d.no):' · No. SP dibuat otomatis saat disimpan'}</div>
+   <div class="tw"><table><thead><tr><th style="width:34px">No</th><th>Nama Obat, Bentuk Sediaan &amp; Kekuatan</th><th style="width:90px">Jumlah</th><th style="width:170px">Satuan &amp; Isi Kemasan</th><th style="width:40px"></th></tr></thead><tbody>
+   ${d.items.map((x,k)=>`<tr><td>${k+1}</td><td><input class="inp" style="height:34px" list="dl_obat" value="${esc(x.nama)}" placeholder="ketik / pilih obat" onchange="spPick(${k},this.value)"></td><td><input class="inp num" style="height:34px" type="number" min="1" value="${x.jumlah}" oninput="SPD.items[${k}].jumlah=Math.max(1,+this.value||1);spTb(${k},this)"><small class="muted" id="tb${k}">${terbilang(x.jumlah)}</small></td><td><input class="inp" style="height:34px" value="${esc(x.satuan)}" placeholder="BOX (100 tablet)" id="sat${k}" onchange="SPD.items[${k}].satuan=this.value"></td><td><button class="ib del" onclick="SPD.items.splice(${k},1);if(!SPD.items.length)SPD.items.push({nama:'',jumlah:1,satuan:''});spModal()">${ic('x')}</button></td></tr>`).join('')}
+   </tbody></table></div>
+   <button class="btn btn-o btn-sm" style="margin-top:10px" onclick="SPD.items.push({nama:'',jumlah:1,satuan:''});spModal()">${ic('plus')}Tambah baris</button>`,
+   `<button class="btn btn-g" onclick="closeModal()">Batal</button><button class="btn btn-o" onclick="spSave(false)">${ic('save')}Simpan</button><button class="btn btn-p" onclick="spSave(true)">${ic('print')}Simpan &amp; Cetak</button>`,820);
+}
+function spPick(k,v){const it=SPD.items[k];it.nama=v.trim();const o=D.obat.find(o=>o.nama.toLowerCase()===it.nama.toLowerCase());it.id=o?o.id:undefined;if(o){it.satuan=punya2(o)?`${o.satuanBesar.toUpperCase()} (${o.isi} ${o.satuan.toUpperCase()})`:o.satuan.toUpperCase();const e=$('#sat'+k);if(e)e.value=it.satuan}}
+function spTb(k,el){const e=$('#tb'+k);if(e)e.textContent=terbilang(el.value)}
+function spSave(cetak){
+  const d=SPD,items=d.items.filter(x=>x.nama);
+  if(!d.supplier)return toast('Pilih distributor dulu','warn');
+  if(!items.length)return toast('Isi minimal 1 obat','warn');
+  if(items.some(x=>!x.satuan))return toast('Lengkapi satuan & isi kemasan','warn');
+  let idx;
+  if(d.i!==undefined){Object.assign(D.sp[d.i],{tgl:d.tgl,supplier:d.supplier,jenis:d.jenis,items});idx=d.i;log('Ubah SP '+D.sp[idx].no)}
+  else{D.sp.unshift({no:spNo(d.tgl),tgl:d.tgl,supplier:d.supplier,jenis:d.jenis,items,status:'Dipesan',dibuat:new Date().toISOString()});idx=0;log('Buat SP '+D.sp[0].no)}
+  save();closeModal();T.pembelian='Pesan Pembelian';render();toast('Surat pesanan tersimpan');
+  if(cetak)spPrintDlg(idx);
+}
+function spDel(i){openModal('Hapus SP?',`<p>Surat pesanan <b>${esc(D.sp[i].no)}</b> akan dihapus.</p>`,`<button class="btn btn-g" onclick="closeModal()">Batal</button><button class="btn btn-red" onclick="log('Hapus SP '+D.sp[${i}].no);D.sp.splice(${i},1);save();closeModal();render()">${ic('trash')}Hapus</button>`,420)}
+function spTerima(i){const s=D.sp[i];const ok=s.items.filter(x=>x.id&&obatBy(x.id));if(!ok.length)return toast('Obat di SP ini belum ada di Master Data','warn');
+  PB={supplier:s.supplier,faktur:'',tgl:today(),ppn:true,sp:i,items:ok.map(x=>{const o=obatBy(x.id);const isi=punya2(o)&&String(x.satuan).toUpperCase().startsWith(o.satuanBesar.toUpperCase())?o.isi:1;return {id:o.id,batch:o.batch,ed:o.ed,qty:+x.jumlah||1,isi,harga:o.beli*isi}})};
+  T.pembelian='Penerimaan Barang';go('pembelian');toast('Item SP dimasukkan ke Penerimaan Barang — periksa batch, ED & harga')}
+const tglPanjang=s=>{const [y,m,d]=s.split('-');return `${+d} ${['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][m-1]} ${y}`};
+/* --- Printer & cetak SP --- */
+const JENISP=['Inkjet / Laser','Dot Matrix','Thermal 80 mm','Thermal 58 mm','Label'];
+const PAPER={
+  'half-a4':{label:'1/2 A4 — kertas 210 × 148 mm',page:'210mm 148mm',w:210,h:148},
+  'a4-top':{label:'1/2 A4 — dicetak di bagian atas kertas A4',page:'A4',w:210,h:148},
+  'half-f4':{label:'1/2 F4 — 215 × 165 mm (bagian atas F4)',page:'215mm 330mm',w:215,h:165},
+  'cf-half':{label:'Continuous form 9,5 × 5,5 inci (dot matrix)',page:'241mm 140mm',w:241,h:140},
+};
+const printerBy=id=>D.printers.find(p=>p.id==id);
+const bisaSP=p=>p&&(p.jenis==='Inkjet / Laser'||p.jenis==='Dot Matrix');
+function spPrintDlg(i){
+  const ps=D.printers.filter(bisaSP);
+  if(!ps.length)return toast('Tambahkan printer Inkjet/Laser atau Dot Matrix di Pengaturan → Printer','warn');
+  const cur=bisaSP(printerBy(D.config.spPrinter))?D.config.spPrinter:ps[0].id;
+  openModal('Cetak Surat Pesanan',`<div class="muted" style="margin-bottom:12px">${esc(D.sp[i].no)} · ${esc(D.sp[i].supplier)}</div>
+   <div class="fld"><label>Printer</label><select class="sel" id="pp_p" onchange="spPaperHint()">${ps.map(p=>`<option value="${p.id}" ${p.id==cur?'selected':''}>${esc(p.nama)} — ${esc(p.jenis)}</option>`).join('')}</select></div>
+   <div class="fld" style="margin-top:12px"><label>Ukuran Kertas</label><select class="sel" id="pp_k" onchange="spPaperHint()">${Object.entries(PAPER).map(([k,v])=>`<option value="${k}" ${k===D.config.spKertas?'selected':''}>${v.label}</option>`).join('')}</select></div>
+   <div class="alert alert-blue" id="pp_h" style="margin-top:14px;font-weight:500;font-size:12.5px"></div>`,
+   `<button class="btn btn-g" onclick="closeModal()">Batal</button><button class="btn btn-p" onclick="D.config.spPrinter=+$('#pp_p').value;D.config.spKertas=$('#pp_k').value;save();closeModal();printSP(${i})">${ic('print')}Cetak</button>`,500);
+  spPaperHint();
+}
+function spPaperHint(){const p=printerBy($('#pp_p').value),k=PAPER[$('#pp_k').value];
+  $('#pp_h').innerHTML=`Di jendela cetak browser, pilih printer <b>${esc(p.nama)}</b>${k.page==='A4'?', kertas <b>A4</b>':`, ukuran kertas <b>${k.w} × ${k.h} mm</b> (atau ukuran kustom yang sama)`}, skala <b>100%</b> / "Actual size", dan matikan header &amp; footer.${p.jenis==='Dot Matrix'?' Mode dot matrix: tanpa warna, huruf Courier.':''}`}
+function printSP(i){
+  const s=D.sp[i],c=D.config,sup=D.supplier.find(x=>x.nama===s.supplier)||{alamat:'-',telp:'-'},now=new Date();
+  const pr=printerBy(c.spPrinter)||{jenis:'Inkjet / Laser'},dm=pr.jenis==='Dot Matrix',pp=PAPER[c.spKertas]||PAPER['half-a4'];
+  const w=window.open('','_blank');if(!w)return toast('Pop-up diblokir browser — izinkan pop-up untuk mencetak','warn');
+  const row=(k,v,b=true)=>`<tr><td style="width:${k.length>9?'30mm':'19mm'}">${k}</td><td>: ${b?'<b>':''}${esc(v)}${b?'</b>':''}</td></tr>`;
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(s.no)}</title><style>
+  @page{size:${pp.page};margin:0}
+  *{box-sizing:border-box}html,body{margin:0}
+  body{font-family:${dm?"'Courier New',Courier,monospace":'Arial,Helvetica,sans-serif'};font-size:${dm?'9.5pt':'9pt'};color:#000;line-height:1.25;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .sheet{position:relative;width:${pp.w}mm;min-height:${pp.h}mm;padding:0 ${dm?9:10}mm;display:flex;flex-direction:column}
+  .bar{height:${dm?0:'3mm'};background:${dm?'none':'#1d6fe0'};border-top:${dm?'1.2pt solid #000':'none'};margin:${dm?'5mm 0 0':'0 -10mm'}}
+  .bar.b{margin:${dm?'0 0 4mm':'0 -10mm'}}
+  h1{font-size:${dm?'12pt':'12pt'};text-align:center;margin:4mm 0 .8mm;font-weight:bold;letter-spacing:.02em}
+  .no{text-align:center;margin-bottom:3mm}
+  table.kv{border-collapse:collapse}table.kv td{padding:.15mm 0;vertical-align:top}
+  .gap{height:2mm}
+  table.it{width:100%;border-collapse:collapse;border:1.2px solid #000;margin:2.5mm 0}
+  table.it th{text-align:left;font-weight:bold;padding:1mm 1.6mm;border-bottom:1.2px solid #000}
+  table.it td{padding:.9mm 1.6mm;vertical-align:top}
+  .foot{display:flex;justify-content:space-between;align-items:flex-end;margin-top:auto;padding:2mm 0 2mm}
+  .sign{text-align:center;min-width:64mm}
+  .meta{font-style:italic;font-size:7.5pt}
+  @media screen{body{background:#888}.sheet{background:#fff;margin:10px auto;box-shadow:0 2px 10px rgba(0,0,0,.3)}}
+  </style></head><body><div class="sheet">
+  <div class="bar"></div>
+  ${logoCetak(`position:absolute;left:${dm?9:10}mm;top:${dm?7:5}mm;max-height:13mm;max-width:32mm;object-fit:contain;${dm?'filter:grayscale(1) contrast(1.4);':''}`)}
+  <h1>SURAT PESANAN ${s.jenis&&s.jenis!=='Reguler'?esc(s.jenis.toUpperCase()):'OBAT'}</h1>
+  <div class="no">${esc(s.no)}</div>
+  <table class="kv">${row('Nama',c.apoteker)}${row('Jabatan','Apoteker Penanggung Jawab')}</table>
+  <div class="gap"></div><div>Mengajukan pesanan Obat kepada :</div>
+  <table class="kv">${row('Distributor',s.supplier)}${row('Alamat',sup.alamat||'-')}${row('Telp',sup.telp||'-')}</table>
+  <table class="it"><thead><tr><th style="width:50%">Nama Obat, Bentuk Sediaan dan Kekuatan/Potensi</th><th>Jumlah <i style="font-weight:normal">(angka dan huruf)</i></th><th>Satuan &amp; Isi Kemasan</th></tr></thead>
+  <tbody>${s.items.map((x,k)=>`<tr><td>${k+1}. ${esc(x.nama.toUpperCase())}</td><td>${x.jumlah} (${terbilang(x.jumlah)})</td><td>${esc(x.satuan.toUpperCase())}</td></tr>`).join('')}</tbody></table>
+  <div>Produk tersebut akan digunakan untuk memenuhi kebutuhan:</div>
+  <table class="kv">${row('Nama Sarana',c.sarana)}${row('Alamat Sarana',c.alamatSarana)}${c.nib?row('NIB Sarana',c.nib):''}</table>
+  <div class="foot">
+    <div class="meta">Dicetak pada ${tglPanjang(iso(now))} ${now.toLocaleTimeString('id-ID')}</div>
+    <div class="sign">${esc(c.kota)}, ${tglPanjang(s.tgl)}<br>Penanggung Jawab Sarana<div style="height:13mm"></div><b>${esc(c.apoteker)}</b><br>${esc(c.sipa)}</div>
+  </div>
+  <div class="bar b"></div>
+  </div><script>onload=()=>setTimeout(()=>print(),250)<\/script></body></html>`);
+  w.document.close();
+  if(s.items.length>6)toast('SP berisi banyak item — periksa preview, bisa lebih dari 1/2 halaman','warn');
+}
+
+/* 4. Persediaan */
+let STOKF='',STOKK='Semua',KSID=1,OPN={};
+PAGES.persediaan=()=>{
+  const t=T.persediaan||'Stok Barang';let b='';
+  if(t==='Stok Barang'){
+    const low=D.obat.filter(o=>o.stok<=o.min).length;
+    b=`<div class="card"><div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
+      <span class="lbl">Kategori :</span><select class="sel" style="width:160px" onchange="STOKK=this.value;render()">${opt(['Semua',...D.kategori],STOKK)}</select>
+      <span class="lbl">Cari :</span><div class="srch" style="flex:1;min-width:180px;max-width:300px">${ic('search')}<input class="inp" id="stq" placeholder="nama obat..." value="${esc(STOKF==='menipis'?'':STOKF)}" onkeydown="if(event.key==='Enter'){STOKF=this.value;render()}"></div>
+      <button class="btn btn-p" onclick="STOKF=$('#stq').value;render()">Cari</button>
+      ${STOKF==='menipis'?`<span class="badge b-red">Filter: stok menipis <a style="cursor:pointer;margin-left:6px" onclick="STOKF='';render()">✕</a></span>`:''}</div>
+      <div class="tw"><table><thead><tr><th>No</th><th>Nama Obat</th><th class="r">Stok</th><th>Satuan</th><th>Batch</th><th>ED</th><th class="r">Nilai Stok</th></tr></thead><tbody>${D.obat.filter(o=>(STOKK==='Semua'||o.kategori===STOKK)&&(STOKF==='menipis'?o.stok<=o.min:o.nama.toLowerCase().includes(STOKF.toLowerCase()))).map((o,i)=>`<tr><td>${i+1}</td><td>${esc(o.nama)}</td><td class="r num">${o.stok<=o.min?`<span class="badge b-red">${o.stok}</span>`:o.stok}${punya2(o)?`<br><small class="muted">${stokTxt(o)}</small>`:''}</td><td>${esc(o.satuan)}${punya2(o)?`<br><small class="muted">${kemasan(o)}</small>`:''}</td><td>${o.batch}</td><td>${o.ed<=iso(new Date(Date.now()+30*864e5)).slice(0,7)?`<span class="badge b-amber">${ed(o.ed)}</span>`:ed(o.ed)}</td><td class="r num">${rp(o.stok*o.beli)}</td></tr>`).join('')||'<tr><td colspan="7" class="empty">Tidak ada data</td></tr>'}</tbody></table></div>
+      ${low?`<div class="alert alert-amber" style="margin-top:14px;max-width:340px">${ic('alert')}Stok Menipis : ${low} Item</div>`:''}</div>`;
+  }else if(t==='Kartu Stok'){
+    const m=D.mutasi.filter(x=>x.id==KSID);
+    b=`<div class="card"><div style="display:flex;gap:12px;align-items:center;margin-bottom:14px;flex-wrap:wrap"><span class="lbl">Obat :</span><select class="sel" style="max-width:300px" onchange="KSID=+this.value;render()">${D.obat.map(o=>`<option value="${o.id}" ${o.id==KSID?'selected':''}>${esc(o.nama)}</option>`).join('')}</select><span class="muted">Stok saat ini: <b>${obatBy(KSID)?.stok??0}</b></span></div>
+    <div class="tw"><table><thead><tr><th>Tanggal</th><th>Jenis</th><th>Referensi</th><th class="r">Masuk</th><th class="r">Keluar</th><th class="r">Saldo</th></tr></thead><tbody>${m.map(x=>`<tr><td>${tgl(x.tgl)}</td><td>${x.jenis}</td><td>${esc(x.ref)}</td><td class="r num">${x.masuk||'-'}</td><td class="r num">${x.keluar||'-'}</td><td class="r num"><b>${x.saldo}</b></td></tr>`).join('')||'<tr><td colspan="6" class="empty">Belum ada mutasi untuk obat ini. Mutasi tercatat otomatis dari POS, pembelian, retur, dan opname.</td></tr>'}</tbody></table></div></div>`;
+  }else if(t==='Stok Opname'){
+    b=`<div class="card"><div class="card-h"><h3>Stok Opname</h3><div class="sp"></div><button class="btn btn-p" onclick="opnSave()">${ic('save')}Simpan Opname</button></div>
+    <div class="tw"><table><thead><tr><th>Nama Obat</th><th class="r">Stok Sistem</th><th class="r">Stok Fisik</th><th class="r">Selisih</th></tr></thead><tbody>${D.obat.map(o=>{const f=OPN[o.id];const s=f===undefined||f===''?'':(+f-o.stok);return `<tr><td>${esc(o.nama)}</td><td class="r num">${o.stok}</td><td class="r"><input class="qty" type="number" value="${f??''}" placeholder="${o.stok}" oninput="OPN[${o.id}]=this.value;this.closest('tr').lastElementChild.innerHTML=this.value===''?'':((+this.value-${o.stok})>0?'+':'')+(+this.value-${o.stok})"></td><td class="r num">${s===''?'':(s>0?'+':'')+s}</td></tr>`}).join('')}</tbody></table></div></div>`;
+  }else{
+    b=`<div class="card"><h3>Mutasi Stok</h3><div class="tw"><table><thead><tr><th>Tanggal</th><th>Obat</th><th>Jenis</th><th>Referensi</th><th class="r">Masuk</th><th class="r">Keluar</th></tr></thead><tbody>${D.mutasi.slice(0,200).map(x=>`<tr><td>${tgl(x.tgl)}</td><td>${esc(obatBy(x.id)?.nama||'-')}</td><td><span class="badge ${x.masuk?'b-green':'b-red'}">${x.jenis}</span></td><td>${esc(x.ref)}</td><td class="r num">${x.masuk||'-'}</td><td class="r num">${x.keluar||'-'}</td></tr>`).join('')||'<tr><td colspan="6" class="empty">Belum ada mutasi. Lakukan penjualan atau penerimaan barang untuk melihat mutasi.</td></tr>'}</tbody></table></div></div>`;
+  }
+  return head('Persediaan')+tabs('persediaan',['Stok Barang','Kartu Stok','Stok Opname','Mutasi Stok'])+b;
+};
+function opnSave(){let n=0;Object.entries(OPN).forEach(([id,v])=>{if(v==='')return;const o=obatBy(id),d=+v-o.stok;if(!d)return;o.stok=+v;addMutasi(+id,'Opname','OPN-'+today(),d>0?d:0,d<0?-d:0);n++});OPN={};log('Stok opname: '+n+' item disesuaikan');save();render();toast(n?n+' item disesuaikan':'Tidak ada selisih')}
+
+/* 5. Barcode & Label */
+const C128='212222 222122 222221 121223 121322 131222 122213 122312 132212 221213 221312 231212 112232 122132 122231 113222 123122 123221 223211 221132 221231 213212 223112 312131 311222 321122 321221 312212 322112 322211 212123 212321 232121 111323 131123 131321 112313 132113 132311 211313 231113 231311 112133 112331 132131 113123 113321 133121 313121 211331 231131 213113 213311 213131 311123 311321 331121 312113 312311 332111 314111 221411 431111 111224 111422 121124 121421 141122 141221 112214 112412 122114 122411 142112 142211 241211 221114 413111 241112 134111 111242 121142 121241 114212 124112 124211 411212 421112 421211 212141 214121 412121 111143 111341 131141 114113 114311 411113 411311 113141 114131 311141 411131 211412 211214 211232 2331112'.split(' ');
+function code128(txt){const c=[104];for(const ch of String(txt)){const v=ch.charCodeAt(0)-32;c.push(v>=0&&v<95?v:0)}let s=104;c.slice(1).forEach((v,i)=>s+=v*(i+1));c.push(s%103,106);const p=c.map(v=>C128[v]).join('');let x=10,r='';for(let i=0;i<p.length;i++){const w=+p[i];if(i%2===0)r+=`<rect x="${x}" y="0" width="${w}" height="60"/>`;x+=w}return `<svg viewBox="0 0 ${x+10} 60" preserveAspectRatio="none">${r}</svg>`}
+let BC={obat:1,jumlah:100,ukuran:null,printer:null,nama:true,harga:false};
+const labelHtml=o=>`<div class="label"><div class="ap">${esc(D.config.nama.toUpperCase())}</div>${BC.nama?`<div class="nm">${esc(o.nama)}${BC.harga?' · '+rp(o.jual):''}</div>`:''}${code128(o.barcode)}<div class="no">${o.barcode}</div></div>`;
+PAGES.barcode=()=>{
+  const t=T.barcode||'Buat Barcode';const o=obatBy(BC.obat)||D.obat[0];BC.ukuran=BC.ukuran||D.config.ukuran;BC.printer=BC.printer||D.config.printer;
+  if(t==='Cetak Ulang')return head('Barcode & Label')+tabs('barcode',['Buat Barcode','Cetak Label','Cetak Ulang'])+`<div class="card"><h3>Riwayat Cetak</h3><div class="tw"><table><thead><tr><th>Waktu</th><th>Keterangan</th><th class="c">Aksi</th></tr></thead><tbody>${D.audit.filter(a=>a.a.startsWith('Cetak label')).map(a=>`<tr><td>${new Date(a.t).toLocaleString('id-ID')}</td><td>${esc(a.a)}</td><td class="c"><button class="btn btn-o btn-sm" onclick="T.barcode='Buat Barcode';render()">${ic('print')}Cetak lagi</button></td></tr>`).join('')||'<tr><td colspan="3" class="empty">Belum ada riwayat cetak</td></tr>'}</tbody></table></div></div>`;
+  return head('Barcode & Label')+tabs('barcode',['Buat Barcode','Cetak Label','Cetak Ulang'])+`
+  <div class="card"><div class="grid g2" style="gap:28px">
+    <div><h3>Pengaturan Label</h3><div class="frm">
+      <label>Obat :</label><select class="sel" onchange="BC.obat=+this.value;render()">${D.obat.map(x=>`<option value="${x.id}" ${x.id==o.id?'selected':''}>${esc(x.nama)}</option>`).join('')}</select>
+      <label>Ukuran Label :</label><select class="sel" onchange="BC.ukuran=this.value">${opt(['33 mm x 15 mm','40 mm x 20 mm','50 mm x 25 mm','58 mm x 40 mm'],BC.ukuran)}</select>
+      <label>Barcode :</label><select class="sel"><option>Code 128</option></select>
+      <label>Printer :</label><select class="sel" onchange="BC.printer=this.value">${opt([...D.printers.filter(p=>p.jenis==='Label').map(p=>p.nama),'Printer default'],BC.printer)}</select>
+      <label>Jumlah Cetak :</label><input class="inp" type="number" min="1" value="${BC.jumlah}" onchange="BC.jumlah=Math.max(1,+this.value)">
+      <label>Tampilkan :</label><div style="display:flex;gap:16px"><label style="display:flex;gap:6px;align-items:center;font-weight:500"><input type="checkbox" ${BC.nama?'checked':''} onchange="BC.nama=this.checked;render()">Nama obat</label><label style="display:flex;gap:6px;align-items:center;font-weight:500"><input type="checkbox" ${BC.harga?'checked':''} onchange="BC.harga=this.checked;render()">Harga</label></div>
+    </div></div>
+    <div><h3>Preview Label :</h3><div class="lbl-prev">${labelHtml(o)}</div>
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:14px"><button class="btn btn-p" onclick="toast('Preview diperbarui')">${ic('eye')}Preview</button><button class="btn btn-p" onclick="printLabel()">${ic('print')}Cetak</button></div></div>
+  </div></div>`;
+};
+function printLabel(){const o=obatBy(BC.obat);const n=Math.min(BC.jumlah,500);const [w,h]=BC.ukuran.match(/\d+/g);const w2=window.open('','_blank');
+  w2.document.write(`<title>Label ${esc(o.nama)}</title><style>@page{size:${w}mm ${h}mm;margin:0}body{margin:0;font-family:Arial}.l{width:${w}mm;height:${h}mm;box-sizing:border-box;padding:1mm 2mm;text-align:center;page-break-after:always;overflow:hidden}.a{font-weight:bold;font-size:7pt}.n{font-size:6pt}svg{width:100%;height:${h*0.42}mm}.c{font-size:7pt;letter-spacing:1px}</style>${Array(n).fill(`<div class="l"><div class="a">${esc(D.config.nama.toUpperCase())}</div>${BC.nama?`<div class="n">${esc(o.nama)}${BC.harga?' '+rp(o.jual):''}</div>`:''}${code128(o.barcode)}<div class="c">${o.barcode}</div></div>`).join('')}<script>onload=()=>print()<\/script>`);w2.document.close();
+  log(`Cetak label ${o.nama} x${n}`);save()}
+
+/* 6. POS */
+let SALES='',DISKOFF=0,CART=[],DISK=0,PAJAK=true,PMODE=null,PEL='Pelanggan Umum',SUG=0;
+const pmode=()=>PMODE||D.config.ppnMode||'exclude';
+const posCalc=()=>{const sub=sumBy(CART,x=>x.qty*x.harga),kat=katOf(PEL),disK=Math.round(sub*kat.diskon/100),dis=Math.min(DISK+disK,sub),net=sub-dis,r=D.config.ppn,mode=pmode(),inc=PAJAK&&mode==='include',pj=!PAJAK?0:inc?Math.round(net*r/(100+r)):Math.round(net*r/100);return {sub,dis,disK,kat,pj,mode,rate:PAJAK?r:0,total:inc?net:net+pj,dpp:inc?net-pj:net,get offK(){const p=pelBy(PEL);return p&&PEL!=='Pelanggan Umum'?Math.round(this.dpp*(p.diskonOff||0)/100):0},get off(){return this.offK},get kom(){const s=slsBy(SALES);return s?Math.round(this.dpp*s.komisi/100):0}}};
+PAGES.pos=()=>{
+  const c=posCalc();
+  return head('Penjualan (POS)',`<select class="sel" style="width:190px" onchange="PEL=this.value;CART.forEach(x=>x.harga=posHarga(obatBy(x.id),x.isi||1));render()">${opt(D.pelanggan.map(p=>p.nama),PEL)}</select><select class="sel" style="width:180px" title="Salesman" onchange="SALES=this.value;render()"><option value="">— Tanpa salesman —</option>${D.salesman.map(s=>`<option value="${s.id}" ${s.id==SALES?'selected':''}>${esc(s.nama)} (${s.komisi}%)</option>`).join('')}</select><button class="btn btn-p" onclick="posNew()">${ic('plus')}Faktur Baru (F1)</button>`)+`
+  <div class="pos"><div>
+    <div class="card" style="padding:14px 16px">
+      <div class="pos-bar"><b>Penjualan</b><div class="srch">${ic('search')}<input class="inp" id="posq" placeholder="Scan barcode atau cari obat..." autocomplete="off" oninput="SUG=0;posSug()" onkeydown="posKey(event)"><div id="sugg"></div></div><span class="kbd">F2</span></div>
+      <div class="tw"><table><thead><tr><th>No</th><th>Nama Obat</th><th class="c">Jumlah</th><th class="r">Harga</th><th class="r">Subtotal</th><th></th></tr></thead><tbody>
+      ${CART.map((x,i)=>`<tr><td>${i+1}</td><td>${esc(x.nama)}<br><small class="muted">stok ${stokTxt(obatBy(x.id))}</small></td><td class="c" style="white-space:nowrap"><button class="ib" onclick="posQty(${i},-1)">${ic('minus')}</button><input class="qty" type="number" value="${x.qty}" min="1" onchange="posSet(${i},this.value)"><button class="ib" onclick="posQty(${i},1)">${ic('plus')}</button> ${unitSel(obatBy(x.id),x.isi||1,`posUnit(${i},+this.value)`)}</td><td class="r num">${nf(x.harga)}</td><td class="r num">${nf(x.qty*x.harga)}</td><td><button class="ib del" onclick="CART.splice(${i},1);render()">${ic('x')}</button></td></tr>`).join('')||`<tr><td colspan="6" class="empty" style="padding:50px">Keranjang kosong — scan barcode atau ketik nama obat</td></tr>`}
+      </tbody></table></div>
+    </div>
+    <div class="fkeys">
+      <button class="fkey" onclick="posClear()">${ic('trash')}Hapus<small>(F4)</small></button>
+      <button class="fkey ${DISK?'on':''}" onclick="posDisk()">${ic('percent')}Diskon<small>(F5)</small></button>
+      <button class="fkey ${PAJAK?'on':''}" onclick="posPajak()">${ic('receipt')}Pajak: ${PAJAK?(pmode()==='include'?'Include':'Exclude'):'Tanpa'}<small>(F8)</small></button>
+      <button class="fkey" onclick="posPay()">${ic('card')}Pembayaran<small>(F9)</small></button>
+    </div></div>
+    <div><div class="card">
+      <div class="sum-row"><span>Subtotal</span><b class="num">${rp(c.sub)}</b></div>
+      ${c.kat.diskon?`<div class="sum-row"><span>Diskon ${esc(c.kat.nama)} (${c.kat.diskon}%)</span><b class="num">${rp(c.disK)}</b></div>`:''}<div class="sum-row"><span>Diskon${c.kat.diskon?' tambahan':''}</span><b class="num">${rp(c.dis-c.disK)}</b></div>
+      <div class="sum-row" style="align-items:center"><span>PPN</span><span class="seg2">${['exclude','include'].map(m=>`<button class="${PAJAK&&pmode()===m?'on':''}" onclick="PAJAK=true;PMODE='${m}';render()">${m==='exclude'?'Exclude':'Include'}</button>`).join('')}<button class="${PAJAK?'':'on'}" onclick="PAJAK=false;render()">Tanpa</button></span></div>
+      <div class="sum-row"><span>Pajak ${PAJAK?`${D.config.ppn}% <small class="muted">(${c.mode==='include'?'sudah termasuk harga':'ditambahkan ke harga'})</small>`:'<small class="muted">(tanpa PPN)</small>'}</span><b class="num">${rp(c.pj)}</b></div>${PAJAK&&c.mode==='include'?`<div class="sum-row"><span>DPP</span><b class="num">${rp(c.total-c.pj)}</b></div>`:''}
+      <div class="sum-tot"><span>Total</span><b class="num">${rp(c.total)}</b></div>
+      ${(c.off&&PEL!=='Pelanggan Umum')||c.kom||(PEL!=='Pelanggan Umum'&&saldoBonus(PEL))?`<div style="background:#f6f9ff;border:1px solid var(--line);border-radius:9px;padding:9px 12px;margin-bottom:12px;font-size:12.5px">${c.off&&PEL!=='Pelanggan Umum'?`<div class="sum-row" style="padding:2px 0"><span>Bonus off faktur (tidak di faktur)</span><b style="color:var(--green)">${rp(c.off)}</b></div>`:''}${PEL!=='Pelanggan Umum'&&saldoBonus(PEL)?`<div class="sum-row" style="padding:2px 0"><span>Saldo bonus ${esc(PEL)}</span><b>${rp(saldoBonus(PEL))}</b></div>`:''}${c.kom?`<div class="sum-row" style="padding:2px 0"><span>Komisi ${esc(slsBy(SALES).nama)}</span><b>${rp(c.kom)}</b></div>`:''}</div>`:''}
+      <button class="btn btn-p bayar" onclick="posPay()">${ic('card')}Bayar</button>
+      <div class="muted" style="text-align:center;margin-top:10px;font-size:12px">${CART.length} item · ${sumBy(CART,x=>x.qty)} unit · ${esc(PEL)}</div>
+    </div></div>
+  </div>`;
+};
+AFTER.pos=()=>{setTimeout(()=>$('#posq')&&innerWidth>900&&$('#posq').focus(),30)};
+function posMatches(){const q=($('#posq')?.value||'').trim().toLowerCase();if(!q)return[];return D.obat.filter(o=>o.barcode===q||o.nama.toLowerCase().includes(q)).slice(0,8)}
+function posSug(){const m=posMatches();$('#sugg').innerHTML=m.length?`<div class="sugg">${m.map((o,i)=>`<div class="${i===SUG?'on':''}" onmousedown="posAdd(${o.id})"><span>${esc(o.nama)} <small class="muted">· stok ${o.stok}</small></span><b class="num">${nf(o.jual)}</b></div>`).join('')}</div>`:''}
+function posKey(e){const m=posMatches();if(e.key==='ArrowDown'){SUG=Math.min(SUG+1,m.length-1);posSug();e.preventDefault()}else if(e.key==='ArrowUp'){SUG=Math.max(SUG-1,0);posSug();e.preventDefault()}else if(e.key==='Enter'){if(m[SUG])posAdd(m[SUG].id);else if(e.target.value)toast('Obat tidak ditemukan','warn')}else if(e.key==='Escape'){e.target.value='';posSug()}}
+const posUsed=(id,skip)=>sumBy(CART.filter((x,j)=>x.id===id&&j!==skip),x=>x.qty*(x.isi||1));
+const posHarga=(o,isi)=>{const hk=isi===1&&D.harga.find(h=>h.obat===o.nama&&h.pelanggan===PEL);return hk?hk.harga:hJual(o,isi)};
+function posAdd(id){const o=obatBy(id);const k=CART.findIndex(x=>x.id===id&&(x.isi||1)===1);if(posUsed(id)+1>o.stok)return toast(`Stok ${o.nama} tidak cukup (sisa ${stokTxt(o)})`,'warn');if(k>=0)CART[k].qty++;else CART.push({id,nama:o.nama,qty:1,isi:1,unit:o.satuan,harga:posHarga(o,1)});render()}
+function posUnit(i,isi){const x=CART[i],o=obatBy(x.id);x.isi=isi;x.unit=units(o).find(u=>u.isi===isi).nm;x.harga=posHarga(o,isi);const max=Math.floor((o.stok-posUsed(x.id,i))/isi);if(max<1){toast(`Stok tidak cukup untuk 1 ${x.unit}`,'warn');x.isi=1;x.unit=o.satuan;x.harga=posHarga(o,1)}else if(x.qty>max)x.qty=max;render()}
+function posQty(i,d){posSet(i,CART[i].qty+d)}
+function posSet(i,v){v=Math.max(1,+v||1);const x=CART[i],o=obatBy(x.id),max=Math.floor((o.stok-posUsed(x.id,i))/(x.isi||1));if(v>max){toast(`Stok tersisa ${stokTxt(o)}`,'warn');v=Math.max(1,max)}x.qty=v;render()}
+function posClear(){if(!CART.length)return;CART=[];DISK=0;render();toast('Keranjang dikosongkan')}
+function posPajak(){if(!PAJAK){PAJAK=true;PMODE='exclude'}else if(pmode()==='exclude')PMODE='include';else PAJAK=false;render();toast('PPN: '+(PAJAK?(pmode()==='include'?'Include (harga sudah termasuk PPN)':'Exclude (PPN ditambahkan)'):'Tanpa PPN'))}
+function posNew(){CART=[];DISK=0;DISKOFF=0;PAJAK=true;PMODE=null;PEL='Pelanggan Umum';render();toast('Faktur baru')}
+function posDisk(){const c=posCalc(),k=c.kat,p=pelBy(PEL),umum=!p||PEL==='Pelanggan Umum';
+  openModal('Diskon',`<p class="muted" style="font-size:12.5px;margin-bottom:10px">Diskon on faktur tercetak di struk &amp; faktur dan langsung mengurangi harga.${k.diskon?` Sudah termasuk otomatis: <b>${esc(k.nama)} ${k.diskon}%</b> (${rp(c.disK)}).`:''}</p>
+    <div class="fld"><label>Diskon on faktur tambahan (Rp)</label><input class="inp" type="number" id="dk" value="${DISK||''}" onkeydown="if(event.key==='Enter')$('#dkOk').click()"></div><div style="display:flex;gap:8px;margin-top:8px">${[2,5,10].map(x=>`<button class="btn btn-o btn-sm" onclick="$('#dk').value=Math.round(${c.sub}*${x}/100)">${x}%</button>`).join('')}</div>
+    <div class="alert alert-blue" style="margin-top:14px;font-size:12.5px;font-weight:500">Diskon off faktur (bonus) mengikuti data pelanggan${umum?'.':`: <b>${esc(PEL)} ${p.diskonOff||0}%</b>${c.off?` = ${rp(c.off)} masuk ke saldo bonus`:''}.`} Ubah di Master Data → Pelanggan.</div>`,
+   `<button class="btn btn-g" onclick="DISK=0;closeModal();render()">Hapus Diskon Tambahan</button><button class="btn btn-p" id="dkOk" onclick="DISK=Math.max(0,+$('#dk').value||0);closeModal();render()">Terapkan</button>`,460)}
+function posPay(){
+  if(!CART.length)return toast('Keranjang masih kosong','warn');const c=posCalc(),sb=PEL!=='Pelanggan Umum'?saldoBonus(PEL):0;
+  openModal('Pembayaran',`<div class="bigrow"><span>Total Bayar</span><b style="color:var(--pri);font-size:20px">${rp(c.total)}</b></div>
+   ${sb>0?`<label style="display:flex;gap:8px;align-items:center;margin-top:12px;font-weight:600;background:var(--green-s);padding:10px 12px;border-radius:9px;cursor:pointer"><input type="checkbox" id="pb_use" onchange="payUpd(${c.total},${sb})">Pakai saldo bonus ${esc(PEL)} (${rp(sb)})</label>`:''}
+   <div class="fld" style="margin-top:14px"><label>Metode</label><select class="sel" id="pm">${opt(['Tunai','QRIS','Debit','Transfer'])}</select></div>
+   <div class="fld" style="margin-top:12px"><label>Uang Diterima <span class="muted" id="pdue"></span></label><input class="inp num" type="number" id="pu" value="${c.total}" oninput="payUpd(${c.total},${sb},true)" onkeydown="if(event.key==='Enter')posDone()"></div>
+   <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap" id="pq"></div>
+   <div class="bigrow" style="margin-top:12px"><span>Kembalian</span><b id="pk">Rp 0</b></div>`,`<button class="btn btn-g" onclick="closeModal()">Batal</button><button class="btn btn-p" onclick="posDone()">${ic('check')}Selesaikan</button>`,440);
+  payUpd(c.total,sb);
+}
+const payBonus=(t,sb)=>$('#pb_use')&&$('#pb_use').checked?Math.min(sb,t):0;
+function payUpd(t,sb,typing){const due=t-payBonus(t,sb);if(!typing)$('#pu').value=due;$('#pdue').textContent=payBonus(t,sb)?`(sisa setelah bonus: ${rp(due)})`:'';
+  $('#pk').textContent=rp(Math.max(0,(+$('#pu').value||0)-due));
+  if(!typing)$('#pq').innerHTML=[due,Math.ceil(due/10000)*10000,Math.ceil(due/50000)*50000,100000].filter((v,i,a)=>a.indexOf(v)===i&&v>=due).map(v=>`<button class="btn btn-o btn-sm" onclick="$('#pu').value=${v};payUpd(${t},${sb},true)">${nf(v)}</button>`).join('')}
+function posDone(){
+  const c=posCalc(),sb=PEL!=='Pelanggan Umum'?saldoBonus(PEL):0,bp=payBonus(c.total,sb),due=c.total-bp,u=+$('#pu').value,m=$('#pm').value;if(m==='Tunai'&&u<due)return toast('Uang diterima kurang','warn');
+  const no='PJ-'+today().replace(/-/g,'')+'-'+String(++D.seq.pj).padStart(4,'0');
+  const hpp=sumBy(CART,x=>x.qty*(x.isi||1)*obatBy(x.id).beli),sl=slsBy(SALES),umum=PEL==='Pelanggan Umum'||!pelBy(PEL),off=umum?0:c.off;
+  CART.forEach(x=>{const n=x.qty*(x.isi||1);obatBy(x.id).stok-=n;addMutasi(x.id,'Penjualan',no,0,n)});
+  D.sales.push({no,tgl:today(),pelanggan:PEL,items:CART.map(x=>({...x})),subtotal:c.sub,diskon:c.dis,kategori:c.kat.nama,diskonPct:c.kat.diskon,pajak:c.pj,ppnMode:PAJAK?c.mode:'none',ppnRate:c.rate,total:c.total,hpp,metode:m,bayar:u,trx:1,
+    salesman:sl?sl.nama:'',komisi:sl?c.kom:0,diskonOff:off,bonusPakai:bp});
+  const akun=m==='Tunai'?['111','Kas']:['112','Bank BCA'];
+  if(due>0)D.kas.push({tgl:today(),uraian:'Penjualan '+no,jenis:'Pemasukan',akun:akun[1],jumlah:due});
+  const jl=[[...akun,due,0]];if(bp)jl.push(['214','Utang Bonus Pelanggan',bp,0]);
+  jl.push(['412','Pendapatan Penjualan',0,c.total-c.pj],['213','PPN Keluaran',0,c.pj],['511','HPP',hpp,0],['121','Persediaan',0,hpp]);
+  if(off)jl.push(['613','Beban Diskon Off Faktur',off,0],['214','Utang Bonus Pelanggan',0,off]);
+  if(sl&&c.kom)jl.push(['612','Beban Komisi Salesman',c.kom,0],['215','Utang Komisi Salesman',0,c.kom]);
+  jurnal('Penjualan '+no,jl.filter(l=>l[2]||l[3]));
+  if(off)D.bonus.push({tgl:today(),pelanggan:PEL,ref:no,jenis:'Bonus off faktur',dasar:c.dpp,persen:(pelBy(PEL)||{}).diskonOff||0,jumlah:off});
+  if(bp)D.bonus.push({tgl:today(),pelanggan:PEL,ref:no,jenis:'Dipakai belanja',jumlah:-bp});
+  if(sl&&c.kom)D.komisi.push({tgl:today(),salesman:sl.nama,ref:no,jenis:'Komisi penjualan',dasar:c.dpp,jumlah:c.kom});
+  log('Transaksi penjualan '+no);save();
+  const items=CART.map(x=>({...x})),kemb=Math.max(0,u-due);CART=[];DISK=0;DISKOFF=0;
+  openModal('Transaksi Berhasil ✓',`<div style="text-align:center;padding:6px 0 12px"><div style="width:56px;height:56px;border-radius:50%;background:var(--green-s);color:var(--green);display:grid;place-items:center;margin:0 auto 10px">${ic('check')}</div><b style="font-size:16px">${no}</b><div class="muted">${m}</div></div><div class="bigrow"><span>Total</span><b>${rp(c.total)}</b></div>${bp?`<div class="bigrow"><span>Dibayar dengan bonus</span><b>${rp(bp)}</b></div>`:''}<div class="bigrow"><span>Dibayar</span><b>${rp(u)}</b></div><div class="bigrow"><span>Kembalian</span><b style="color:var(--green)">${rp(kemb)}</b></div>
+   ${off?`<div class="alert alert-blue" style="margin-top:12px;font-size:12.5px">Bonus off faktur ${rp(off)} masuk ke saldo ${esc(PEL)} · saldo sekarang ${rp(saldoBonus(PEL))}</div>`:''}${sl&&c.kom?`<div class="muted" style="margin-top:8px;font-size:12.5px">Komisi ${esc(sl.nama)}: ${rp(c.kom)}</div>`:''}`,
+   `<button class="btn btn-o" onclick="closeModal();fpForm('${no}')">${ic('receipt')}Faktur Pajak</button><button class="btn btn-o" onclick='printStruk(${JSON.stringify({no,items,c,u,m,bp}).replace(/'/g,"&#39;")})'>${ic('print')}Cetak Struk</button><button class="btn btn-p" onclick="closeModal();render()">Transaksi Baru</button>`,440);
+}
+function printStruk(d){const sp=printerBy(D.config.strukPrinter),lb=sp&&sp.jenis==='Thermal 80 mm'?'80mm':'58mm';const w=window.open('','_blank','width=380,height=600');w.document.write(`<title>${d.no}</title><style>@page{size:${lb} auto;margin:2mm}body{font-family:monospace;font-size:12px;width:calc(${lb} - 4mm);margin:0 auto}td{padding:1px 0}.r{text-align:right}hr{border:0;border-top:1px dashed #000}</style><div style="text-align:center">${logoCetak('display:block;margin:0 auto 4px;max-width:70%;max-height:22mm;object-fit:contain;filter:grayscale(1)')}<b>${esc(D.config.nama)}</b><br>${esc(D.config.alamat)}<br>${esc(D.config.telp)}</div><hr>${d.no}<br>${new Date().toLocaleString('id-ID')}<hr><table style="width:100%">${d.items.map(x=>`<tr><td colspan="2">${esc(x.nama)}</td></tr><tr><td>${x.qty} ${esc(x.unit||'')} x ${nf(x.harga)}</td><td class="r">${nf(x.qty*x.harga)}</td></tr>`).join('')}</table><hr><table style="width:100%"><tr><td>Subtotal</td><td class="r">${nf(d.c.sub)}</td></tr><tr><td>Diskon${d.c.kat&&d.c.kat.diskon?' '+esc(d.c.kat.nama)+' '+d.c.kat.diskon+'%':''}</td><td class="r">${nf(d.c.dis)}</td></tr><tr><td>PPN ${d.c.rate||0}%${d.c.rate?(d.c.mode==='include'?' (termasuk)':''):''}</td><td class="r">${nf(d.c.pj)}</td></tr><tr><td><b>TOTAL</b></td><td class="r"><b>${nf(d.c.total)}</b></td></tr>${d.bp?`<tr><td>Saldo bonus</td><td class="r">${nf(d.bp)}</td></tr>`:''}<tr><td>${d.m}</td><td class="r">${nf(d.u)}</td></tr><tr><td>Kembali</td><td class="r">${nf(Math.max(0,d.u-(d.c.total-(d.bp||0))))}</td></tr></table><hr><div style="text-align:center">${esc(D.config.tagline)}<br>Terima kasih</div><script>onload=()=>print()<\/script>`);w.document.close()}
+
+/* 7. Retur */
+let RT={no:'',tgl:today(),pihak:'',items:[],alasan:'Produk rusak'};
+PAGES.retur=()=>{
+  const t=T.retur||'Retur Penjualan',jual=t==='Retur Penjualan';
+  if(!RT.no)RT.no='RJ-'+today().slice(0,4)+'-'+today().slice(5).replace('-','')+'-'+String(D.seq.rj).padStart(3,'0');
+  const list=jual?D.pelanggan.map(p=>p.nama):D.supplier.map(s=>s.nama);if(!list.includes(RT.pihak))RT.pihak=list[0];
+  const hist=D.retur.filter(r=>r.jenis===t);
+  return head('Retur')+tabs('retur',['Retur Penjualan','Retur Pembelian'])+`
+  <div class="card"><div class="grid g2" style="gap:12px 26px;margin-bottom:16px">
+    <div class="frm"><label>No. Retur :</label><input class="inp" value="${RT.no}" onchange="RT.no=this.value"></div>
+    <div class="frm"><label>Tanggal :</label><input class="inp" type="date" value="${RT.tgl}" onchange="RT.tgl=this.value"></div>
+    <div class="frm"><label>${jual?'Pelanggan':'Supplier'} :</label><select class="sel" onchange="RT.pihak=this.value">${opt(list,RT.pihak)}</select></div>
+  </div>
+  <div class="tw"><table><thead><tr><th>No</th><th>Nama Obat</th><th class="c">Jumlah</th><th class="r">Harga</th><th class="r">Subtotal</th><th></th></tr></thead><tbody>
+    ${RT.items.map((x,i)=>{const o=obatBy(x.id),h=jual?o.jual:o.beli;return `<tr><td>${i+1}</td><td>${esc(o.nama)}</td><td class="c"><input class="qty" type="number" min="1" value="${x.qty}" onchange="RT.items[${i}].qty=Math.max(1,+this.value);render()"></td><td class="r num">${nf(h)}</td><td class="r num">${nf(h*x.qty)}</td><td><button class="ib del" onclick="RT.items.splice(${i},1);render()">${ic('x')}</button></td></tr>`}).join('')}
+    <tr><td></td><td colspan="5"><select class="sel" style="max-width:340px;height:34px" onchange="if(this.value){RT.items.push({id:+this.value,qty:1});render()}"><option value="">+ Tambah obat…</option>${D.obat.map(o=>`<option value="${o.id}">${esc(o.nama)}</option>`).join('')}</select></td></tr>
+  </tbody></table></div>
+  <div style="display:flex;gap:14px;align-items:center;margin-top:16px;flex-wrap:wrap">
+    <span class="lbl">Alasan :</span><select class="sel" style="max-width:260px" onchange="RT.alasan=this.value">${opt(['Produk rusak','Kedaluwarsa','Salah kirim','Salah resep','Lainnya'],RT.alasan)}</select>
+    <div style="flex:1"></div>
+    <button class="btn btn-p btn-lg" style="min-width:140px" onclick="rtSave('${t}')">Simpan</button><button class="btn btn-g btn-lg" style="min-width:120px" onclick="RT.items=[];render()">Batal</button>
+  </div></div>
+  <div class="card" style="margin-top:16px"><h3>Riwayat ${t}</h3><div class="tw"><table><thead><tr><th>No. Retur</th><th>Tanggal</th><th>${jual?'Pelanggan':'Supplier'}</th><th>Item</th><th>Alasan</th><th class="r">Nilai</th></tr></thead><tbody>${hist.map(r=>`<tr><td>${r.no}</td><td>${tgl(r.tgl)}</td><td>${esc(r.pihak)}</td><td>${esc(r.ringkas)}</td><td>${esc(r.alasan)}</td><td class="r num">${rp(r.nilai)}</td></tr>`).join('')||'<tr><td colspan="6" class="empty">Belum ada retur</td></tr>'}</tbody></table></div></div>`;
+};
+function rtSave(t){
+  if(!RT.items.length)return toast('Tambahkan obat yang diretur','warn');const jual=t==='Retur Penjualan';
+  let nilai=0;for(const x of RT.items){const o=obatBy(x.id);if(!jual&&x.qty>o.stok)return toast(`Stok ${o.nama} tidak cukup untuk diretur`,'warn')}
+  RT.items.forEach(x=>{const o=obatBy(x.id);nilai+=(jual?o.jual:o.beli)*x.qty;o.stok+=jual?x.qty:-x.qty;addMutasi(x.id,t,RT.no,jual?x.qty:0,jual?0:x.qty)});
+  D.retur.unshift({jenis:t,no:RT.no,tgl:RT.tgl,pihak:RT.pihak,alasan:RT.alasan,nilai,ringkas:RT.items.map(x=>obatBy(x.id).nama+' ('+x.qty+')').join(', ')});
+  D.kas.push({tgl:today(),uraian:t+' '+RT.no,jenis:jual?'Pengeluaran':'Pemasukan',akun:'Kas',jumlah:nilai});
+  log(t+' '+RT.no);D.seq.rj++;RT={no:'',tgl:today(),pihak:RT.pihak,items:[],alasan:'Produk rusak'};save();render();toast('Retur tersimpan, stok disesuaikan');
+}
+
+/* 8. Keuangan */
+const saldo=a=>sumBy(D.kas.filter(k=>k.akun===a),k=>k.jenis==='Pemasukan'?k.jumlah:-k.jumlah);
+PAGES.keuangan=()=>{
+  const t=T.keuangan||'Kas & Bank';let b='';
+  const riwayat=(rows)=>{let run=0;const sorted=D.kas.map((k,i)=>({...k,i})).sort((a,b)=>a.tgl<b.tgl?-1:a.tgl>b.tgl?1:a.i-b.i);const bal={};sorted.forEach(k=>{run+=k.jenis==='Pemasukan'?k.jumlah:-k.jumlah;bal[k.i]=run});
+    return `<div class="tw"><table><thead><tr><th>Tanggal</th><th>Uraian</th><th>Akun</th><th>Jenis</th><th class="r">Jumlah</th><th class="r">Saldo</th></tr></thead><tbody>${rows.slice().reverse().slice(0,100).map(k=>`<tr><td>${tgl(k.tgl)}</td><td>${esc(k.uraian)}</td><td>${k.akun}</td><td style="color:${k.jenis==='Pemasukan'?'var(--green)':'var(--red)'};font-weight:600">${k.jenis}</td><td class="r num">${nf(k.jumlah)}</td><td class="r num">${nf(bal[k.i])}</td></tr>`).join('')||'<tr><td colspan="6" class="empty">Belum ada transaksi</td></tr>'}</tbody></table></div>`};
+  const withI=D.kas.map((k,i)=>({...k,i}));
+  if(t==='Kas & Bank')b=`<div class="card"><div class="grid g2" style="align-items:center;margin-bottom:18px"><div><h3>Kas &amp; Bank</h3><div class="bigrow"><span class="muted">Kas Saat Ini :</span><b class="num">${rp(saldo('Kas'))}</b></div><div class="bigrow"><span class="muted">Bank BCA :</span><b class="num">${rp(saldo('Bank BCA'))}</b></div></div>
+    <div style="display:flex;flex-direction:column;gap:10px;align-items:flex-end"><button class="btn btn-green btn-lg" style="width:230px" onclick="kasForm('Pemasukan')">${ic('plus')}Tambah Pemasukan</button><button class="btn btn-red btn-lg" style="width:230px" onclick="kasForm('Pengeluaran')">${ic('minus')}Tambah Pengeluaran</button></div></div>
+    <h3>Riwayat Transaksi</h3>${riwayat(withI)}</div>`;
+  else if(t==='Pemasukan'||t==='Pengeluaran')b=`<div class="card"><div class="card-h"><h3>${t}</h3><div class="sp"></div><b class="num" style="margin-right:12px">${rp(sumBy(D.kas.filter(k=>k.jenis===t),k=>k.jumlah))}</b><button class="btn ${t==='Pemasukan'?'btn-green':'btn-red'}" onclick="kasForm('${t}')">${ic('plus')}Tambah</button></div>${riwayat(withI.filter(k=>k.jenis===t))}</div>`;
+  else{const tbl=(arr,key,lbl)=>`<div class="card"><h3>${lbl}</h3><div class="tw"><table><thead><tr><th>${key==='hutang'?'Supplier':'Pelanggan'}</th><th>Referensi</th><th>Jatuh Tempo</th><th class="r">Jumlah</th><th>Status</th><th class="c">Aksi</th></tr></thead><tbody>${arr.map((h,i)=>`<tr><td>${esc(h.pihak)}</td><td>${h.ref}</td><td>${tgl(h.jt)}</td><td class="r num">${nf(h.jumlah)}</td><td><span class="badge ${h.status==='Lunas'?'b-green':h.jt<today()?'b-red':'b-amber'}">${h.status==='Lunas'?'Lunas':h.jt<today()?'Jatuh tempo':'Belum Lunas'}</span></td><td class="c">${h.status==='Lunas'?'-':`<button class="btn btn-o btn-sm" onclick="lunasi('${key}',${i})">Lunasi</button>`}</td></tr>`).join('')||'<tr><td colspan="6" class="empty">Tidak ada data</td></tr>'}</tbody></table></div></div>`;
+    b=`<div class="grid">${tbl(D.hutang,'hutang','Hutang ke Supplier')}${tbl(D.piutang,'piutang','Piutang Pelanggan')}</div>`}
+  if(t==='Komisi & Bonus'){
+    b=`<div class="grid"><div class="card"><div class="card-h"><h3>Komisi Salesman</h3><div class="sp"></div><span class="muted" style="font-size:12.5px">Komisi dihitung dari DPP penjualan (setelah diskon on faktur, tanpa PPN)</span></div>
+    <div class="tw"><table><thead><tr><th>Salesman</th><th class="r">Komisi</th><th class="r">Penjualan (DPP)</th><th class="r">Total Komisi</th><th class="r">Sudah Dibayar</th><th class="r">Terutang</th><th class="c">Aksi</th></tr></thead><tbody>${D.salesman.map(s=>{const L=D.komisi.filter(k=>k.salesman===s.nama),tot=sumBy(L.filter(k=>k.jumlah>0),k=>k.jumlah),byr=-sumBy(L.filter(k=>k.jumlah<0),k=>k.jumlah),dpp=sumBy(L.filter(k=>k.jumlah>0),k=>k.dasar||0),hut=tot-byr;
+      return `<tr><td><b style="font-weight:600">${esc(s.nama)}</b></td><td class="r">${s.komisi}%</td><td class="r num">${nf(dpp)}</td><td class="r num">${nf(tot)}</td><td class="r num">${nf(byr)}</td><td class="r num"><b style="color:${hut>0?'var(--red)':''}">${nf(hut)}</b></td><td class="c">${hut>0?`<button class="btn btn-o btn-sm" onclick="kbBayar('komisi','${esc(s.nama)}',${hut})">Bayar Komisi</button>`:'-'}</td></tr>`}).join('')||'<tr><td colspan="7" class="empty">Belum ada salesman — tambahkan di Master Data → Salesman</td></tr>'}</tbody></table></div></div>
+    <div class="card"><div class="card-h"><h3>Saldo Bonus Pelanggan (Diskon Off Faktur)</h3></div>
+    <div class="tw"><table><thead><tr><th>Pelanggan</th><th>Kategori</th><th class="r">Bonus Diterima</th><th class="r">Dipakai / Dicairkan</th><th class="r">Saldo</th><th class="c">Aksi</th></tr></thead><tbody>${D.pelanggan.filter(p=>p.nama!=='Pelanggan Umum').map(p=>{const L=D.bonus.filter(b=>b.pelanggan===p.nama),masuk=sumBy(L.filter(b=>b.jumlah>0),b=>b.jumlah),keluar=-sumBy(L.filter(b=>b.jumlah<0),b=>b.jumlah),sal=masuk-keluar;
+      return `<tr><td><b style="font-weight:600">${esc(p.nama)}</b></td><td><span class="badge b-gray">${esc(p.kategori||'Umum')} · bonus ${p.diskonOff||0}%</span></td><td class="r num">${nf(masuk)}</td><td class="r num">${nf(keluar)}</td><td class="r num"><b style="color:${sal>0?'var(--green)':''}">${nf(sal)}</b></td><td class="c">${sal>0?`<button class="btn btn-o btn-sm" onclick="kbBayar('bonus','${esc(p.nama)}',${sal})">Berikan Bonus</button>`:''}<button class="ib" title="Kartu bonus" onclick="bonusKartu('${esc(p.nama)}')">${ic('eye')}</button></td></tr>`}).join('')}</tbody></table></div>
+    <p class="muted" style="font-size:12.5px;margin-top:10px">Saldo bonus juga bisa dipakai langsung sebagai pembayaran di POS.</p></div>
+    <div class="card"><h3>Riwayat</h3><div class="tw"><table><thead><tr><th>Tanggal</th><th>Jenis</th><th>Nama</th><th>Keterangan</th><th>Referensi</th><th class="r">Jumlah</th></tr></thead><tbody>${[...D.komisi.map(k=>({...k,nm:k.salesman,tp:'Komisi'})),...D.bonus.map(b=>({...b,nm:b.pelanggan,tp:'Bonus'}))].sort((a,b)=>a.tgl<b.tgl?1:-1).slice(0,100).map(x=>`<tr><td>${tgl(x.tgl)}</td><td><span class="badge ${x.tp==='Komisi'?'b-blue':'b-green'}">${x.tp}</span></td><td>${esc(x.nm)}</td><td>${esc(x.jenis)}</td><td>${esc(x.ref)}</td><td class="r num" style="color:${x.jumlah<0?'var(--red)':'var(--green)'}">${x.jumlah<0?'−':'+'}${nf(Math.abs(x.jumlah))}</td></tr>`).join('')||'<tr><td colspan="6" class="empty">Belum ada komisi atau bonus</td></tr>'}</tbody></table></div></div></div>`}
+  return head('Keuangan')+tabs('keuangan',['Kas & Bank','Pemasukan','Pengeluaran','Hutang & Piutang','Komisi & Bonus'])+b;
+};
+function kasForm(j){openModal('Tambah '+j,`<div class="fgrid"><div class="fld"><label>Tanggal</label><input class="inp" type="date" id="k_t" value="${today()}"></div><div class="fld"><label>Akun</label><select class="sel" id="k_a">${opt(['Kas','Bank BCA'])}</select></div></div><div class="fld" style="margin-top:12px"><label>Uraian</label><input class="inp" id="k_u" placeholder="${j==='Pemasukan'?'mis. Setoran modal':'mis. Bayar listrik'}"></div><div class="fld" style="margin-top:12px"><label>Jumlah (Rp)</label><input class="inp" type="number" id="k_j"></div>`,`<button class="btn btn-g" onclick="closeModal()">Batal</button><button class="btn btn-p" onclick="kasSave('${j}')">${ic('save')}Simpan</button>`,480)}
+function kasSave(j){const u=$('#k_u').value.trim(),n=+$('#k_j').value;if(!u||!n)return toast('Lengkapi uraian & jumlah','warn');const a=$('#k_a').value;D.kas.push({tgl:$('#k_t').value,uraian:u,jenis:j,akun:a,jumlah:n});const ak=a==='Kas'?['111','Kas']:['112','Bank BCA'];jurnal(u,j==='Pemasukan'?[[...ak,n,0],['311','Modal / Lain-lain',0,n]]:[['611','Beban Operasional',n,0],[...ak,0,n]]);log(j+': '+u);save();closeModal();render();toast(j+' tersimpan')}
+let KARTU=false;
+function bonusKartu(nama){const p=pelBy(nama)||{};let run=0;
+  const L=D.bonus.map((b,i)=>({...b,i})).filter(b=>b.pelanggan===nama).sort((a,b)=>a.tgl<b.tgl?-1:a.tgl>b.tgl?1:a.i-b.i).map(b=>({...b,sisa:run+=b.jumlah}));
+  const masuk=sumBy(L.filter(b=>b.jumlah>0),b=>b.jumlah),keluar=-sumBy(L.filter(b=>b.jumlah<0),b=>b.jumlah),sisa=masuk-keluar;
+  openModal('Kartu Bonus — '+esc(nama),`<div class="grid g4" style="gap:10px;margin-bottom:14px">
+    <div class="card" style="padding:12px;box-shadow:none"><small class="muted">Off faktur</small><br><b style="font-size:18px">${p.diskonOff||0}%</b></div>
+    <div class="card" style="padding:12px;box-shadow:none"><small class="muted">Total bonus</small><br><b style="font-size:18px">${rp(masuk)}</b></div>
+    <div class="card" style="padding:12px;box-shadow:none"><small class="muted">Sudah diberikan / dipakai</small><br><b style="font-size:18px">${rp(keluar)}</b></div>
+    <div class="card" style="padding:12px;box-shadow:none;background:var(--green-s)"><small class="muted">Sisa bonus</small><br><b style="font-size:18px;color:var(--green)">${rp(sisa)}</b></div></div>
+   <div class="muted" style="font-size:12.5px;margin-bottom:8px">Bonus = DPP (setelah diskon on faktur, tanpa PPN) × ${p.diskonOff||0}%</div>
+   <div class="tw" style="max-height:340px;overflow:auto"><table><thead><tr><th>Tanggal</th><th>Keterangan</th><th>Referensi</th><th class="r">DPP</th><th class="r">%</th><th class="r">Masuk</th><th class="r">Keluar</th><th class="r">Sisa</th></tr></thead><tbody>
+   ${L.slice().reverse().map(b=>`<tr><td>${tgl(b.tgl)}</td><td>${esc(b.jenis)}</td><td>${esc(b.ref)}</td><td class="r num">${b.dasar?nf(b.dasar):'-'}</td><td class="r">${b.persen!=null&&b.jumlah>0?b.persen+'%':'-'}</td><td class="r num" style="color:var(--green)">${b.jumlah>0?nf(b.jumlah):''}</td><td class="r num" style="color:var(--red)">${b.jumlah<0?nf(-b.jumlah):''}</td><td class="r num"><b>${nf(b.sisa)}</b></td></tr>`).join('')||'<tr><td colspan="8" class="empty">Belum ada bonus. Bonus terhitung otomatis setiap penjualan POS ke pelanggan ini.</td></tr>'}
+   </tbody></table></div>`,
+   `<button class="btn btn-g" onclick="KARTU=false;closeModal()">Tutup</button>${sisa>0?`<button class="btn btn-p" onclick="KARTU=true;kbBayar('bonus','${esc(nama)}',${sisa})">${ic('cash')}Berikan Bonus</button>`:''}`,820)}
+function kbBayar(jenis,nama,max){const kom=jenis==='komisi';openModal(kom?'Bayar Komisi Salesman':'Berikan Bonus ke Pelanggan',`<div class="bigrow"><span>${kom?'Salesman':'Pelanggan'}</span><b>${esc(nama)}</b></div><div class="bigrow"><span>${kom?'Komisi terutang':'Saldo bonus'}</span><b>${rp(max)}</b></div>
+  <div class="fgrid" style="margin-top:12px"><div class="fld"><label>Jumlah dibayar (Rp)</label><input class="inp" type="number" id="kb_j" value="${max}" max="${max}"></div><div class="fld"><label>Dari Akun</label><select class="sel" id="kb_a">${opt(['Kas','Bank BCA'])}</select></div></div>`,
+  `<button class="btn btn-g" onclick="closeModal()">Batal</button><button class="btn btn-p" onclick="kbSave('${jenis}','${esc(nama)}',${max})">${ic('check')}${kom?'Bayar':'Cairkan'}</button>`,460)}
+function kbSave(jenis,nama,max){const j=Math.round(+$('#kb_j').value||0),a=$('#kb_a').value,kom=jenis==='komisi';if(j<=0||j>max)return toast(`Jumlah harus 1 – ${nf(max)}`,'warn');
+  const ref=(kom?'KOM-':'BNS-')+today().replace(/-/g,'')+'-'+String(Date.now()).slice(-4);
+  if(kom)D.komisi.push({tgl:today(),salesman:nama,ref,jenis:'Pembayaran komisi ('+a+')',jumlah:-j});else D.bonus.push({tgl:today(),pelanggan:nama,ref,jenis:'Bonus diberikan ('+(a==='Kas'?'tunai':'transfer')+')',jumlah:-j});
+  D.kas.push({tgl:today(),uraian:(kom?'Bayar komisi ':'Pencairan bonus ')+nama,jenis:'Pengeluaran',akun:a,jumlah:j});
+  jurnal((kom?'Bayar komisi ':'Pencairan bonus ')+nama,[kom?['215','Utang Komisi Salesman',j,0]:['214','Utang Bonus Pelanggan',j,0],[a==='Kas'?'111':'112',a,0,j]]);
+  log((kom?'Bayar komisi ':'Cairkan bonus ')+nama+' '+rp(j));save();closeModal();render();toast(kom?'Komisi dibayar':`Bonus diberikan · sisa saldo ${nama}: ${rp(saldoBonus(nama))}`);if(!kom&&KARTU){KARTU=false;bonusKartu(nama)}}
+function lunasi(k,i){const h=D[k][i];h.status='Lunas';D.kas.push({tgl:today(),uraian:(k==='hutang'?'Bayar ':'Terima ')+h.pihak+' '+h.ref,jenis:k==='hutang'?'Pengeluaran':'Pemasukan',akun:'Kas',jumlah:h.jumlah});jurnal('Pelunasan '+h.ref,k==='hutang'?[['211','Utang Supplier',h.jumlah,0],['111','Kas',0,h.jumlah]]:[['111','Kas',h.jumlah,0],['113','Piutang Usaha',0,h.jumlah]]);save();render();toast('Pelunasan dicatat')}
+
+/* 9. Akuntansi */
+PAGES.akuntansi=()=>{
+  const t=T.akuntansi||'Jurnal Umum';let b='';
+  const s=stats(30),persediaan=sumBy(D.obat,o=>o.stok*o.beli),kas=saldo('Kas'),bank=saldo('Bank BCA'),piut=sumBy(D.piutang.filter(x=>x.status!=='Lunas'),x=>x.jumlah),hut=sumBy(D.hutang.filter(x=>x.status!=='Lunas'),x=>x.jumlah);
+  const beban=sumBy(D.kas.filter(k=>k.jenis==='Pengeluaran'&&!/supplier|Bayar PT|Bayar CV|Retur/i.test(k.uraian)&&inP(k.tgl,30)),k=>k.jumlah);
+  const pend=s.jual-s.ppnK,hpp=pend-s.laba,lb=s.laba-beban;
+  const row=(l,v,bold)=>`<div class="bigrow" style="${bold?'border-top:2px solid var(--line);':''}"><span style="${bold?'font-weight:800':''}">${l}</span><b class="num" style="${v<0?'color:var(--red)':''}">${rp(v)}</b></div>`;
+  if(t==='Jurnal Umum')b=`<div class="card"><div class="card-h"><h3>Jurnal Umum</h3><div class="sp"></div><span class="muted">Periode : 30 hari terakhir</span><button class="btn btn-p btn-sm" onclick="download('jurnal-umum.csv',csv([['Tanggal','Kode','Akun','Uraian','Debit','Kredit'],...D.jurnal.map(j=>[j.tgl,j.kode,j.akun,j.uraian,j.debit,j.kredit])]),'text/csv')">${ic('down')}Export</button></div>
+    <div class="tw"><table><thead><tr><th>Tanggal</th><th>Kode</th><th>Akun</th><th>Uraian</th><th class="r">Debit</th><th class="r">Kredit</th></tr></thead><tbody>${D.jurnal.slice(0,150).map(j=>`<tr><td>${tgl(j.tgl)}</td><td>${j.kode}</td><td>${esc(j.akun)}</td><td>${esc(j.uraian)}</td><td class="r num">${j.debit?nf(j.debit):'-'}</td><td class="r num">${j.kredit?nf(j.kredit):'-'}</td></tr>`).join('')}</tbody><tfoot><tr><th colspan="4">Total</th><th class="r num">${nf(sumBy(D.jurnal,j=>j.debit))}</th><th class="r num">${nf(sumBy(D.jurnal,j=>j.kredit))}</th></tr></tfoot></table></div></div>`;
+  else if(t==='Buku Besar'){const acc={};D.jurnal.forEach(j=>{const k=j.kode+' '+j.akun;acc[k]=acc[k]||{d:0,k:0};acc[k].d+=j.debit;acc[k].k+=j.kredit});
+    b=`<div class="card"><h3>Buku Besar (ringkasan per akun)</h3><div class="tw"><table><thead><tr><th>Akun</th><th class="r">Debit</th><th class="r">Kredit</th><th class="r">Saldo</th></tr></thead><tbody>${Object.entries(acc).sort().map(([k,v])=>`<tr><td>${esc(k)}</td><td class="r num">${nf(v.d)}</td><td class="r num">${nf(v.k)}</td><td class="r num"><b>${nf(v.d-v.k)}</b></td></tr>`).join('')}</tbody></table></div></div>`}
+  else if(t==='Neraca')b=`<div class="grid g2"><div class="card"><h3>Aset</h3>${row('Kas',kas)}${row('Bank BCA',bank)}${row('Piutang Usaha',piut)}${row('Persediaan Obat',persediaan)}${row('Total Aset',kas+bank+piut+persediaan,1)}</div><div class="card"><h3>Kewajiban &amp; Ekuitas</h3>${row('Utang Supplier',hut)}${row('PPN Terutang',Math.max(0,s.ppnK-s.ppnM))}${row('Ekuitas',kas+bank+piut+persediaan-hut-Math.max(0,s.ppnK-s.ppnM))}${row('Total Kewajiban & Ekuitas',kas+bank+piut+persediaan,1)}</div></div>`;
+  else if(t==='Laba Rugi')b=`<div class="card" style="max-width:640px"><h3>Laporan Laba Rugi — 30 hari terakhir</h3>${row('Pendapatan Penjualan (neto PPN)',pend)}${row('Harga Pokok Penjualan',-hpp)}${row('Laba Kotor',s.laba,1)}${row('Beban Operasional',-beban)}${row('Laba Bersih',lb,1)}</div>`;
+  else{const m=sumBy(D.kas.filter(k=>k.jenis==='Pemasukan'&&inP(k.tgl,30)),k=>k.jumlah),k=sumBy(D.kas.filter(k=>k.jenis==='Pengeluaran'&&inP(k.tgl,30)),k=>k.jumlah);
+    b=`<div class="card" style="max-width:640px"><h3>Arus Kas — 30 hari terakhir</h3>${row('Kas masuk',m)}${row('Kas keluar',-k)}${row('Arus kas bersih',m-k,1)}${row('Saldo kas & bank akhir',kas+bank,1)}</div>`}
+  return head('Akuntansi')+tabs('akuntansi',['Jurnal Umum','Buku Besar','Neraca','Laba Rugi','Arus Kas'])+b;
+};
+
+/* 10. Perpajakan */
+PAGES.pajak=()=>{
+  const t=T.pajak||'Rekap Pajak',s=stats(30),ter=s.ppnK-s.ppnM;let b='';
+  if(t==='Rekap Pajak')b=`<div class="card" style="max-width:720px"><h3>Rekap Pajak — 30 hari terakhir</h3>
+    <div class="bigrow"><span class="muted">PPN Keluaran :</span><b class="num">${rp(s.ppnK)}</b></div>
+    <div class="bigrow"><span class="muted">PPN Masukan :</span><b class="num">${rp(s.ppnM)}</b></div>
+    <div class="bigrow"><span class="muted">PPN ${ter>=0?'Terutang':'Lebih Bayar'} :</span><b class="num" style="color:var(--pri)">${rp(Math.abs(ter))}</b></div>
+    <div style="display:flex;gap:12px;margin-top:18px;flex-wrap:wrap"><button class="btn btn-o btn-lg" onclick="pajakCSV()">${ic('down')}Export CSV</button><button class="btn btn-o btn-lg" onclick="T.pajak='e-Faktur / Coretax';render()">${ic('upl')}Siapkan Laporan</button></div></div>`;
+  else b=`<div class="card"><div class="card-h"><h3>Data e-Faktur / Coretax</h3><div class="sp"></div><button class="btn btn-p" onclick="pajakCSV()">${ic('down')}Unduh CSV</button></div>
+    <div class="alert alert-blue" style="margin-bottom:14px">NPWP: ${esc(D.config.npwp)} · Tarif PPN ${D.config.ppn}%. File CSV dapat disesuaikan dengan format impor Coretax.</div>
+    <div class="tw"><table><thead><tr><th>Jenis</th><th>No. Dokumen</th><th>Tanggal</th><th>Lawan Transaksi</th><th class="r">DPP</th><th class="r">PPN</th></tr></thead><tbody>${[...D.sales.filter(x=>inP(x.tgl,30)).map(x=>['Keluaran',x.no,x.tgl,x.pelanggan,x.total-x.pajak,x.pajak]),...D.purch.filter(x=>inP(x.tgl,30)).map(x=>['Masukan',x.no,x.tgl,x.supplier,x.total-(x.pajak||0),x.pajak||0])].sort((a,b)=>a[2]<b[2]?1:-1).map(r=>`<tr><td><span class="badge ${r[0]==='Keluaran'?'b-blue':'b-green'}">${r[0]}</span></td><td>${r[1]}</td><td>${tgl(r[2])}</td><td>${esc(r[3])}</td><td class="r num">${nf(r[4])}</td><td class="r num">${nf(r[5])}</td></tr>`).join('')}</tbody></table></div></div>`;
+  if(t==='Faktur Pajak Penjualan'){const rows=D.sales.map((x,i)=>({...x,i})).filter(x=>!x.rekap).reverse();
+    b=`<div class="card"><div class="card-h"><h3>Faktur Pajak Penjualan</h3><div class="sp"></div><button class="btn btn-o" onclick="fpCSV()">${ic('down')}Export CSV Coretax</button></div>
+    <div class="alert alert-blue" style="margin-bottom:14px">Faktur yang dicetak dari sini adalah dokumen pendamping. Faktur pajak resmi tetap diterbitkan lewat Coretax DJP; setelah terbit, isi nomornya di sini agar tercetak di faktur.</div>
+    <div class="tw"><table><thead><tr><th>No. Transaksi</th><th>Tanggal</th><th>Pembeli</th><th class="r">DPP</th><th class="r">PPN</th><th>Faktur Pajak</th><th class="c">Aksi</th></tr></thead><tbody>${rows.map(x=>`<tr><td><b style="font-weight:600">${x.no}</b></td><td>${tgl(x.tgl)}</td><td>${esc(x.fp?x.fp.nama:x.pelanggan)}${x.fp&&x.fp.npwp?`<br><small class="muted">${esc(x.fp.npwp)}</small>`:''}</td><td class="r num">${nf(x.total-x.pajak)}</td><td class="r num">${nf(x.pajak)}</td><td>${x.fp?`<span class="badge b-green">${esc(x.fp.no)}</span>${x.fp.nomor?`<br><small class="muted">${esc(x.fp.nomor)}</small>`:'<br><small class="muted">nomor Coretax belum diisi</small>'}`:x.pajak?'<span class="badge b-gray">Belum dibuat</span>':'<span class="badge b-amber">Tanpa PPN</span>'}</td><td class="c" style="white-space:nowrap">${x.fp?`<button class="ib" title="Cetak" onclick="fpPrint('${x.no}')">${ic('print')}</button><button class="ib" title="Ubah" onclick="fpForm('${x.no}')">${ic('edit')}</button>`:`<button class="btn btn-p btn-sm" onclick="fpForm('${x.no}')" ${x.pajak?'':'disabled style="opacity:.5"'}>${ic('plus')}Buat</button>`}</td></tr>`).join('')||'<tr><td colspan="7" class="empty">Belum ada transaksi dari POS</td></tr>'}</tbody></table></div></div>`}
+  return head('Perpajakan')+tabs('pajak',['Rekap Pajak','Faktur Pajak Penjualan','e-Faktur / Coretax'])+b;
+};
+/* --- Faktur Pajak penjualan --- */
+const saleBy=no=>D.sales.find(x=>x.no===no);
+function fpForm(no){const s=saleBy(no);if(!s)return;if(!s.pajak)return toast('Transaksi ini tanpa PPN — aktifkan Pajak (F8) saat penjualan','warn');
+  const p=pelBy(s.pelanggan)||{},f=s.fp||{nama:p.nama==='Pelanggan Umum'?'':p.nama||'',npwp:p.npwp||'',alamat:p.alamat&&p.alamat!=='-'?p.alamat:'',nomor:'',tgl:s.tgl};
+  openModal('Faktur Pajak — '+no,`<div class="fgrid"><div class="fld"><label>Nama Pembeli</label><input class="inp" id="fp_n" value="${esc(f.nama)}"></div><div class="fld"><label>NPWP / NIK Pembeli</label><input class="inp" id="fp_w" value="${esc(f.npwp)}" placeholder="16 digit"></div></div>
+   <div class="fld" style="margin-top:12px"><label>Alamat Pembeli</label><input class="inp" id="fp_a" value="${esc(f.alamat)}"></div>
+   <div class="fgrid" style="margin-top:12px"><div class="fld"><label>Tanggal Faktur</label><input class="inp" type="date" id="fp_t" value="${f.tgl}"></div><div class="fld"><label>Nomor Faktur Pajak (dari Coretax, opsional)</label><input class="inp" id="fp_no" value="${esc(f.nomor)}" placeholder="bisa diisi nanti"></div></div>
+   <div class="bigrow" style="margin-top:12px"><span>DPP</span><b>${rp(s.total-s.pajak)}</b></div><div class="bigrow"><span>PPN</span><b>${rp(s.pajak)}</b></div>
+   ${p.nama&&p.nama!=='Pelanggan Umum'?`<label style="display:flex;gap:8px;align-items:center;margin-top:10px;font-weight:500"><input type="checkbox" id="fp_sv" checked>Simpan NPWP &amp; alamat ke data pelanggan ${esc(p.nama)}</label>`:''}`,
+   `<button class="btn btn-g" onclick="closeModal()">Batal</button><button class="btn btn-p" onclick="fpSave('${no}')">${ic('print')}Simpan &amp; Cetak</button>`,600)}
+function fpSave(no){const s=saleBy(no),n=$('#fp_n').value.trim(),w=$('#fp_w').value.replace(/[^0-9]/g,''),a=$('#fp_a').value.trim();
+  if(!n)return toast('Nama pembeli wajib diisi','warn');if(w.length!==15&&w.length!==16)return toast('NPWP / NIK harus 15 atau 16 digit','warn');if(!a)return toast('Alamat pembeli wajib diisi','warn');
+  s.fp={no:s.fp?s.fp.no:'FP-'+$('#fp_t').value.slice(0,4)+'-'+String(++D.seq.fp).padStart(6,'0'),nomor:$('#fp_no').value.trim(),tgl:$('#fp_t').value,nama:n,npwp:w,alamat:a};
+  const p=pelBy(s.pelanggan);if(p&&$('#fp_sv')&&$('#fp_sv').checked){p.npwp=w;p.alamat=a}
+  log('Faktur pajak '+s.fp.no+' untuk '+no);save();closeModal();if(PAGE==='pajak')render();toast('Faktur pajak tersimpan');fpPrint(no)}
+function fpPrint(no){const s=saleBy(no),f=s.fp,c=D.config;if(!f)return;const w=window.open('','_blank');if(!w)return toast('Pop-up diblokir browser — izinkan pop-up untuk mencetak','warn');
+  const dpp=s.total-s.pajak,fx=s.ppnMode==='include'?100/(100+(s.ppnRate||c.ppn)):1,bruto=Math.round(s.subtotal*fx),potong=bruto-dpp;
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Faktur Pajak ${esc(f.nomor||f.no)}</title><style>
+  @page{size:A4;margin:12mm}body{font-family:Arial,Helvetica,sans-serif;font-size:9.5pt;color:#000;margin:0}
+  h1{text-align:center;font-size:14pt;margin:0 0 4mm}table{width:100%;border-collapse:collapse}
+  .box td{border:1px solid #000;padding:1.6mm 2.4mm;vertical-align:top}.h{font-weight:bold;background:#eee;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .kv td{border:none;padding:.4mm 0}.kv td:first-child{width:28mm}.r{text-align:right}.c{text-align:center}
+  .it th,.it td{border:1px solid #000;padding:1.4mm 2.4mm}.it th{background:#eee;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .sm{font-size:8pt;color:#333}
+  </style></head><body>
+  <div style="position:relative;${D.config.logo&&D.config.logoCetak!==false?'min-height:17mm;padding-top:4mm':''}">${logoCetak('position:absolute;left:0;top:0;max-height:14mm;max-width:40mm;object-fit:contain')}<h1>Faktur Pajak</h1></div>
+  <table class="box"><tr><td>Kode dan Nomor Seri Faktur Pajak: <b>${esc(f.nomor||'(diisi setelah terbit di Coretax)')}</b><span style="float:right" class="sm">Ref. ${esc(f.no)} · ${esc(s.no)}</span></td></tr>
+  <tr><td class="h">Pengusaha Kena Pajak</td></tr><tr><td><table class="kv"><tr><td>Nama</td><td>: ${esc(c.nama)}</td></tr><tr><td>Alamat</td><td>: ${esc(c.alamat)}</td></tr><tr><td>NPWP</td><td>: ${esc(c.npwp)}</td></tr></table></td></tr>
+  <tr><td class="h">Pembeli Barang Kena Pajak / Penerima Jasa Kena Pajak</td></tr><tr><td><table class="kv"><tr><td>Nama</td><td>: ${esc(f.nama)}</td></tr><tr><td>Alamat</td><td>: ${esc(f.alamat)}</td></tr><tr><td>NPWP / NIK</td><td>: ${esc(f.npwp)}</td></tr></table></td></tr></table>
+  <table class="it" style="margin-top:-1px"><thead><tr><th style="width:9mm">No.</th><th>Nama Barang Kena Pajak / Jasa Kena Pajak</th><th style="width:42mm" class="r">Harga Jual / Penggantian (Rp)</th></tr></thead><tbody>
+  ${s.items.map((x,k)=>`<tr><td class="c">${k+1}</td><td>${esc(x.nama)}<br><span class="sm">Rp ${nf(Math.round(x.harga*fx))} x ${x.qty} ${esc(x.unit||'')}</span></td><td class="r">${nf(Math.round(x.qty*x.harga*fx))}</td></tr>`).join('')}
+  <tr><td colspan="2">Harga Jual / Penggantian</td><td class="r">${nf(bruto)}</td></tr>
+  <tr><td colspan="2">Dikurangi Potongan Harga${s.diskonPct?` (termasuk diskon pelanggan ${esc(s.kategori)} ${s.diskonPct}%)`:''}</td><td class="r">${nf(potong)}</td></tr>
+  <tr><td colspan="2">Dikurangi Uang Muka yang telah diterima</td><td class="r">0</td></tr>
+  <tr><td colspan="2"><b>Dasar Pengenaan Pajak</b></td><td class="r"><b>${nf(dpp)}</b></td></tr>
+  <tr><td colspan="2"><b>Total PPN</b> (${s.ppnRate||c.ppn}% x Dasar Pengenaan Pajak)${s.ppnMode==='include'?' — harga jual termasuk PPN':''}</td><td class="r"><b>${nf(s.pajak)}</b></td></tr>
+  <tr><td colspan="2">Total PPnBM (Pajak Penjualan atas Barang Mewah)</td><td class="r">0</td></tr></tbody></table>
+  <table style="margin-top:8mm"><tr><td class="sm" style="vertical-align:bottom">Dokumen pendamping dari ${esc(c.nama)}. Faktur pajak resmi diterbitkan melalui Coretax DJP.</td>
+  <td style="width:70mm;text-align:center">${esc(c.kota)}, ${tglPanjang(f.tgl)}<div style="height:20mm"></div><b>${esc(c.ttdFaktur||c.apoteker)}</b></td></tr></table>
+  <script>onload=()=>setTimeout(()=>print(),200)<\\/script></body></html>`);w.document.close()}
+function fpCSV(){const r=[['Tanggal Faktur','Nomor Faktur Coretax','Referensi','No Transaksi','NPWP/NIK Pembeli','Nama Pembeli','Alamat Pembeli','Harga Jual','Potongan','DPP','PPN']];
+  D.sales.filter(x=>x.fp).forEach(x=>r.push([x.fp.tgl,x.fp.nomor,x.fp.no,x.no,"'"+x.fp.npwp,x.fp.nama,x.fp.alamat,...(()=>{const fx=x.ppnMode==='include'?100/(100+(x.ppnRate||D.config.ppn)):1,b=Math.round(x.subtotal*fx),dpp=x.total-x.pajak;return [b,b-dpp,dpp,x.pajak]})()]));
+  if(r.length<2)return toast('Belum ada faktur pajak','warn');download('faktur-pajak-keluaran-'+today()+'.csv',csv(r),'text/csv');toast('CSV diunduh')}
+function pajakCSV(){const r=[['Jenis','No','Tanggal','Lawan','DPP','PPN'],...D.sales.filter(x=>inP(x.tgl,30)).map(x=>['Keluaran',x.no,x.tgl,x.pelanggan,x.total-x.pajak,x.pajak]),...D.purch.filter(x=>inP(x.tgl,30)).map(x=>['Masukan',x.no,x.tgl,x.supplier,x.total-(x.pajak||0),x.pajak||0])];download('rekap-pajak-'+today()+'.csv',csv(r),'text/csv');toast('CSV diunduh')}
+
+/* 11. Laporan */
+let LAPP=7;
+PAGES.laporan=()=>{
+  const t=T.laporan||'Penjualan';let b='';
+  const per=`<span class="lbl">Periode :</span><select class="sel" style="width:140px" onchange="LAPP=+this.value;render()">${[[7,'7 hari'],[14,'14 hari'],[30,'30 hari']].map(([v,l])=>`<option value="${v}" ${v==LAPP?'selected':''}>${l}</option>`).join('')}</select>`;
+  if(t==='Penjualan'||t==='Pembelian'){const src=t==='Penjualan'?'sales':'purch',d=daily(LAPP,src),tot=sumBy(d,x=>x.v),n=src==='sales'?sumBy(D.sales.filter(x=>inP(x.tgl,LAPP)),x=>x.trx||1):D.purch.filter(x=>inP(x.tgl,LAPP)).length;
+    b=`<div class="grid" style="grid-template-columns:1fr 320px" id="lapRow"><div class="card chart"><div class="card-h"><h3>Laporan ${t}</h3><div class="sp"></div>${per}</div>${barChart(d,240)}</div>
+    <div class="card"><h3>Ringkasan</h3><div class="bigrow"><span>Total ${t}</span><b class="num">${rp(tot)}</b></div><div class="bigrow"><span>Total Transaksi</span><b>${nf(n)}</b></div><div class="bigrow"><span>Rata-rata/Hari</span><b class="num">${rp(tot/LAPP)}</b></div>
+    <button class="btn btn-o" style="width:100%;margin-top:14px" onclick="download('laporan-${src}.csv',csv([['Tanggal','Total'],...daily(LAPP,'${src}').map(x=>[x.d,x.v])]),'text/csv')">${ic('down')}Export CSV</button><button class="btn btn-g" style="width:100%;margin-top:8px" onclick="print()">${ic('print')}Cetak</button></div></div>`}
+  else if(t==='Persediaan')b=`<div class="card"><div class="card-h"><h3>Laporan Persediaan</h3><div class="sp"></div><b>Nilai total: ${rp(sumBy(D.obat,o=>o.stok*o.beli))}</b></div><div class="tw"><table><thead><tr><th>Obat</th><th>Kategori</th><th class="r">Stok</th><th class="r">Harga Beli</th><th class="r">Nilai</th><th>ED</th></tr></thead><tbody>${D.obat.map(o=>`<tr><td>${esc(o.nama)}</td><td>${o.kategori}</td><td class="r">${o.stok}</td><td class="r num">${nf(o.beli)}</td><td class="r num">${nf(o.stok*o.beli)}</td><td>${ed(o.ed)}</td></tr>`).join('')}</tbody></table></div></div>`;
+  else if(t==='Keuntungan'){const s=stats(LAPP);b=`<div class="card" style="max-width:640px"><div class="card-h"><h3>Laporan Keuntungan</h3><div class="sp"></div>${per}</div><div class="bigrow"><span>Penjualan</span><b>${rp(s.jual)}</b></div><div class="bigrow"><span>PPN Keluaran</span><b>${rp(s.ppnK)}</b></div><div class="bigrow"><span>HPP</span><b>${rp(s.jual-s.ppnK-s.laba)}</b></div><div class="bigrow"><span>Laba Kotor</span><b style="color:var(--green)">${rp(s.laba)}</b></div><div class="bigrow"><span>Margin</span><b>${s.jual?(s.laba/(s.jual-s.ppnK)*100).toFixed(1):0}%</b></div></div>`}
+  else{const top={};D.sales.forEach(x=>x.items.forEach(i=>{top[i.nama]=(top[i.nama]||0)+i.qty*(i.isi||1)}));const arr=Object.entries(top).sort((a,b)=>b[1]-a[1]);
+    b=`<div class="card"><h3>Obat Terlaris (dari transaksi POS)</h3><div class="tw"><table><thead><tr><th>#</th><th>Obat</th><th class="r">Terjual (satuan kecil)</th></tr></thead><tbody>${arr.map(([n,q],i)=>`<tr><td>${i+1}</td><td>${esc(n)}</td><td class="r">${q}</td></tr>`).join('')||'<tr><td colspan="3" class="empty">Belum ada transaksi POS. Lakukan penjualan di menu Penjualan (POS).</td></tr>'}</tbody></table></div></div>`}
+  return head('Laporan')+tabs('laporan',['Penjualan','Pembelian','Persediaan','Keuntungan','Custom'])+b;
+};
+AFTER.laporan=()=>{const r=$('#lapRow');if(r&&innerWidth<900)r.style.gridTemplateColumns='1fr'};
+
+/* 12. Pengaturan */
+PAGES.pengaturan=()=>{
+  const t=T.pengaturan||'Pengguna';let b='';
+  const info=`<div class="card"><h3>Informasi Sistem</h3><div class="kv"><span>Versi :</span><b>1.0.0</b><span>Database :</span><b style="color:var(--green)">Terhubung (lokal)</b><span>Backup Terakhir :</span><b>${new Date(D.backup).toLocaleString('id-ID',{dateStyle:'short',timeStyle:'short'})}</b><span>Jumlah Obat :</span><b>${D.obat.length}</b></div></div>`;
+  if(t==='Pengguna')b=`<div class="grid" style="grid-template-columns:1fr 300px" id="setRow"><div class="card"><div class="card-h"><h3>Data Pengguna</h3><div class="sp"></div><button class="btn btn-p btn-sm" onclick="userForm()">${ic('plus')}Tambah</button></div>
+    <div class="tw"><table><thead><tr><th>No</th><th>Nama</th><th>Username</th><th>Level</th><th>Status</th><th class="c">Aksi</th></tr></thead><tbody>${D.users.map((u,i)=>`<tr><td>${i+1}</td><td>${esc(u.nama)}</td><td>${esc(u.username)}</td><td>${u.level}</td><td><span class="badge ${u.status==='Aktif'?'b-green':'b-gray'}">${u.status}</span></td><td class="c" style="white-space:nowrap"><button class="ib" onclick="userForm(${i})">${ic('edit')}</button><button class="ib del" onclick="D.users.splice(${i},1);save();render()">${ic('trash')}</button></td></tr>`).join('')}</tbody></table></div></div>${info}</div>`;
+  else if(t==='Hak Akses')b=`<div class="card"><h3>Hak Akses per Level</h3><div class="tw"><table class="matrix"><thead><tr><th>Menu</th>${Object.keys(D.akses).map(l=>`<th>${l}</th>`).join('')}</tr></thead><tbody>${MENU.map(([k,l])=>`<tr><td>${l}</td>${Object.keys(D.akses).map(lv=>`<td><input type="checkbox" ${lv==='Admin'||D.akses[lv][k]?'checked':''} ${lv==='Admin'?'disabled':''} onchange="D.akses['${lv}']['${k}']=this.checked?1:0;save()"></td>`).join('')}</tr>`).join('')}</tbody></table></div><p class="muted" style="margin-top:10px">Admin selalu memiliki akses penuh. Perubahan tersimpan otomatis.</p></div>`;
+  else if(t==='Konfigurasi'){const c=D.config;const F=(k,l,ty='text')=>`<div class="fld"><label>${l}</label><input class="inp" id="c_${k}" type="${ty}" value="${esc(c[k])}"></div>`;
+    b=`<div class="card" style="max-width:760px"><h3>Logo Apotek</h3>
+    <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-bottom:22px;padding-bottom:20px;border-bottom:1px solid var(--line)">
+      <div style="width:120px;height:80px;border:1.5px dashed #b9c8e6;border-radius:10px;display:grid;place-items:center;background:#fafcff;overflow:hidden">${D.config.logo?`<img src="${D.config.logo}" alt="Logo" style="max-width:110px;max-height:70px;object-fit:contain">`:'<span class="muted" style="font-size:12px;text-align:center">Logo bawaan<br>(salib hijau)</span>'}</div>
+      <div><input type="file" id="logoFile" accept="image/png,image/jpeg,image/webp,image/svg+xml" style="display:none" onchange="logoUpload(this.files[0]);this.value=''">
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-p btn-sm" onclick="$('#logoFile').click()">${ic('upl')}Ganti Logo</button>${D.config.logo?`<button class="btn btn-red btn-sm" onclick="logoReset()">${ic('trash')}Kembalikan Logo Bawaan</button>`:''}</div>
+        <label style="display:flex;gap:8px;align-items:center;margin-top:10px;font-weight:500;font-size:13px"><input type="checkbox" ${D.config.logoNama!==false?'checked':''} onchange="D.config.logoNama=this.checked;save();render()">Tampilkan nama &amp; slogan di samping logo</label>
+        <label style="display:flex;gap:8px;align-items:center;margin-top:6px;font-weight:500;font-size:13px"><input type="checkbox" ${D.config.logoCetak!==false?'checked':''} onchange="D.config.logoCetak=this.checked;save();toast('Tersimpan')">Tampilkan logo di cetakan (Surat Pesanan, struk, faktur pajak)</label>
+        <p class="muted" style="font-size:12px;margin-top:6px">PNG, JPG, WEBP, atau SVG, maks. 2 MB. Disarankan latar transparan. Logo tersimpan otomatis.</p></div>
+    </div>
+    <h3>Konfigurasi Apotek</h3><div class="fgrid">${F('nama','Nama Apotek')}${F('tagline','Slogan')}${F('alamat','Alamat')}${F('telp','Telepon')}${F('npwp','NPWP')}${F('nib','NIB Apotek')}${F('ppn','Tarif PPN (%)','number')}${F('marginDefault','Markup default obat baru (%)','number')}<div class="fld"><label>Pembulatan harga jual (ke atas)</label><select class="sel" id="c_bulat">${[[1,'Tanpa pembulatan'],[50,'Rp 50'],[100,'Rp 100'],[500,'Rp 500'],[1000,'Rp 1.000']].map(([v,l])=>`<option value="${v}" ${v==D.config.bulat?'selected':''}>${l}</option>`).join('')}</select></div><div class="fld"><label>Mode PPN default di POS</label><select class="sel" id="c_ppnMode"><option value="exclude" ${D.config.ppnMode!=='include'?'selected':''}>Exclude — PPN ditambahkan ke harga</option><option value="include" ${D.config.ppnMode==='include'?'selected':''}>Include — harga sudah termasuk PPN</option></select></div>${F('printer','Printer Label')}${F('ukuran','Ukuran Label Default')}</div>
+    <h3 style="margin-top:22px">Data Surat Pesanan (SP)</h3><div class="fgrid">${F('apoteker','Nama Apoteker Penanggung Jawab')}${F('sipa','No. SIPA')}${F('sarana','Nama Sarana')}${F('alamatSarana','Alamat Sarana')}${F('kota','Kota (tempat tanda tangan)')}${F('kodeSP','Kode Nomor SP')}</div>
+    <h3 style="margin-top:22px">Faktur Pajak</h3><div class="fgrid">${F('ttdFaktur','Penandatangan Faktur Pajak (kosong = nama apoteker)')}</div><div style="margin-top:16px;display:flex;justify-content:flex-end"><button class="btn btn-p" onclick="cfgSave()">${ic('save')}Simpan Konfigurasi</button></div></div>`}
+  else if(t==='Backup & Restore')b=`<div class="grid g2"><div class="card"><h3>Backup Data</h3><p class="muted" style="margin-bottom:14px">Unduh seluruh data aplikasi sebagai file JSON.</p><button class="btn btn-p" onclick="backup()">${ic('down')}Backup Sekarang</button></div>
+    <div class="card"><h3>Restore Data</h3><p class="muted" style="margin-bottom:14px">Pulihkan dari file backup JSON. Data saat ini akan diganti.</p><input type="file" id="rf" accept=".json" style="display:none" onchange="restore(this.files[0])"><button class="btn btn-o" onclick="$('#rf').click()">${ic('upl')}Pilih File Backup</button>
+    <hr style="border:0;border-top:1px solid var(--line);margin:18px 0"><h3>Reset Data Demo</h3><button class="btn btn-red" onclick="resetAsk()">${ic('trash')}Reset</button></div></div>`;
+  else if(t==='Printer'){const sel=(k,f)=>`<select class="sel" onchange="D.config.${k}=+this.value;save();toast('Tersimpan')">${D.printers.filter(f).map(p=>`<option value="${p.id}" ${p.id==D.config[k]?'selected':''}>${esc(p.nama)} — ${esc(p.jenis)}</option>`).join('')}</select>`;
+    b=`<div class="grid" style="grid-template-columns:1fr 340px" id="setRow"><div class="card"><div class="card-h"><h3>Daftar Printer</h3><div class="sp"></div><button class="btn btn-p btn-sm" onclick="prForm()">${ic('plus')}Tambah Printer</button></div>
+    <div class="tw"><table><thead><tr><th>No</th><th>Nama Printer</th><th>Jenis</th><th>Keterangan</th><th class="c">Aksi</th></tr></thead><tbody>${D.printers.map((p,i)=>`<tr><td>${i+1}</td><td><b style="font-weight:600">${esc(p.nama)}</b></td><td><span class="badge b-blue">${esc(p.jenis)}</span></td><td>${esc(p.ket||'')}</td><td class="c" style="white-space:nowrap"><button class="ib" onclick="prForm(${i})">${ic('edit')}</button><button class="ib del" onclick="prDel(${i})">${ic('trash')}</button></td></tr>`).join('')||'<tr><td colspan="5" class="empty">Belum ada printer</td></tr>'}</tbody></table></div>
+    <p class="muted" style="margin-top:10px;font-size:12.5px">Jenis printer menentukan tata letak cetakan (ukuran kertas, huruf, warna). Printer fisiknya tetap dipilih di jendela cetak browser.</p></div>
+    <div class="card"><h3>Printer per Dokumen</h3>
+      <div class="fld"><label>Surat Pesanan</label>${sel('spPrinter',bisaSP)}</div>
+      <div class="fld" style="margin-top:12px"><label>Ukuran kertas Surat Pesanan</label><select class="sel" onchange="D.config.spKertas=this.value;save();toast('Tersimpan')">${Object.entries(PAPER).map(([k,v])=>`<option value="${k}" ${k===D.config.spKertas?'selected':''}>${v.label}</option>`).join('')}</select></div>
+      <div class="fld" style="margin-top:12px"><label>Struk POS</label>${sel('strukPrinter',p=>p.jenis.startsWith('Thermal')||p.jenis==='Inkjet / Laser')}</div>
+    </div></div>`}
+  else b=`<div class="card"><h3>Audit Log</h3><div class="tw"><table><thead><tr><th>Waktu</th><th>Pengguna</th><th>Aktivitas</th></tr></thead><tbody>${D.audit.map(a=>`<tr><td style="white-space:nowrap">${new Date(a.t).toLocaleString('id-ID')}</td><td>${esc(a.u)}</td><td>${esc(a.a)}</td></tr>`).join('')}</tbody></table></div></div>`;
+  return head('Pengaturan')+tabs('pengaturan',['Pengguna','Hak Akses','Konfigurasi','Printer','Backup & Restore','Audit Log'])+b;
+};
+AFTER.pengaturan=()=>{const r=$('#setRow');if(r&&innerWidth<900)r.style.gridTemplateColumns='1fr'};
+function prForm(i){const p=i!==undefined?D.printers[i]:{jenis:'Inkjet / Laser'};openModal(i!==undefined?'Ubah Printer':'Tambah Printer',`<div class="fld"><label>Nama Printer</label><input class="inp" id="pr_n" value="${esc(p.nama||'')}" placeholder="mis. Epson L3210"></div><div class="fld" style="margin-top:12px"><label>Jenis Printer</label><select class="sel" id="pr_j">${opt(JENISP,p.jenis)}</select></div><div class="fld" style="margin-top:12px"><label>Keterangan</label><input class="inp" id="pr_k" value="${esc(p.ket||'')}" placeholder="lokasi / kegunaan"></div>`,`<button class="btn btn-g" onclick="closeModal()">Batal</button><button class="btn btn-p" onclick="prSave(${i??''})">${ic('save')}Simpan</button>`,460)}
+function prSave(i){const x={nama:$('#pr_n').value.trim(),jenis:$('#pr_j').value,ket:$('#pr_k').value.trim()};if(!x.nama)return toast('Nama printer wajib diisi','warn');if(i!==undefined)Object.assign(D.printers[i],x);else D.printers.push({id:Math.max(0,...D.printers.map(p=>p.id))+1,...x});log('Simpan printer '+x.nama);save();closeModal();render();toast('Printer tersimpan')}
+function prDel(i){const p=D.printers[i];openModal('Hapus printer?',`<p>Printer <b>${esc(p.nama)}</b> akan dihapus dari daftar.</p>`,`<button class="btn btn-g" onclick="closeModal()">Batal</button><button class="btn btn-red" onclick="D.printers.splice(${i},1);save();closeModal();render()">${ic('trash')}Hapus</button>`,420)}
+function userForm(i){const u=i!==undefined?D.users[i]:{level:'Kasir',status:'Aktif'};openModal(i!==undefined?'Ubah Pengguna':'Tambah Pengguna',`<div class="fgrid"><div class="fld"><label>Nama</label><input class="inp" id="u_n" value="${esc(u.nama||'')}"></div><div class="fld"><label>Username</label><input class="inp" id="u_u" value="${esc(u.username||'')}"></div><div class="fld"><label>Level</label><select class="sel" id="u_l">${opt(Object.keys(D.akses),u.level)}</select></div><div class="fld"><label>Status</label><select class="sel" id="u_s">${opt(['Aktif','Nonaktif'],u.status)}</select></div></div>`,`<button class="btn btn-g" onclick="closeModal()">Batal</button><button class="btn btn-p" onclick="userSave(${i??''})">${ic('save')}Simpan</button>`,520)}
+function userSave(i){const x={nama:$('#u_n').value.trim(),username:$('#u_u').value.trim(),level:$('#u_l').value,status:$('#u_s').value};if(!x.nama||!x.username)return toast('Nama & username wajib','warn');if(i!==undefined)D.users[i]=x;else D.users.push(x);log('Simpan pengguna '+x.username);save();closeModal();render();toast('Pengguna tersimpan')}
+function applyLogo(){const l=D.config.logo,img=$('#brandLogo');img.style.display=l?'':'none';$('#brandCross').style.display=l?'none':'';if(l&&img.src!==l)img.src=l;
+  $('.logo div').style.display=D.config.logoNama===false&&l?'none':'';
+  let fav=document.querySelector('link[rel=icon]');if(l){if(!fav){fav=document.createElement('link');fav.rel='icon';document.head.appendChild(fav)}fav.href=l}else if(fav)fav.remove()}
+function logoUpload(f){if(!f)return;if(!/^image\/(png|jpeg|webp|svg\+xml)$/.test(f.type))return toast('Format harus PNG, JPG, WEBP, atau SVG','warn');if(f.size>2*1024*1024)return toast('Ukuran file maksimal 2 MB','warn');
+  const rd=new FileReader();rd.onload=()=>{if(f.type==='image/svg+xml'){if(/<script|on\w+\s*=/i.test(rd.result))return toast('File SVG berisi skrip — gunakan PNG/JPG','err');logoSet('data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(rd.result))));return}
+    const im=new Image();im.onload=()=>{const k=Math.min(1,320/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);logoSet(c.toDataURL('image/png'))};im.onerror=()=>toast('Gambar tidak bisa dibaca','err');im.src=rd.result};
+  rd.readAsDataURL(f)}
+function logoSet(u){const old=D.config.logo;D.config.logo=u;try{localStorage.setItem(KEY,JSON.stringify(D))}catch(e){if(e&&e.name==='QuotaExceededError'){D.config.logo=old;return toast('Penyimpanan browser penuh — gunakan gambar yang lebih kecil','err')}}log('Ganti logo');save();render();toast('Logo diperbarui')}
+function logoReset(){D.config.logo='';log('Kembalikan logo bawaan');save();render();toast('Logo bawaan dipakai lagi')}
+function cfgSave(){['nama','tagline','alamat','telp','npwp','nib','printer','ukuran','apoteker','sipa','sarana','alamatSarana','kota','kodeSP','ttdFaktur','ppnMode'].forEach(k=>D.config[k]=$('#c_'+k).value);D.config.ppn=+$('#c_ppn').value||0;D.config.marginDefault=+$('#c_marginDefault').value||0;D.config.bulat=+$('#c_bulat').value||1;BC.ukuran=null;BC.printer=null;log('Ubah konfigurasi');save();render();toast('Konfigurasi tersimpan')}
+function resetAsk(){openModal('Reset data?','<p>Semua data akan dikembalikan ke data contoh awal.</p>',`<button class="btn btn-g" onclick="closeModal()">Batal</button><button class="btn btn-red" onclick="D=seed();save();closeModal();render();toast('Data direset')">Reset</button>`,420)}
+function backup(){D.backup=new Date().toISOString();save();download('backup-apotek-'+today()+'.json',JSON.stringify(D,null,1),'application/json');log('Backup data');render();toast('Backup diunduh')}
+function restore(f){if(!f)return;const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!x.obat)throw 0;D=x;save();render();toast('Data dipulihkan')}catch(e){toast('File backup tidak valid','err')}};r.readAsText(f)}
+
+/* =====================================================================
+   SERVER: login, sinkron data, toko online
+   ===================================================================== */
+const SRV={on:false,token:null,rev:0,t:null,pt:null,busy:false,again:false,orders:[],newCount:0,seen:null};
+try{SRV.token=sessionStorage.getItem('df-token')}catch(e){}
+const normTelp=s=>{let d=String(s||'').replace(/\D/g,'');if(d.startsWith('62'))d='0'+d.slice(2);return d};
+async function api(p,opt={}){
+  const r=await fetch(p,{method:opt.method||'GET',headers:{'Content-Type':'application/json',...(SRV.token?{Authorization:'Bearer '+SRV.token}:{})},body:opt.body!==undefined?JSON.stringify(opt.body):undefined});
+  let j={};try{j=await r.json()}catch(e){}
+  if(r.status===401&&p!=='/api/auth/login'){SRV.token=null;try{sessionStorage.removeItem('df-token')}catch(e){}showLogin('Sesi berakhir, silakan login lagi');throw new Error('Sesi berakhir')}
+  if(!r.ok)throw Object.assign(new Error(j.message||('Gagal ('+r.status+')')),{status:r.status,body:j});
+  return j}
+function setSync(st){const e=$('#syncSt');if(!e)return;const M={demo:['Mode demo','#7d8aa5','Data hanya tersimpan di browser ini. Jalankan server agar tersambung ke toko online.'],ok:['Tersinkron','#16a34a','Data tersimpan di server'],saving:['Menyimpan…','#1d5fe0',''],err:['Gagal sinkron','#e0353b','Server tidak terjangkau, akan dicoba lagi']};
+  e.innerHTML=`<span style="width:8px;height:8px;border-radius:50%;background:${M[st][1]};display:inline-block"></span><span class="st-t">${M[st][0]}</span>`;e.style.color=M[st][1];e.title=M[st][2]}
+function queueSync(){if(!SRV.on||!SRV.token)return;clearTimeout(SRV.t);setSync('saving');SRV.t=setTimeout(pushState,700)}
+async function pushState(){if(SRV.busy){SRV.again=true;return}SRV.busy=true;
+  try{const j=await api('/api/state',{method:'PUT',body:{rev:SRV.rev,data:D}});SRV.rev=j.rev;setSync('ok')}
+  catch(e){if(e.status===409){toast('Data diubah dari perangkat lain — memuat data terbaru','warn');try{await loadState()}catch(_){}}else if(e.status!==401){setSync('err');clearTimeout(SRV.t);SRV.t=setTimeout(pushState,10000)}}
+  finally{SRV.busy=false;if(SRV.again){SRV.again=false;pushState()}}}
+async function loadState(){const j=await api('/api/state');SRV.rev=j.rev;
+  if(!j.data){const k=await api('/api/state',{method:'PUT',body:{rev:SRV.rev,data:D}});SRV.rev=k.rev;toast('Data awal diunggah ke server')}
+  else{D=j.data;migrate();try{localStorage.setItem(KEY,JSON.stringify(D))}catch(e){}}
+  setSync('ok');render()}
+function showLogin(msg){let el=$('#loginBox');if(!el){el=document.createElement('div');el.id='loginBox';document.body.appendChild(el)}
+  el.innerHTML=`<div class="lg-card"><div style="text-align:center;margin-bottom:18px">${D.config.logo?`<img src="${D.config.logo}" alt="" style="max-height:52px;max-width:180px;margin-bottom:8px">`:''}<div style="font-size:19px;font-weight:800;color:var(--navy)">${esc(D.config.nama)}</div><div class="muted" style="font-size:12.5px">Masuk ke aplikasi admin</div></div>
+   <div class="fld"><label>Username</label><input class="inp" id="lg_u" value="admin" autocomplete="username"></div>
+   <div class="fld" style="margin-top:12px"><label>Password</label><input class="inp" id="lg_p" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+   <div id="lg_e" style="color:var(--red);font-size:12.5px;margin-top:8px;min-height:18px">${msg?esc(msg):''}</div>
+   <button class="btn btn-p btn-lg" id="lg_b" style="width:100%;margin-top:4px" onclick="doLogin()">Masuk</button></div>`;
+  el.style.display='flex';setTimeout(()=>$('#lg_p')&&$('#lg_p').focus(),50)}
+async function doLogin(){const b=$('#lg_b');b.disabled=true;b.textContent='Memeriksa…';
+  try{const j=await api('/api/auth/login',{method:'POST',body:{username:$('#lg_u').value.trim(),password:$('#lg_p').value}});SRV.token=j.token;try{sessionStorage.setItem('df-token',j.token)}catch(e){}
+    $('#loginBox').style.display='none';await loadState();pollOrders();if(j.mustChange)pwForm(true)}
+  catch(e){$('#lg_e').textContent=e.message;b.disabled=false;b.textContent='Masuk'}}
+function logout(){SRV.token=null;try{sessionStorage.removeItem('df-token')}catch(e){}clearTimeout(SRV.pt);showLogin()}
+function pwForm(force){openModal(force?'Ganti password bawaan':'Ganti Password Admin',`${force?'<div class="alert alert-amber" style="margin-bottom:12px;font-size:12.5px">Anda masih memakai password bawaan. Ganti sekarang agar aplikasi aman.</div>':''}<div class="fld"><label>Password lama</label><input class="inp" type="password" id="pw_l" autocomplete="current-password"></div><div class="fld" style="margin-top:12px"><label>Password baru (min. 6 karakter)</label><input class="inp" type="password" id="pw_b" autocomplete="new-password"></div><div class="fld" style="margin-top:12px"><label>Ulangi password baru</label><input class="inp" type="password" id="pw_u" autocomplete="new-password"></div>`,
+  `<button class="btn btn-g" onclick="closeModal()">${force?'Nanti':'Batal'}</button><button class="btn btn-p" onclick="pwSave()">${ic('save')}Simpan</button>`,420)}
+async function pwSave(){if($('#pw_b').value!==$('#pw_u').value)return toast('Ulangi password tidak sama','warn');try{await api('/api/auth/password',{method:'POST',body:{lama:$('#pw_l').value,baru:$('#pw_b').value}});closeModal();toast('Password diganti')}catch(e){toast(e.message,'err')}}
+async function srvInit(){
+  if(!location.protocol.startsWith('http')){setSync('demo');return}
+  try{const r=await fetch('/api/health');const j=await r.json();if(j.app!=='dianfarma')throw 0}catch(e){setSync('demo');return}
+  SRV.on=true;if(SRV.token){try{await loadState();pollOrders();return}catch(e){if(!$('#loginBox')||$('#loginBox').style.display==='none')showLogin()}return}showLogin()}
+async function pollOrders(){clearTimeout(SRV.pt);if(!SRV.on||!SRV.token)return;
+  try{const j=await api('/api/admin/orders');SRV.orders=j.items;const baru=j.items.filter(o=>o.status==='baru');
+    if(SRV.seen&&baru.some(o=>!SRV.seen.has(o.kode)))toast('Ada pesanan online baru!');SRV.seen=new Set(baru.map(o=>o.kode));SRV.newCount=baru.length;
+    if(PAGE==='toko'&&(T.toko||'Pesanan')==='Pesanan'&&!$('#mbg').classList.contains('show'))render();else updateChrome()}catch(e){}
+  SRV.pt=setTimeout(pollOrders,20000)}
+
+/* ---------- Halaman Toko Online ---------- */
+let TKF='baru';
+const OST={baru:['Baru','b-red'],diproses:['Diproses','b-blue'],dikirim:['Dikirim','b-amber'],siap:['Siap diambil','b-amber'],selesai:['Selesai','b-green'],dibatalkan:['Dibatalkan','b-gray'],bukti:['Bukti bayar diunggah','b-green']};
+PAGES.toko=()=>{const t=T.toko||'Pesanan';let b='';
+  if(t==='Pesanan'){
+    if(!SRV.on)b=`<div class="card" style="max-width:720px"><h3>Server belum tersambung</h3><p class="muted" style="margin-bottom:10px">Pesanan dari toko online hanya bisa diterima saat aplikasi dibuka lewat server.</p><ol style="margin-left:18px;line-height:1.9"><li>Jalankan <b>JALANKAN DIAN FARMA.bat</b> di folder aplikasi</li><li>Buka <b>http://localhost:3100/admin</b> lalu login</li><li>Alamat toko untuk pelanggan: <b>http://localhost:3100/</b></li></ol></div>`;
+    else{const L=SRV.orders,cnt=s=>L.filter(o=>o.status===s).length,show=TKF==='semua'?L:L.filter(o=>o.status===TKF);
+      b=`<div class="card"><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">${[['baru','Baru'],['diproses','Diproses'],['dikirim','Dikirim'],['siap','Siap diambil'],['selesai','Selesai'],['dibatalkan','Dibatalkan'],['semua','Semua']].map(([k,l])=>`<button class="btn btn-sm ${TKF===k?'btn-p':'btn-o'}" onclick="TKF='${k}';render()">${l}${k!=='semua'?` <span class="badge" style="${TKF===k?'background:rgba(255,255,255,.25);color:#fff':'background:#eef2f8'}">${cnt(k)}</span>`:''}</button>`).join('')}<div style="flex:1"></div><button class="btn btn-o btn-sm" onclick="pollOrders().then(()=>toast('Daftar diperbarui'))">${ic('retur')}Muat ulang</button></div>
+      <div class="tw"><table><thead><tr><th>Kode</th><th>Waktu</th><th>Pelanggan</th><th>Pengiriman</th><th>Pembayaran</th><th class="r">Total</th><th>Status</th><th class="c">Aksi</th></tr></thead><tbody>${show.map(o=>`<tr><td><b style="font-weight:600">${esc(o.kode)}</b>${o.adaResep?' <span class="badge b-amber">Resep</span>':''}</td><td style="white-space:nowrap">${new Date(o.created_at).toLocaleString('id-ID',{dateStyle:'short',timeStyle:'short'})}</td><td>${esc(o.nama)}<br><small class="muted">${esc(o.telp)}</small></td><td>${o.kirim==='antar'?'Diantar':'Ambil di apotek'}</td><td>${esc(o.bayarLabel)}${o.adaBukti?' <span class="badge b-green">Bukti</span>':''}</td><td class="r num">${nf(o.total)}</td><td><span class="badge ${OST[o.status][1]}">${OST[o.status][0]}</span></td><td class="c"><button class="btn btn-o btn-sm" onclick="orderDetail('${esc(o.kode)}')">Detail</button></td></tr>`).join('')||'<tr><td colspan="8" class="empty">Tidak ada pesanan</td></tr>'}</tbody></table></div></div>`}
+  }else{const k=D.config.toko=D.config.toko||{};const F=(key,l,ty='text',ph='')=>`<div class="fld"><label>${l}</label><input class="inp" id="tk_${key}" type="${ty}" value="${esc(k[key]??'')}" placeholder="${esc(ph)}"></div>`;
+    b=`<div class="grid" style="grid-template-columns:1fr 320px" id="setRow"><div class="card"><h3>Pengaturan Toko Online</h3>
+     <label style="display:flex;gap:10px;align-items:center;font-weight:600;margin-bottom:14px"><input type="checkbox" id="tk_buka" ${k.buka!==false?'checked':''} style="width:18px;height:18px;accent-color:var(--pri)">Toko buka (menerima pesanan)</label>
+     <div class="fgrid">${F('ongkir','Ongkos kirim (Rp)','number','10000')}${F('gratisOngkir','Gratis ongkir mulai belanja (Rp, 0 = tidak ada)','number','0')}${F('minBelanja','Minimal belanja (Rp)','number','0')}${F('wa','Nomor WhatsApp apotek','text','08xxxxxxxxxx')}${F('jam','Jam buka','text','Senin–Sabtu 08.00–21.00')}${F('info','Pengumuman di toko','text','mis. Gratis ongkir area kota')}</div>
+     <div class="fld" style="margin-top:12px"><label>Metode pembayaran</label><div style="display:flex;gap:18px;flex-wrap:wrap">${[['transfer','Transfer Bank'],['qris','QRIS'],['cod','Bayar di Tempat']].map(([v,l])=>`<label style="display:flex;gap:6px;align-items:center;font-weight:500"><input type="checkbox" class="tk_bayar" value="${v}" ${(k.bayar||['transfer','qris','cod']).includes(v)?'checked':''}>${l}</label>`).join('')}</div></div>
+     <div class="fld" style="margin-top:12px"><label>Rekening bank (satu per baris)</label><textarea class="inp" id="tk_rekening" rows="3" placeholder="BCA 1234567890 a.n. Apotek Dian Farma">${esc(k.rekening||'')}</textarea></div>
+     <div class="fld" style="margin-top:12px"><label>Gambar QRIS</label><div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">${k.qris?`<img src="${k.qris}" alt="QRIS" style="width:90px;height:90px;object-fit:contain;border:1px solid var(--line);border-radius:8px">`:'<span class="muted">Belum ada</span>'}<input type="file" id="tk_qf" accept="image/png,image/jpeg,image/webp" style="display:none" onchange="qrisUpload(this.files[0]);this.value=''"><button class="btn btn-o btn-sm" onclick="$('#tk_qf').click()">${ic('upl')}Unggah QRIS</button>${k.qris?`<button class="btn btn-red btn-sm" onclick="D.config.toko.qris='';save();render()">Hapus</button>`:''}</div></div>
+     <p class="muted" style="font-size:12.5px;margin-top:12px">Produk yang tampil diatur di Master Data → Data Obat (centang "Tampil di toko online"). Obat bertanda "Wajib resep" hanya bisa dipesan dengan foto resep.</p>
+     <div style="display:flex;justify-content:flex-end;margin-top:14px"><button class="btn btn-p" onclick="tokoSave()">${ic('save')}Simpan Pengaturan</button></div></div>
+     <div class="card"><h3>Server &amp; Akun</h3>${SRV.on?`<div class="kv" style="margin-bottom:14px"><span>Status :</span><b style="color:var(--green)">Tersambung</b><span>Toko :</span><b><a href="/" target="_blank" rel="noopener">${esc(location.origin)}/</a></b><span>Admin :</span><b>${esc(location.origin)}/admin</b></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-o btn-sm" onclick="navigator.clipboard&&navigator.clipboard.writeText(location.origin+'/').then(()=>toast('Link toko disalin'))">Salin link toko</button><button class="btn btn-o btn-sm" onclick="pwForm()">Ganti password</button><button class="btn btn-red btn-sm" onclick="logout()">Keluar</button></div>`:'<p class="muted">Mode demo — aplikasi tidak dibuka lewat server. Pengaturan tetap tersimpan dan akan dipakai setelah server dijalankan.</p>'}</div></div>`}
+  return head('Toko Online',SRV.on?`<a class="btn btn-o" href="/" target="_blank" rel="noopener">${ic('eye')}Buka Toko</a>`:'')+tabs('toko',['Pesanan','Pengaturan Toko'])+b};
+AFTER.toko=()=>{const r=$('#setRow');if(r&&innerWidth<900)r.style.gridTemplateColumns='1fr'};
+function tokoSave(){const k=D.config.toko=D.config.toko||{};k.buka=$('#tk_buka').checked;['ongkir','gratisOngkir','minBelanja'].forEach(x=>k[x]=Math.max(0,+$('#tk_'+x).value||0));['wa','jam','info'].forEach(x=>k[x]=$('#tk_'+x).value.trim());
+  k.rekening=$('#tk_rekening').value.trim();k.bayar=[...document.querySelectorAll('.tk_bayar:checked')].map(e=>e.value);if(!k.bayar.length)return toast('Pilih minimal satu metode pembayaran','warn');
+  log('Ubah pengaturan toko online');save();render();toast('Pengaturan toko tersimpan')}
+function qrisUpload(f){if(!f)return;if(!/^image\/(png|jpeg|webp)$/.test(f.type))return toast('Format harus PNG/JPG/WEBP','warn');const rd=new FileReader();rd.onload=()=>{const im=new Image();im.onload=()=>{const s=Math.min(1,700/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.drawImage(im,0,0,c.width,c.height);D.config.toko=D.config.toko||{};D.config.toko.qris=c.toDataURL('image/png');save();render();toast('QRIS diunggah')};im.src=rd.result};rd.readAsDataURL(f)}
+async function orderDetail(kode){let o;try{o=(await api('/api/admin/orders/'+encodeURIComponent(kode))).data}catch(e){return toast(e.message,'err')}
+  window._ord=o;const st=OST[o.status],wa=normTelp(o.telp).replace(/^0/,'62');
+  const stokOk=o.items.every(i=>{const ob=obatBy(i.id);return ob&&ob.stok>=i.qty*i.isi});const act=[];
+  if(o.status==='baru')act.push(`<button class="btn btn-red" onclick="orderBatal('${esc(kode)}')">Batalkan</button>`,`<button class="btn btn-p" onclick="orderProses('${esc(kode)}')" ${stokOk?'':'disabled style="opacity:.5"'}>${ic('check')}Proses Pesanan</button>`);
+  if(o.status==='diproses')act.push(o.kirim==='antar'?`<button class="btn btn-o" onclick="orderStatus('${esc(kode)}','dikirim')">${ic('truck')}Tandai Dikirim</button>`:`<button class="btn btn-o" onclick="orderStatus('${esc(kode)}','siap')">${ic('box')}Siap Diambil</button>`);
+  if(['diproses','dikirim','siap'].includes(o.status))act.push(`<button class="btn btn-p" onclick="orderSelesai('${esc(kode)}')">${ic('check')}Selesai${o.bayar==='cod'?' &amp; Uang Diterima':''}</button>`);
+  const img=(src,l)=>`<div><div class="lbl" style="margin-bottom:4px">${l}</div><img src="${src}" alt="${l}" style="width:100%;max-height:260px;object-fit:contain;border:1px solid var(--line);border-radius:8px;background:#fafcff"></div>`;
+  const warn=s=>`<div class="alert alert-amber" style="margin-top:10px;font-size:12.5px">${s}</div>`;
+  openModal(`Pesanan ${esc(kode)} <span class="badge ${st[1]}" style="margin-left:6px;vertical-align:middle">${st[0]}</span>`,`
+   <div class="grid g2" style="gap:14px;margin-bottom:12px"><div><div class="lbl">Pelanggan</div><b>${esc(o.nama)}</b><br>${esc(o.telp)} · <a href="https://wa.me/${esc(wa)}" target="_blank" rel="noopener">Chat WhatsApp</a>${o.kategori?`<br><span class="badge b-blue">${esc(o.kategori)} · diskon ${o.diskonPct}%</span>`:''}</div>
+   <div><div class="lbl">Pengiriman &amp; Pembayaran</div>${o.kirim==='antar'?'Diantar ke: '+esc(o.alamat):'Ambil di apotek'}<br>${esc(o.bayarLabel)}${o.saleNo?`<br><small class="muted">No. penjualan: ${esc(o.saleNo)}</small>`:''}${o.alasan?`<br><small style="color:var(--red)">Dibatalkan: ${esc(o.alasan)}</small>`:''}</div></div>
+   ${o.catatan?`<div class="alert alert-blue" style="margin-bottom:12px;font-weight:500">Catatan pelanggan: ${esc(o.catatan)}</div>`:''}
+   <div class="tw"><table><thead><tr><th>Obat</th><th class="c">Jumlah</th><th class="r">Harga</th><th class="r">Subtotal</th>${o.status==='baru'?'<th class="r">Stok</th>':''}</tr></thead><tbody>${o.items.map(i=>{const ob=obatBy(i.id),need=i.qty*i.isi;return `<tr><td>${esc(i.nama)}${i.resep?' <span class="badge b-amber">Resep</span>':''}</td><td class="c">${i.qty} ${esc(i.unit)}</td><td class="r num">${nf(i.harga)}</td><td class="r num">${nf(i.sub)}</td>${o.status==='baru'?`<td class="r">${ob?`<span class="badge ${ob.stok>=need?'b-green':'b-red'}">${stokTxt(ob)}</span>`:'<span class="badge b-red">tidak ada</span>'}</td>`:''}</tr>`}).join('')}</tbody></table></div>
+   <div style="display:flex;justify-content:flex-end"><div style="min-width:260px;margin-top:8px"><div class="sum-row"><span>Subtotal</span><b>${rp(o.subtotal)}</b></div>${o.diskon?`<div class="sum-row"><span>Diskon ${esc(o.kategori||'')} ${o.diskonPct}%</span><b>−${rp(o.diskon)}</b></div>`:''}<div class="sum-row"><span>Ongkir</span><b>${rp(o.ongkir)}</b></div><div class="sum-row" style="font-size:15px;color:var(--ink)"><b>Total</b><b>${rp(o.total)}</b></div></div></div>
+   ${o.resepImg||o.buktiImg?`<div class="grid g2" style="gap:12px;margin-top:10px">${o.resepImg?img(o.resepImg,'Foto resep'):''}${o.buktiImg?img(o.buktiImg,'Bukti pembayaran'):''}</div>`:''}
+   ${o.status==='baru'&&o.adaResep?warn('Apoteker wajib memeriksa resep (nama pasien, dokter, tanggal, tanda tangan) sebelum memproses.'):''}
+   ${o.status==='baru'&&o.bayar!=='cod'&&!o.adaBukti?warn('Pelanggan belum mengunggah bukti pembayaran. Pastikan dana sudah masuk sebelum memproses.'):''}
+   ${o.status==='baru'&&!stokOk?warn('Stok tidak cukup untuk memproses pesanan ini.'):''}
+   <div class="lbl" style="margin-top:14px">Riwayat</div><div style="font-size:12.5px;line-height:1.7">${o.riwayat.map(r=>`<div>${new Date(r.t).toLocaleString('id-ID',{dateStyle:'short',timeStyle:'short'})} — <b>${esc((OST[r.status]||[r.status])[0])}</b>${r.ket?' · '+esc(r.ket):''}</div>`).join('')}</div>`,
+   `<button class="btn btn-g" onclick="closeModal()">Tutup</button>${act.join('')}`,780)}
+async function orderStatus(kode,st,ket){try{await api('/api/admin/orders/'+encodeURIComponent(kode),{method:'PATCH',body:{status:st,ket:ket||''}});closeModal();toast('Status pesanan diperbarui');log(`Pesanan online ${kode}: ${st}`);save();await pollOrders()}catch(e){toast(e.message,'err');if(e.status===409){closeModal();pollOrders()}}}
+async function orderProses(kode){const o=window._ord;if(!o||o.kode!==kode)return;
+  for(const i of o.items){const ob=obatBy(i.id);if(!ob||ob.stok<i.qty*i.isi)return toast(`Stok ${i.nama} tidak cukup`,'warn')}
+  const no='PJ-'+today().replace(/-/g,'')+'-'+String(D.seq.pj+1).padStart(4,'0');
+  try{await api('/api/admin/orders/'+encodeURIComponent(kode),{method:'PATCH',body:{status:'diproses',saleNo:no,ket:'Pesanan diproses'}})}catch(e){toast(e.message,'err');closeModal();return pollOrders()}
+  D.seq.pj++;
+  let p=D.pelanggan.find(x=>x.nama!=='Pelanggan Umum'&&normTelp(x.telp)===normTelp(o.telp));
+  if(!p){p={id:Date.now(),nama:o.nama,kategori:'Umum',diskonOff:0,telp:o.telp,alamat:o.alamat||'-',npwp:''};D.pelanggan.push(p)}
+  const r=+o.ppn||0,net=o.subtotal-o.diskon,pj=r?Math.round(net*r/(100+r)):0,tot=net+o.ongkir,cod=o.bayar==='cod';
+  const items=o.items.map(i=>({id:i.id,nama:i.nama,qty:i.qty,isi:i.isi,unit:i.unit,harga:i.harga}));
+  const hpp=sumBy(items,i=>i.qty*i.isi*(obatBy(i.id).beli||0));
+  items.forEach(i=>{const n=i.qty*i.isi;obatBy(i.id).stok-=n;addMutasi(i.id,'Penjualan Online',no,0,n)});
+  D.sales.push({no,tgl:today(),pelanggan:p.nama,items,subtotal:o.subtotal,diskon:o.diskon,kategori:o.kategori||'Umum',diskonPct:o.diskonPct||0,pajak:pj,ppnMode:r?'include':'none',ppnRate:r,total:net,hpp,metode:o.bayarLabel+' (online)',bayar:tot,trx:1,online:o.kode,ongkir:o.ongkir});
+  if(cod)D.piutang.push({pihak:p.nama,ref:o.kode,jumlah:tot,jt:iso(new Date(Date.now()+3*864e5)),status:'Belum Lunas'});
+  else D.kas.push({tgl:today(),uraian:'Penjualan online '+o.kode,jenis:'Pemasukan',akun:'Bank BCA',jumlah:tot});
+  jurnal('Penjualan online '+o.kode,[cod?['113','Piutang Usaha',tot,0]:['112','Bank BCA',tot,0],['412','Pendapatan Penjualan',0,net-pj],['213','PPN Keluaran',0,pj],['413','Pendapatan Ongkir',0,o.ongkir],['511','HPP',hpp,0],['121','Persediaan',0,hpp]].filter(l=>l[2]||l[3]));
+  log('Proses pesanan online '+o.kode+' → '+no);save();closeModal();toast('Pesanan diproses · stok dipotong · '+no);await pollOrders()}
+async function orderSelesai(kode){const o=window._ord;
+  try{await api('/api/admin/orders/'+encodeURIComponent(kode),{method:'PATCH',body:{status:'selesai',ket:o&&o.bayar==='cod'?'Uang diterima':''}})}catch(e){toast(e.message,'err');if(e.status===409){closeModal();pollOrders()}return}
+  if(o&&o.bayar==='cod'){const i=D.piutang.findIndex(h=>h.ref===kode&&h.status!=='Lunas');if(i>=0)lunasi('piutang',i)}
+  log('Pesanan online selesai '+kode);save();closeModal();toast('Pesanan selesai');await pollOrders()}
+function orderBatal(kode){openModal('Batalkan pesanan?',`<div class="fld"><label>Alasan (akan dilihat pelanggan)</label><input class="inp" id="ob_a" placeholder="mis. stok habis / resep tidak valid"></div>`,`<button class="btn btn-g" onclick="orderDetail('${esc(kode)}')">Kembali</button><button class="btn btn-red" onclick="if(!$('#ob_a').value.trim())return toast('Isi alasan pembatalan','warn');orderStatus('${esc(kode)}','dibatalkan',$('#ob_a').value.trim())">Batalkan Pesanan</button>`,440)}
+
+/* ---------- Pintasan keyboard (POS) ---------- */
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&$('#mbg').classList.contains('show'))return closeModal();
+  if(PAGE!=='pos'||$('#mbg').classList.contains('show'))return;
+  const k={F1:posNew,F2:()=>$('#posq').focus(),F4:posClear,F5:posDisk,F8:posPajak,F9:posPay}[e.key];
+  if(k){e.preventDefault();k()}
+});
+
+const h0=location.hash.slice(1);if(PAGES[h0])PAGE=h0;
+render();srvInit();
+</script>
+</body>
+</html>

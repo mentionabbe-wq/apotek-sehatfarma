@@ -1,0 +1,20 @@
+# Jalankan:  docker compose -f docker-compose.dianfarma.yml up -d --build
+services:
+  dianfarma:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    image: dianfarma
+    container_name: dianfarma
+    ports:
+      - "3100:3100"
+    volumes:
+      - dianfarma-data:/data
+    environment:
+      - PORT=3100
+      # Ganti sebelum dipakai sungguhan:
+      - ADMIN_PASSWORD=ganti-password-ini
+    restart: unless-stopped
+
+volumes:
+  dianfarma-data:

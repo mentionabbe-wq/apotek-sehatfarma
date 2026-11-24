@@ -2,3 +2,5 @@
 backend/apotek.db
 *.bat~
 .DS_Store
+
+server/data/

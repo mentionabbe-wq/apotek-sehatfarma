@@ -1,0 +1,11 @@
+{
+  "name": "dianfarma-server",
+  "version": "1.0.0",
+  "description": "Server Apotek Dian Farma: data admin + API toko online",
+  "main": "server.js",
+  "private": true,
+  "engines": { "node": ">=22.13" },
+  "scripts": {
+    "start": "node server.js"
+  }
+}
