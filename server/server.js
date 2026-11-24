@@ -27,6 +27,9 @@ db.exec(`
     kode TEXT PRIMARY KEY, created_at TEXT, updated_at TEXT, status TEXT, telp TEXT,
     data TEXT, resep TEXT, bukti TEXT);
   CREATE INDEX IF NOT EXISTS orders_status ON orders(status);
+  CREATE TABLE IF NOT EXISTS customers (
+    telp TEXT PRIMARY KEY, nama TEXT, alamat TEXT, salt TEXT, hash TEXT,
+    verified INTEGER DEFAULT 0, created_at TEXT, last_login TEXT);
 `);
 const now = () => new Date().toISOString();
 const kvGet = k => db.prepare('SELECT value, rev FROM kv WHERE key=?').get(k);
@@ -54,6 +57,8 @@ if (!db.prepare('SELECT 1 FROM users LIMIT 1').get()) {
 const b64u = s => Buffer.from(s).toString('base64url');
 const sign = p => crypto.createHmac('sha256', SECRET).update(p).digest('base64url');
 function makeToken(u) { const p = b64u(JSON.stringify({ u, exp: Date.now() + 12 * 3600e3 })); return p + '.' + sign(p); }
+// Token pelanggan toko (berbeda dari admin: berisi "c", bukan "u"); berlaku 30 hari
+function makeCustToken(telp, ver) { const p = b64u(JSON.stringify({ c: telp, v: ver, exp: Date.now() + 30 * 864e5 })); return p + '.' + sign(p); }
 function readToken(t) {
   if (!t || !t.includes('.')) return null;
   const [p, s] = t.split('.');
@@ -135,13 +140,54 @@ function produkList(d) {
     };
   });
 }
-function diskonFor(d, telp) {
+function findPel(d, telp) {
   const t = normTelp(telp);
-  if (t.length < 9) return null;
-  const p = (d.pelanggan || []).find(x => x.nama !== 'Pelanggan Umum' && normTelp(x.telp) === t);
+  if (!d || t.length < 9) return null;
+  return (d.pelanggan || []).find(x => x.nama !== 'Pelanggan Umum' && normTelp(x.telp) === t) || null;
+}
+function diskonFor(d, telp) {
+  const p = findPel(d, telp);
   if (!p) return null;
   const k = (d.katpel || []).find(k => k.nama === p.kategori);
   return { nama: p.nama, kategori: (k && k.nama) || 'Umum', diskon: (k && +k.diskon) || 0 };
+}
+const pinCocok = (pel, pin) => { pin = String(pin || '').trim(); return !!(pel && pel.pin && /^\d{6}$/.test(pin) && pel.pin.length === pin.length && crypto.timingSafeEqual(Buffer.from(pel.pin), Buffer.from(pin))); };
+function tagihanFor(d, pel) {
+  const dib = h => (h.bayar || []).reduce((s, x) => s + (+x.jumlah || 0), 0);
+  const sisa = h => h.status === 'Lunas' ? 0 : Math.max(0, h.jumlah - dib(h));
+  const today = new Date().toISOString().slice(0, 10);
+  const L = (d.piutang || []).filter(h => h.pihak === pel.nama);
+  const tagihan = L.filter(h => sisa(h) > 0).sort((a, b) => a.jt < b.jt ? -1 : 1)
+    .map(h => ({ ref: h.ref, tgl: h.tgl || null, jt: h.jt, jumlah: h.jumlah, dibayar: dib(h), sisa: sisa(h), lewat: h.jt < today }));
+  const bayar = L.flatMap(h => (h.bayar || []).map(x => ({ tgl: x.tgl, jumlah: x.jumlah, ref: h.ref }))).sort((a, b) => a.tgl < b.tgl ? 1 : -1).slice(0, 20);
+  const total = tagihan.reduce((s, h) => s + h.sisa, 0);
+  const bonus = (d.bonus || []).filter(x => x.pelanggan === pel.nama).reduce((s, x) => s + x.jumlah, 0);
+  return { nama: pel.nama, total, limit: +pel.limit || 0, termin: +pel.termin || 0, tempo: !!pel.tempo,
+    lewat: tagihan.filter(h => h.lewat).reduce((s, h) => s + h.sisa, 0), tagihan, bayar, bonus };
+}
+/* ---- akun pelanggan ---- */
+const custBy = telp => db.prepare('SELECT * FROM customers WHERE telp=?').get(telp);
+function custSetPw(telp, pw) { const salt = crypto.randomBytes(16).toString('hex'); db.prepare('UPDATE customers SET salt=?, hash=? WHERE telp=?').run(salt, hashPw(pw, salt), telp); return custBy(telp); }
+const custToken = row => makeCustToken(row.telp, row.hash.slice(0, 10));
+function custFromReq(req) {
+  const t = readToken((req.headers.authorization || '').replace(/^Bearer /, ''));
+  if (!t || !t.c) return null;
+  const row = custBy(t.c);
+  return row && row.hash.slice(0, 10) === t.v ? row : null;
+}
+function akunData(row) {
+  const d = getState().data, pel = row.verified ? findPel(d, row.telp) : null;
+  const pesanan = db.prepare('SELECT * FROM orders WHERE telp=? ORDER BY created_at DESC LIMIT 20').all(row.telp)
+    .map(r => { const o = JSON.parse(r.data); return { kode: r.kode, status: r.status, created_at: r.created_at, total: o.total, items: o.items.length, alasan: o.alasan || '' }; });
+  let member = null;
+  if (pel) {
+    const ds = diskonFor(d, row.telp);
+    member = { ...tagihanFor(d, pel), kategori: ds.kategori, diskon: ds.diskon,
+      belanja: (d.sales || []).filter(x => x.pelanggan === pel.nama && !x.rekap).slice(-15).reverse()
+        .map(x => ({ no: x.no, tgl: x.tgl, total: x.total, metode: x.metode, items: (x.items || []).map(i => i.qty + ' ' + (i.unit || '') + ' ' + i.nama) })) };
+  }
+  const adaDiApotek = !!findPel(d, row.telp);
+  return { nama: row.nama, telp: row.telp, alamat: row.alamat || '', verified: !!row.verified, bisaVerifikasi: !row.verified && adaDiApotek, member, pesanan };
 }
 const BAYAR_LABEL = { transfer: 'Transfer Bank', qris: 'QRIS', cod: 'Bayar di Tempat' };
 const STATUS_NEXT = { baru: ['diproses', 'dibatalkan'], diproses: ['dikirim', 'siap', 'selesai'], dikirim: ['selesai'], siap: ['selesai'], selesai: [], dibatalkan: [] };
@@ -178,30 +224,70 @@ async function api(req, res, url) {
     if (!d) return send(res, 200, { success: true, items: [] });
     return send(res, 200, { success: true, items: produkList(d) });
   }
-  if (p === '/api/toko/diskon' && m === 'POST') {
-    if (rateLimited(ip, 'diskon', 30, 600e3)) return fail(res, 429, 'Terlalu banyak permintaan, coba lagi nanti');
-    const b = await readBody(req, 4e3), d = getState().data;
-    const x = d && diskonFor(d, b.telp);
-    return send(res, 200, { success: true, diskon: x ? x.diskon : 0, kategori: x ? x.kategori : null });
-  }
   if (p === '/api/toko/tagihan' && m === 'POST') {
     if (rateLimited(ip, 'tagihan', 8, 600e3)) return fail(res, 429, 'Terlalu banyak percobaan, coba lagi 10 menit lagi');
+    const b = await readBody(req, 4e3), d = getState().data, pel = findPel(d, b.telp);
+    if (!pinCocok(pel, b.pin)) return fail(res, 404, 'Nomor HP atau PIN salah');
+    return send(res, 200, { success: true, data: tagihanFor(d, pel) });
+  }
+
+  /* ===== Akun pelanggan toko ===== */
+  if (p === '/api/akun/daftar' && m === 'POST') {
+    if (rateLimited(ip, 'daftar', 6, 3600e3)) return fail(res, 429, 'Terlalu banyak pendaftaran dari perangkat ini, coba lagi nanti');
     const b = await readBody(req, 4e3), d = getState().data;
-    const t = normTelp(b.telp), pin = String(b.pin || '').trim();
-    const pel = d && /^\d{6}$/.test(pin) && t.length >= 9 && (d.pelanggan || []).find(x => x.nama !== 'Pelanggan Umum' && normTelp(x.telp) === t);
-    if (!pel || !pel.pin || pel.pin.length !== pin.length || !crypto.timingSafeEqual(Buffer.from(pel.pin), Buffer.from(pin)))
-      return fail(res, 404, 'Nomor HP atau PIN salah');
-    const dib = h => (h.bayar || []).reduce((s, x) => s + (+x.jumlah || 0), 0);
-    const sisa = h => h.status === 'Lunas' ? 0 : Math.max(0, h.jumlah - dib(h));
-    const today = new Date().toISOString().slice(0, 10);
-    const L = (d.piutang || []).filter(h => h.pihak === pel.nama);
-    const tagihan = L.filter(h => sisa(h) > 0).sort((a, b) => a.jt < b.jt ? -1 : 1)
-      .map(h => ({ ref: h.ref, tgl: h.tgl || null, jt: h.jt, jumlah: h.jumlah, dibayar: dib(h), sisa: sisa(h), lewat: h.jt < today }));
-    const bayar = L.flatMap(h => (h.bayar || []).map(x => ({ tgl: x.tgl, jumlah: x.jumlah, ref: h.ref }))).sort((a, b) => a.tgl < b.tgl ? 1 : -1).slice(0, 20);
-    const total = tagihan.reduce((s, h) => s + h.sisa, 0);
-    const bonus = (d.bonus || []).filter(x => x.pelanggan === pel.nama).reduce((s, x) => s + x.jumlah, 0);
-    return send(res, 200, { success: true, data: { nama: pel.nama, total, limit: +pel.limit || 0, termin: +pel.termin || 0,
-      lewat: tagihan.filter(h => h.lewat).reduce((s, h) => s + h.sisa, 0), tagihan, bayar, bonus } });
+    const telp = normTelp(b.telp), nama = str(b.nama, 80), alamat = str(b.alamat, 300), pw = String(b.password || '');
+    if (nama.length < 2) return fail(res, 400, 'Nama wajib diisi');
+    if (telp.length < 9 || telp.length > 15) return fail(res, 400, 'Nomor HP tidak valid');
+    if (pw.length < 6) return fail(res, 400, 'Password minimal 6 karakter');
+    const pel = findPel(d, telp), ada = custBy(telp), pinOk = pinCocok(pel, b.pin);
+    if (b.pin && !pinOk) return fail(res, 400, 'PIN dari apotek salah');
+    if (ada && !(pinOk && !ada.verified)) return fail(res, 409, 'Nomor HP sudah terdaftar. Silakan masuk, atau pakai "Lupa password"');
+    if (ada) db.prepare('UPDATE customers SET nama=?, alamat=?, verified=1 WHERE telp=?').run(nama, alamat, telp); // klaim akun dengan PIN
+    else db.prepare('INSERT INTO customers (telp,nama,alamat,salt,hash,verified,created_at,last_login) VALUES (?,?,?,?,?,?,?,?)').run(telp, nama, alamat, '', '', pinOk ? 1 : 0, now(), now());
+    const row = custSetPw(telp, pw);
+    return send(res, 201, { success: true, token: custToken(row), data: akunData(row) });
+  }
+  if (p === '/api/akun/masuk' && m === 'POST') {
+    if (rateLimited(ip, 'masuk', 10, 600e3)) return fail(res, 429, 'Terlalu banyak percobaan, tunggu 10 menit');
+    const b = await readBody(req, 4e3), row = custBy(normTelp(b.telp));
+    if (!row || hashPw(b.password || '', row.salt) !== row.hash) return fail(res, 401, 'Nomor HP atau password salah');
+    db.prepare('UPDATE customers SET last_login=? WHERE telp=?').run(now(), row.telp);
+    return send(res, 200, { success: true, token: custToken(row), data: akunData(row) });
+  }
+  if (p === '/api/akun/reset' && m === 'POST') {
+    if (rateLimited(ip, 'reset', 6, 600e3)) return fail(res, 429, 'Terlalu banyak percobaan, tunggu 10 menit');
+    const b = await readBody(req, 4e3), telp = normTelp(b.telp), row = custBy(telp), pel = findPel(getState().data, telp);
+    if (!row || !pinCocok(pel, b.pin)) return fail(res, 400, 'Nomor HP atau PIN salah. Bila belum punya PIN, hubungi apotek');
+    if (String(b.baru || '').length < 6) return fail(res, 400, 'Password baru minimal 6 karakter');
+    db.prepare('UPDATE customers SET verified=1 WHERE telp=?').run(telp);
+    const r2 = custSetPw(telp, b.baru);
+    return send(res, 200, { success: true, token: custToken(r2), data: akunData(r2) });
+  }
+  if (p.startsWith('/api/akun/')) {
+    const row = custFromReq(req);
+    if (!row) return fail(res, 401, 'Silakan masuk lagi');
+    if (p === '/api/akun/saya' && m === 'GET') return send(res, 200, { success: true, data: akunData(row) });
+    if (p === '/api/akun/profil' && m === 'PUT') {
+      const b = await readBody(req, 4e3), nama = str(b.nama, 80);
+      if (nama.length < 2) return fail(res, 400, 'Nama wajib diisi');
+      db.prepare('UPDATE customers SET nama=?, alamat=? WHERE telp=?').run(nama, str(b.alamat, 300), row.telp);
+      return send(res, 200, { success: true, data: akunData(custBy(row.telp)) });
+    }
+    if (p === '/api/akun/password' && m === 'POST') {
+      const b = await readBody(req, 4e3);
+      if (hashPw(b.lama || '', row.salt) !== row.hash) return fail(res, 400, 'Password lama salah');
+      if (String(b.baru || '').length < 6) return fail(res, 400, 'Password baru minimal 6 karakter');
+      const r2 = custSetPw(row.telp, b.baru);
+      return send(res, 200, { success: true, token: custToken(r2) });
+    }
+    if (p === '/api/akun/verifikasi' && m === 'POST') {
+      if (rateLimited(ip, 'verif', 8, 600e3)) return fail(res, 429, 'Terlalu banyak percobaan, tunggu 10 menit');
+      const b = await readBody(req, 4e3);
+      if (!pinCocok(findPel(getState().data, row.telp), b.pin)) return fail(res, 400, 'PIN salah. Minta PIN ke apotek');
+      db.prepare('UPDATE customers SET verified=1 WHERE telp=?').run(row.telp);
+      return send(res, 200, { success: true, data: akunData(custBy(row.telp)) });
+    }
+    return fail(res, 404, 'Endpoint tidak ditemukan');
   }
   if (p === '/api/toko/pesanan' && m === 'POST') {
     if (rateLimited(ip, 'order', 10, 600e3)) return fail(res, 429, 'Terlalu banyak pesanan dari perangkat ini, coba lagi nanti');
@@ -209,7 +295,8 @@ async function api(req, res, url) {
     if (!d) return fail(res, 503, 'Toko belum siap');
     const t = tokoCfg(d);
     if (!t.buka) return fail(res, 400, 'Maaf, toko sedang tutup');
-    const nama = str(b.nama, 80), telp = normTelp(b.telp), alamat = str(b.alamat, 300), catatan = str(b.catatan, 300);
+    const akun = custFromReq(req);
+    const nama = str(b.nama, 80), telp = akun ? akun.telp : normTelp(b.telp), alamat = str(b.alamat, 300), catatan = str(b.catatan, 300);
     const kirim = b.kirim === 'antar' ? 'antar' : 'ambil', bayar = String(b.bayar || '');
     if (nama.length < 2) return fail(res, 400, 'Nama wajib diisi');
     if (telp.length < 9 || telp.length > 15) return fail(res, 400, 'Nomor HP tidak valid');
@@ -233,7 +320,7 @@ async function api(req, res, url) {
     if (perluResep && !isImg(b.resep)) return fail(res, 400, 'Pesanan berisi obat keras — unggah foto resep dokter');
     const subtotal = items.reduce((s, i) => s + i.sub, 0);
     if (t.minBelanja && subtotal < t.minBelanja) return fail(res, 400, 'Minimal belanja Rp ' + Number(t.minBelanja).toLocaleString('id-ID'));
-    const ds = diskonFor(d, telp), diskonPct = ds ? ds.diskon : 0, diskon = Math.round(subtotal * diskonPct / 100);
+    const ds = akun && akun.verified ? diskonFor(d, telp) : null, diskonPct = ds ? ds.diskon : 0, diskon = Math.round(subtotal * diskonPct / 100);
     const ongkir = kirim === 'antar' && !(t.gratisOngkir && subtotal - diskon >= t.gratisOngkir) ? (+t.ongkir || 0) : 0;
     let kode; do { kode = newKode(); } while (db.prepare('SELECT 1 FROM orders WHERE kode=?').get(kode));
     const order = { kode, nama, telp, alamat, kirim, bayar, bayarLabel: BAYAR_LABEL[bayar], catatan, items, subtotal, diskonPct,
@@ -274,7 +361,7 @@ async function api(req, res, url) {
 
   /* ===== Admin (wajib token) ===== */
   const auth = readToken((req.headers.authorization || '').replace(/^Bearer /, ''));
-  if (!auth) return fail(res, 401, 'Silakan login');
+  if (!auth || !auth.u) return fail(res, 401, 'Silakan login');
 
   if (p === '/api/auth/password' && m === 'POST') {
     const b = await readBody(req, 4e3);
@@ -293,6 +380,22 @@ async function api(req, res, url) {
     kvSet('state', JSON.stringify(b.data), rev);
     STATE = { rev, data: b.data };
     return send(res, 200, { success: true, rev });
+  }
+  if (p === '/api/admin/akun' && m === 'GET') {
+    const d = getState().data;
+    return send(res, 200, { success: true, items: db.prepare('SELECT telp,nama,alamat,verified,created_at,last_login FROM customers ORDER BY created_at DESC').all()
+      .map(r => ({ ...r, verified: !!r.verified, pelanggan: (r.verified && (findPel(d, r.telp) || {}).nama) || null })) });
+  }
+  mm = p.match(/^\/api\/admin\/akun\/(\d{9,15})(\/reset)?$/);
+  if (mm && m === 'POST' && mm[2]) {
+    if (!custBy(mm[1])) return fail(res, 404, 'Akun tidak ditemukan');
+    const A = 'abcdefghjkmnpqrstuvwxyz23456789'; let pw = ''; for (const x of crypto.randomBytes(8)) pw += A[x % A.length];
+    custSetPw(mm[1], pw);
+    return send(res, 200, { success: true, password: pw });
+  }
+  if (mm && m === 'DELETE' && !mm[2]) {
+    db.prepare('DELETE FROM customers WHERE telp=?').run(mm[1]);
+    return send(res, 200, { success: true });
   }
   if (p === '/api/admin/orders' && m === 'GET') {
     const rows = db.prepare('SELECT kode,created_at,updated_at,status,telp,data,(resep IS NOT NULL) AS r,(bukti IS NOT NULL) AS bk FROM orders ORDER BY created_at DESC LIMIT 500').all();

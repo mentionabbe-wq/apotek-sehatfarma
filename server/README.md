@@ -57,6 +57,8 @@ Server berjalan di jaringan lokal. Agar pelanggan bisa membukanya dari luar, per
 
 ## API (ringkas)
 
-Publik: `GET /api/toko/info`, `GET /api/toko/produk`, `POST /api/toko/diskon`, `POST /api/toko/tagihan` (HP + PIN), `POST /api/toko/pesanan`, `GET /api/toko/pesanan/:kode?telp=`, `POST /api/toko/pesanan/:kode/bukti`
+Publik: `GET /api/toko/info`, `GET /api/toko/produk`, `POST /api/toko/tagihan` (HP + PIN), `POST /api/toko/pesanan`, `GET /api/toko/pesanan/:kode?telp=`, `POST /api/toko/pesanan/:kode/bukti`
 
-Admin (Bearer token): `POST /api/auth/login`, `POST /api/auth/password`, `GET|PUT /api/state`, `GET /api/admin/orders`, `GET|PATCH /api/admin/orders/:kode`
+Akun pelanggan: `POST /api/akun/daftar`, `POST /api/akun/masuk`, `POST /api/akun/reset` (HP + PIN), lalu dengan token pelanggan: `GET /api/akun/saya`, `PUT /api/akun/profil`, `POST /api/akun/password`, `POST /api/akun/verifikasi`. Diskon member di checkout hanya untuk akun yang sudah terhubung lewat PIN.
+
+Admin (Bearer token): `GET /api/admin/akun`, `POST /api/admin/akun/:telp/reset`, `DELETE /api/admin/akun/:telp`, `POST /api/auth/login`, `POST /api/auth/password`, `GET|PUT /api/state`, `GET /api/admin/orders`, `GET|PATCH /api/admin/orders/:kode`

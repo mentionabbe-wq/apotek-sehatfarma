@@ -90,14 +90,18 @@ textarea.inp{height:auto;padding:10px 14px;resize:vertical}
 .tst{background:#123a8c;color:#fff;padding:11px 18px;border-radius:10px;font-weight:600;box-shadow:0 10px 30px rgba(15,30,60,.3);animation:tin .25s;max-width:90vw}
 .tst.err{background:#b8232a}
 @keyframes tin{from{opacity:0;transform:translateY(10px)}}
+.tabs2{display:flex;background:var(--bg);border-radius:10px;padding:4px;margin-bottom:14px}.tabs2 button{flex:1;height:38px;border-radius:8px;font-weight:700;color:var(--ink2)}.tabs2 button.on{background:#fff;color:var(--pri);box-shadow:var(--sh)}
+.mcard{background:linear-gradient(120deg,#1d5fe0,#123a8c);color:#fff;border-radius:var(--r);padding:20px}.mcard small{opacity:.85}
+.stat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;cursor:default}.stat small{color:var(--ink2);font-size:12.5px}.stat b{display:block;font-size:20px;font-weight:800;margin-top:2px}
 footer{border-top:1px solid var(--line);background:#fff;padding:20px 0;color:var(--ink2);font-size:13px}
-@media (max-width:820px){.two{grid-template-columns:1fr}.hbtn .t{display:none}.grid{grid-template-columns:repeat(2,1fr);gap:10px}.prod{padding:10px}.pic{height:70px}.prod .row{flex-direction:column}.hero{padding:18px}.hero h1{font-size:19px}}
+@media (max-width:820px){.two{grid-template-columns:1fr}.hbtn .t{display:none}.hd{gap:4px}.hbtn{padding:0 9px}.brand small{display:none}.brand b{font-size:15px}.brand img{max-width:90px;max-height:34px}.brand svg{width:30px;height:30px}.grid{grid-template-columns:repeat(2,1fr);gap:10px}.prod{padding:10px}.pic{height:70px}.prod .row{flex-direction:column}.hero{padding:18px}.hero h1{font-size:19px}}
 </style>
 </head>
 <body>
 <header><div class="wrap hd">
   <div class="brand" onclick="go('')"><span id="bLogo"></span><div style="min-width:0"><b id="bNama">Apotek</b><small id="bTag"></small></div></div>
   <div class="sp"></div>
+  <button class="hbtn" id="akunBtn" onclick="go(AKUN?'akun':'masuk')"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span class="t" id="akunLbl">Masuk</span></button>
   <button class="hbtn" onclick="go('tagihan')"><svg class="i" viewBox="0 0 24 24"><path d="M5 3h14v18l-3-2-2 2-2-2-2 2-2-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg><span class="t">Tagihan</span></button>
   <button class="hbtn" onclick="go('cek')"><svg class="i" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span class="t">Cek Pesanan</span></button>
   <button class="hbtn cartbtn" onclick="openCart()"><svg class="i" viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.7 12.4a1 1 0 0 0 1 .8h9.6a1 1 0 0 0 1-.8L21 7H6"/></svg><span class="t">Keranjang</span><span class="cnt" id="cnt" style="display:none">0</span></button>
@@ -109,6 +113,8 @@ footer{border-top:1px solid var(--line);background:#fff;padding:20px 0;color:var
   <section class="page" id="p-sukses"></section>
   <section class="page" id="p-cek"></section>
   <section class="page" id="p-tagihan"></section>
+  <section class="page" id="p-masuk"></section>
+  <section class="page" id="p-akun"></section>
 </main>
 <footer><div class="wrap" id="foot"></div></footer>
 
@@ -123,17 +129,23 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const rp=n=>'Rp '+Math.round(n||0).toLocaleString('id-ID');
 const ICON_PILL='<svg class="i" viewBox="0 0 24 24"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7z"/><path d="m8.5 8.5 7 7"/></svg>';
 const CROSS='<svg viewBox="0 0 40 40" width="36" height="36"><path d="M14 3h12v11h11v12H26v11H14V26H3V14h11z" fill="#22b573"/><path d="M20 12v16M12 20h16" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/></svg>';
-let INFO=null,PROD=[],KATS=[],KAT='Semua',Q='',CART=[],DISKON=0,RESEP='',LAST=null;
+let AKUN=null,CT=null,INFO=null,PROD=[],KATS=[],KAT='Semua',Q='',CART=[],DISKON=0,RESEP='',LAST=null;
 const ls={get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 CART=ls.get('toko-cart',[]);
 function toast(m,t){const e=document.createElement('div');e.className='tst '+(t||'');e.textContent=m;$('#toast').appendChild(e);setTimeout(()=>e.remove(),3000)}
-async function api(p,opt={}){const r=await fetch(p,{method:opt.method||'GET',headers:{'Content-Type':'application/json'},body:opt.body?JSON.stringify(opt.body):undefined});let j={};try{j=await r.json()}catch(e){}if(!r.ok)throw new Error(j.message||'Koneksi gagal, coba lagi');return j}
+try{CT=localStorage.getItem('toko-token')}catch(e){}
+async function api(p,opt={}){const r=await fetch(p,{method:opt.method||'GET',headers:{'Content-Type':'application/json',...(CT?{Authorization:'Bearer '+CT}:{})},body:opt.body?JSON.stringify(opt.body):undefined});let j={};try{j=await r.json()}catch(e){}if(r.status===401&&CT&&p.startsWith('/api/akun/')){setAkun(null,null)}if(!r.ok)throw new Error(j.message||'Koneksi gagal, coba lagi');return j}
+function setAkun(data,token){AKUN=data;if(token!==undefined){CT=token;try{token?localStorage.setItem('toko-token',token):localStorage.removeItem('toko-token')}catch(e){}}
+  $('#akunLbl').textContent=AKUN?AKUN.nama.split(' ')[0]:'Masuk';DISKON=AKUN&&AKUN.member?AKUN.member.diskon:0;
+  if(AKUN){F.nama=AKUN.nama;F.telp=AKUN.telp;if(AKUN.alamat&&!F.alamat)F.alamat=AKUN.alamat}}
 
 /* ---------- Navigasi ---------- */
 function go(h){location.hash=h}
 function route(){const h=location.hash.slice(1);document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   if(h==='checkout'){if(!CART.length)return go('');$('#p-checkout').classList.add('on');renderCheckout()}
   else if(h==='sukses'&&LAST){$('#p-sukses').classList.add('on');renderSukses()}
+  else if(h==='masuk'){if(AKUN)return go('akun');$('#p-masuk').classList.add('on');renderMasuk()}
+  else if(h==='akun'){if(!AKUN)return go('masuk');$('#p-akun').classList.add('on');renderAkun();refreshAkun()}
   else if(h==='tagihan'){$('#p-tagihan').classList.add('on');renderTagihan()}
   else if(h.startsWith('cek')){$('#p-cek').classList.add('on');renderCek(decodeURIComponent(h.split('/')[1]||''))}
   else{$('#p-home').classList.add('on');renderHome()}
@@ -148,6 +160,7 @@ async function init(){
     $('#bLogo').innerHTML=INFO.logo?`<img src="${esc(INFO.logo)}" alt="">`:CROSS;
     $('#foot').innerHTML=`<b>${esc(INFO.nama)}</b> · ${esc(INFO.alamat||'')} ${INFO.telp?'· Telp '+esc(INFO.telp):''}${INFO.jam?'<br>Jam buka: '+esc(INFO.jam):''}<br><span style="color:var(--ink3)">Obat keras hanya dilayani dengan resep dokter dan diperiksa apoteker.</span>`;
     await loadProduk();
+    if(CT){try{setAkun((await api('/api/akun/saya')).data)}catch(e){}}
   }catch(e){$('#p-home').innerHTML=`<div class="empty" style="padding:80px 16px"><h2>Tidak bisa terhubung</h2><p>${esc(e.message)}</p><button class="btn btn-p" style="margin-top:14px" onclick="init()">Coba lagi</button></div>`;return}
   updCnt();route()}
 async function loadProduk(){const j=await api('/api/toko/produk');PROD=j.items;
@@ -199,8 +212,8 @@ function renderCheckout(){const st=subtotal(),dis=Math.round(st*DISKON/100),og=o
   <div class="two"><div>
    <div class="card sec"><h2>Data Pemesan</h2>
     <div class="fld"><label>Nama lengkap</label><input class="inp" id="c_nama" value="${esc(F.nama)}" oninput="F.nama=this.value" autocomplete="name"></div>
-    <div class="fld"><label>Nomor HP / WhatsApp</label><input class="inp" id="c_telp" inputmode="tel" value="${esc(F.telp)}" oninput="F.telp=this.value" onchange="cekDiskon()" autocomplete="tel" placeholder="08xxxxxxxxxx"></div>
-    <div id="disInfo">${DISKON?`<div class="note info" style="font-weight:500">Anda pelanggan terdaftar — diskon ${DISKON}% diterapkan.</div>`:''}</div></div>
+    <div class="fld"><label>Nomor HP / WhatsApp</label><input class="inp" id="c_telp" inputmode="tel" value="${esc(F.telp)}" oninput="F.telp=this.value" autocomplete="tel" placeholder="08xxxxxxxxxx" ${AKUN?'readonly style="background:#f4f7fc"':''}></div>
+    ${AKUN?(DISKON?`<div class="note info" style="font-weight:500">Member ${esc(AKUN.member.kategori)} — diskon ${DISKON}% diterapkan.</div>`:(AKUN.bisaVerifikasi?`<div class="note warn" style="font-weight:500">Hubungkan akun dengan PIN dari apotek untuk mendapat harga member. <a href="#akun">Hubungkan</a></div>`:'')):`<div class="note info" style="font-weight:500">Sudah punya akun? <a href="#masuk">Masuk</a> agar data terisi otomatis dan dapat harga member.</div>`}</div>
    <div class="card sec"><h2>Pengiriman</h2><div class="opt">
     <label><input type="radio" name="kirim" value="ambil" ${F.kirim==='ambil'?'checked':''} onchange="F.kirim='ambil';renderCheckout()"><span>Ambil di apotek<small>Gratis</small></span></label>
     <label><input type="radio" name="kirim" value="antar" ${F.kirim==='antar'?'checked':''} onchange="F.kirim='antar';renderCheckout()"><span>Diantar<small>Ongkir ${rp(INFO.ongkir)}${INFO.gratisOngkir?` · gratis mulai ${rp(INFO.gratisOngkir)}`:''}</small></span></label></div>
@@ -216,7 +229,6 @@ function renderCheckout(){const st=subtotal(),dis=Math.round(st*DISKON/100),og=o
    <div style="color:var(--ink3);font-size:12px;margin-top:4px">Harga sudah termasuk PPN</div></div>
    <button class="btn btn-p" id="orderBtn" style="width:100%;height:50px;margin-top:14px;font-size:15px" onclick="buatPesanan()">Buat Pesanan</button>
    <p style="color:var(--ink3);font-size:12px;margin-top:10px">Dengan memesan, Anda setuju pesanan diverifikasi apoteker. Obat keras tanpa resep yang sah akan dibatalkan.</p></div></div></div>`}
-async function cekDiskon(){const t=F.telp.replace(/\D/g,'');if(t.length<9){DISKON=0;return renderCheckout()}try{const j=await api('/api/toko/diskon',{method:'POST',body:{telp:t}});const before=DISKON;DISKON=j.diskon||0;if(before!==DISKON)renderCheckout()}catch(e){}}
 function pickImg(f,kind){if(!f)return;if(!/^image\//.test(f.type))return toast('File harus berupa foto/gambar','err');if(f.size>15e6)return toast('Ukuran foto terlalu besar','err');
   const rd=new FileReader();rd.onload=()=>{const im=new Image();im.onload=()=>{const s=Math.min(1,1400/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.drawImage(im,0,0,c.width,c.height);const url=c.toDataURL('image/jpeg',.82);
     if(kind==='resep'){RESEP=url;renderCheckout()}else kirimBukti(url)};im.onerror=()=>toast('Foto tidak bisa dibaca','err');im.src=rd.result};rd.readAsDataURL(f)}
@@ -226,7 +238,7 @@ async function buatPesanan(){const st=subtotal(),perlu=CART.some(c=>prodBy(c.id)
   const b=$('#orderBtn');b.disabled=true;b.textContent='Mengirim pesanan…';
   try{const j=await api('/api/toko/pesanan',{method:'POST',body:{nama:F.nama,telp:F.telp,alamat:F.alamat,kirim:F.kirim,bayar:F.bayar,catatan:F.catatan,items:CART.map(c=>({id:c.id,isi:c.isi,qty:c.qty})),resep:perlu?RESEP:undefined}});
     ls.set('toko-pembeli',{...F,catatan:''});const mine=ls.get('toko-pesananku',[]);mine.unshift({kode:j.data.kode,telp:F.telp,t:Date.now()});ls.set('toko-pesananku',mine.slice(0,20));
-    LAST={kode:j.data.kode,total:j.data.total,bayar:F.bayar,telp:F.telp};CART=[];RESEP='';F.catatan='';saveCart();loadProduk().catch(()=>{});go('sukses')}
+    LAST={kode:j.data.kode,total:j.data.total,bayar:F.bayar,telp:F.telp};if(AKUN)refreshAkun();CART=[];RESEP='';F.catatan='';saveCart();loadProduk().catch(()=>{});go('sukses')}
   catch(e){toast(e.message,'err');b.disabled=false;b.textContent='Buat Pesanan';loadProduk().then(()=>renderCheckout()).catch(()=>{})}}
 
 /* ---------- Instruksi bayar ---------- */
@@ -263,13 +275,17 @@ async function renderCek(kode,telp){const mine=ls.get('toko-pesananku',[]);if(!t
 
 /* ---------- Tagihan / sisa hutang ---------- */
 const tglID=s=>s?new Date(s+'T00:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}):'-';
-function renderTagihan(res){const tp=ls.get('toko-pembeli',{}).telp||'';
+function renderTagihan(res){if(AKUN&&AKUN.member){$('#p-tagihan').innerHTML='<div style="max-width:620px;margin:0 auto"><h1 style="font-size:22px;margin-bottom:14px">Tagihan Saya</h1><div id="tagRes"></div></div>';showTagihan(AKUN.member);refreshAkun().then(()=>AKUN&&AKUN.member&&showTagihan(AKUN.member));return}
+  const tp=ls.get('toko-pembeli',{}).telp||'';
   $('#p-tagihan').innerHTML=`<div style="max-width:620px;margin:0 auto"><h1 style="font-size:22px;margin-bottom:6px">Cek Tagihan</h1><p style="color:var(--ink2);margin-bottom:14px">Untuk pelanggan dengan pembayaran tempo. PIN 6 angka diberikan oleh apotek.</p>
    <div class="card sec"><div class="fld"><label>Nomor HP terdaftar</label><input class="inp" id="t_telp" inputmode="tel" value="${esc(tp)}" autocomplete="tel"></div>
    <div class="fld"><label>PIN</label><input class="inp" id="t_pin" type="password" inputmode="numeric" maxlength="6" autocomplete="off" onkeydown="if(event.key==='Enter')cekTagihan()"></div>
-   <button class="btn btn-p" id="t_btn" style="width:100%" onclick="cekTagihan()">Lihat Tagihan</button></div><div id="tagRes"></div></div>`}
+   <button class="btn btn-p" id="t_btn" style="width:100%" onclick="cekTagihan()">Lihat Tagihan</button>${AKUN?'':'<p style="margin-top:10px;font-size:13px;color:var(--ink2)">Atau <a href="#masuk">masuk ke akun</a> untuk melihat tagihan tanpa mengetik PIN lagi.</p>'}</div><div id="tagRes"></div></div>`}
 async function cekTagihan(){const b=$('#t_btn');b.disabled=true;b.textContent='Memeriksa…';
-  try{const d=(await api('/api/toko/tagihan',{method:'POST',body:{telp:$('#t_telp').value,pin:$('#t_pin').value.trim()}})).data;$('#t_pin').value='';
+  try{const d=(await api('/api/toko/tagihan',{method:'POST',body:{telp:$('#t_telp').value,pin:$('#t_pin').value.trim()}})).data;$('#t_pin').value='';showTagihan(d)}
+  catch(e){$('#tagRes').innerHTML=`<div class="note err">${esc(e.message)}</div>`}
+  b.disabled=false;b.textContent='Lihat Tagihan'}
+function showTagihan(d){
     $('#tagRes').innerHTML=`<div class="card sec"><div style="color:var(--ink2)">Halo, <b>${esc(d.nama)}</b></div>
      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0">
       <div style="background:${d.total?'var(--red-s)':'var(--green-s)'};border-radius:10px;padding:12px"><small style="color:var(--ink2)">Sisa hutang</small><div style="font-size:22px;font-weight:800;color:${d.total?'var(--red)':'var(--green)'}">${rp(d.total)}</div></div>
@@ -279,8 +295,56 @@ async function cekTagihan(){const b=$('#t_btn');b.disabled=true;b.textContent='M
      ${d.tagihan.length?`<h3 style="font-size:14px;margin:6px 0 8px">Rincian tagihan</h3>${d.tagihan.map(h=>`<div class="ci" style="padding:10px 0"><div class="n"><b>${esc(h.ref)}</b><small>${h.tgl?'Tgl '+tglID(h.tgl)+' · ':''}Jatuh tempo ${tglID(h.jt)}</small>${h.dibayar?`<small style="display:block">Dibayar ${rp(h.dibayar)} dari ${rp(h.jumlah)}</small>`:''}</div><div style="text-align:right"><b>${rp(h.sisa)}</b>${h.lewat?'<br><span class="badge b-red">Lewat jatuh tempo</span>':''}</div></div>`).join('')}`:'<div class="note info" style="font-weight:500">Tidak ada tagihan. Terima kasih!</div>'}
      ${d.bayar.length?`<h3 style="font-size:14px;margin:14px 0 8px">Pembayaran terakhir</h3>${d.bayar.map(x=>`<div class="sum"><span>${tglID(x.tgl)} · ${esc(x.ref)}</span><span style="color:var(--green);font-weight:700">${rp(x.jumlah)}</span></div>`).join('')}`:''}
      ${d.total?`<div style="margin-top:14px"><h3 style="font-size:14px;margin-bottom:6px">Cara membayar</h3>${INFO.rekening.map(r=>`<div class="note info" style="margin-bottom:6px;font-weight:700">${esc(r)}</div>`).join('')||'<p style="color:var(--ink2)">Bayar langsung di apotek.</p>'}${INFO.wa?`<a class="btn btn-g" style="margin-top:6px" target="_blank" rel="noopener" href="https://wa.me/${esc(INFO.wa.replace(/^0/,'62'))}?text=${encodeURIComponent('Halo, saya '+d.nama+' ingin konfirmasi pembayaran tagihan.')}">Konfirmasi pembayaran via WhatsApp</a>`:''}</div>`:''}</div>`}
-  catch(e){$('#tagRes').innerHTML=`<div class="note err">${esc(e.message)}</div>`}
-  b.disabled=false;b.textContent='Lihat Tagihan'}
+
+/* ---------- Akun pelanggan ---------- */
+let MTAB='masuk';
+async function refreshAkun(){if(!CT)return;try{setAkun((await api('/api/akun/saya')).data);if(location.hash==='#akun')renderAkun()}catch(e){}}
+function renderMasuk(){const f=ls.get('toko-pembeli',{});
+  const T=(k,l)=>`<button class="${MTAB===k?'on':''}" onclick="MTAB='${k}';renderMasuk()">${l}</button>`;
+  let b='';
+  if(MTAB==='masuk')b=`<div class="fld"><label>Nomor HP</label><input class="inp" id="a_telp" inputmode="tel" value="${esc(f.telp||'')}" autocomplete="tel"></div>
+    <div class="fld"><label>Password</label><input class="inp" id="a_pw" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')akunMasuk()"></div>
+    <button class="btn btn-p" id="a_btn" style="width:100%;height:46px" onclick="akunMasuk()">Masuk</button>
+    <p style="text-align:center;margin-top:12px;font-size:13px"><a href="#" onclick="MTAB='reset';renderMasuk();return false">Lupa password?</a></p>`;
+  else if(MTAB==='daftar')b=`<div class="fld"><label>Nama lengkap</label><input class="inp" id="a_nama" value="${esc(f.nama||'')}" autocomplete="name"></div>
+    <div class="fld"><label>Nomor HP / WhatsApp</label><input class="inp" id="a_telp" inputmode="tel" value="${esc(f.telp||'')}" autocomplete="tel"></div>
+    <div class="fld"><label>Alamat <span style="font-weight:500;color:var(--ink3)">(opsional, untuk pengiriman)</span></label><textarea class="inp" id="a_alamat" rows="2">${esc(f.alamat||'')}</textarea></div>
+    <div class="fld"><label>Password (min. 6 karakter)</label><input class="inp" id="a_pw" type="password" autocomplete="new-password"></div>
+    <div class="fld"><label>PIN dari apotek <span style="font-weight:500;color:var(--ink3)">(opsional)</span></label><input class="inp" id="a_pin" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="6 angka"><small style="color:var(--ink3);display:block;margin-top:4px">Sudah jadi pelanggan apotek? Isi PIN agar akun terhubung: harga member, saldo bonus, dan tagihan tampil otomatis.</small></div>
+    <button class="btn btn-p" id="a_btn" style="width:100%;height:46px" onclick="akunDaftar()">Daftar</button>`;
+  else b=`<p style="color:var(--ink2);margin-bottom:12px;font-size:13.5px">Atur ulang password memakai <b>PIN dari apotek</b>. Belum punya PIN? Hubungi apotek${INFO&&INFO.wa?` lewat <a target="_blank" rel="noopener" href="https://wa.me/${esc(INFO.wa.replace(/^0/,'62'))}?text=${encodeURIComponent('Halo, saya lupa password akun toko online.')}">WhatsApp</a>`:''}.</p>
+    <div class="fld"><label>Nomor HP</label><input class="inp" id="a_telp" inputmode="tel" value="${esc(f.telp||'')}"></div>
+    <div class="fld"><label>PIN dari apotek</label><input class="inp" id="a_pin" inputmode="numeric" maxlength="6" autocomplete="off"></div>
+    <div class="fld"><label>Password baru</label><input class="inp" id="a_pw" type="password" autocomplete="new-password"></div>
+    <button class="btn btn-p" id="a_btn" style="width:100%;height:46px" onclick="akunReset()">Simpan Password Baru</button>
+    <p style="text-align:center;margin-top:12px;font-size:13px"><a href="#" onclick="MTAB='masuk';renderMasuk();return false">Kembali ke Masuk</a></p>`;
+  $('#p-masuk').innerHTML=`<div style="max-width:440px;margin:10px auto"><div class="card sec"><h1 style="font-size:20px;margin-bottom:4px">${MTAB==='reset'?'Lupa Password':'Akun Pelanggan'}</h1><p style="color:var(--ink2);margin-bottom:14px;font-size:13.5px">Belanja lebih cepat, pantau pesanan, tagihan &amp; bonus Anda.</p>
+   ${MTAB!=='reset'?`<div class="tabs2">${T('masuk','Masuk')}${T('daftar','Daftar')}</div>`:''}${b}<div id="a_err" style="color:var(--red);font-size:13px;margin-top:10px;min-height:18px"></div></div></div>`}
+async function akunKirim(path,body){const b=$('#a_btn'),t=b.textContent;b.disabled=true;b.textContent='Memproses…';$('#a_err').textContent='';
+  try{const j=await api(path,{method:'POST',body});setAkun(j.data,j.token);ls.set('toko-pembeli',{...ls.get('toko-pembeli',{}),nama:j.data.nama,telp:j.data.telp,alamat:j.data.alamat||ls.get('toko-pembeli',{}).alamat||''});toast('Selamat datang, '+j.data.nama.split(' ')[0]+'!');go(CART.length?'checkout':'akun')}
+  catch(e){$('#a_err').textContent=e.message;b.disabled=false;b.textContent=t}}
+const akunMasuk=()=>akunKirim('/api/akun/masuk',{telp:$('#a_telp').value,password:$('#a_pw').value});
+const akunDaftar=()=>akunKirim('/api/akun/daftar',{nama:$('#a_nama').value,telp:$('#a_telp').value,alamat:$('#a_alamat').value,password:$('#a_pw').value,pin:$('#a_pin').value.trim()||undefined});
+const akunReset=()=>akunKirim('/api/akun/reset',{telp:$('#a_telp').value,pin:$('#a_pin').value.trim(),baru:$('#a_pw').value});
+const STB={baru:['Menunggu konfirmasi','b-amber'],diproses:['Disiapkan','b-blue'],dikirim:['Dikirim','b-blue'],siap:['Siap diambil','b-green'],selesai:['Selesai','b-green'],dibatalkan:['Dibatalkan','b-red']};
+function renderAkun(){const a=AKUN;if(!a)return;const m=a.member;
+  $('#p-akun').innerHTML=`<div style="max-width:760px;margin:0 auto">
+   <div class="mcard"><small>Halo,</small><div style="font-size:22px;font-weight:800">${esc(a.nama)}</div><small>${esc(a.telp)}</small>
+    <div style="margin-top:10px">${m?`<span class="badge" style="background:rgba(255,255,255,.2);color:#fff;font-size:12.5px;padding:4px 12px">Member ${esc(m.kategori)}${m.diskon?' · diskon '+m.diskon+'%':''}</span>`:'<span class="badge" style="background:rgba(255,255,255,.2);color:#fff;font-size:12.5px;padding:4px 12px">Akun belum terhubung ke data apotek</span>'}</div></div>
+   ${!m&&a.bisaVerifikasi?`<div class="card sec" style="margin-top:14px;border-color:#fbdc9c;background:var(--amber-s)"><h2>Hubungkan dengan data pelanggan apotek</h2><p style="color:#8a4d00;font-size:13.5px;margin-bottom:10px">Nomor Anda terdaftar sebagai pelanggan apotek. Masukkan PIN dari apotek untuk melihat harga member, saldo bonus, dan tagihan.</p><div style="display:flex;gap:8px"><input class="inp" id="v_pin" inputmode="numeric" maxlength="6" placeholder="PIN 6 angka" style="max-width:180px"><button class="btn btn-p" onclick="akunVerif()">Hubungkan</button></div></div>`:''}
+   ${m?`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:14px">
+     <a class="stat" href="#tagihan" style="text-decoration:none;color:inherit;cursor:pointer"><small>Sisa hutang</small><b style="color:${m.total?'var(--red)':'var(--green)'}">${rp(m.total)}</b>${m.lewat?`<span class="badge b-red">Lewat tempo ${rp(m.lewat)}</span>`:'<small>Lihat rincian →</small>'}</a>
+     <div class="stat"><small>Saldo bonus</small><b style="color:var(--green)">${rp(m.bonus)}</b><small>Bisa dipakai saat belanja di apotek</small></div>
+     ${m.limit?`<div class="stat"><small>Sisa limit kredit</small><b>${rp(Math.max(0,m.limit-m.total))}</b><small>Termin ${m.termin} hari</small></div>`:''}</div>`:''}
+   <div class="card sec" style="margin-top:14px"><h2>Pesanan Online Saya</h2>${a.pesanan.length?a.pesanan.map(o=>`<a class="ci" href="#cek/${esc(o.kode)}" style="text-decoration:none;color:inherit"><div class="n"><b>${esc(o.kode)}</b><small>${new Date(o.created_at).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})} · ${o.items} produk</small></div><div style="text-align:right"><b>${rp(o.total)}</b><br><span class="badge ${(STB[o.status]||['','b-gray'])[1]}">${(STB[o.status]||[o.status])[0]}</span></div></a>`).join(''):'<div class="empty" style="padding:16px">Belum ada pesanan. <a href="#">Mulai belanja</a></div>'}</div>
+   ${m&&m.belanja.length?`<div class="card sec"><h2>Riwayat Belanja di Apotek</h2>${m.belanja.map(x=>`<div class="ci"><div class="n"><b>${esc(x.no)}</b><small>${esc(x.tgl)} · ${esc(x.metode||'')}</small><small style="display:block">${esc(x.items.slice(0,3).join(', '))}${x.items.length>3?' …':''}</small></div><b>${rp(x.total)}</b></div>`).join('')}</div>`:''}
+   <div class="card sec"><h2>Profil</h2><div class="fld"><label>Nama</label><input class="inp" id="pf_nama" value="${esc(a.nama)}"></div><div class="fld"><label>Alamat pengiriman</label><textarea class="inp" id="pf_alamat" rows="2">${esc(a.alamat)}</textarea></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-p" onclick="akunProfil()">Simpan Profil</button><button class="btn btn-o" onclick="akunPwForm()">Ganti Password</button><button class="btn btn-o" style="color:var(--red)" onclick="akunKeluar()">Keluar</button></div><div id="pwBox"></div></div></div>`}
+async function akunVerif(){try{setAkun((await api('/api/akun/verifikasi',{method:'POST',body:{pin:$('#v_pin').value.trim()}})).data);toast('Akun terhubung dengan data apotek');renderAkun()}catch(e){toast(e.message,'err')}}
+async function akunProfil(){try{setAkun((await api('/api/akun/profil',{method:'PUT',body:{nama:$('#pf_nama').value,alamat:$('#pf_alamat').value}})).data);F.alamat=AKUN.alamat;toast('Profil disimpan');renderAkun()}catch(e){toast(e.message,'err')}}
+function akunPwForm(){$('#pwBox').innerHTML=`<div style="margin-top:14px;border-top:1px solid var(--line);padding-top:14px"><div class="fld"><label>Password lama</label><input class="inp" id="pw_l" type="password" autocomplete="current-password"></div><div class="fld"><label>Password baru (min. 6)</label><input class="inp" id="pw_b" type="password" autocomplete="new-password"></div><button class="btn btn-p" onclick="akunPw()">Simpan Password</button></div>`}
+async function akunPw(){try{const j=await api('/api/akun/password',{method:'POST',body:{lama:$('#pw_l').value,baru:$('#pw_b').value}});setAkun(AKUN,j.token);$('#pwBox').innerHTML='';toast('Password diganti')}catch(e){toast(e.message,'err')}}
+function akunKeluar(){setAkun(null,null);F.nama='';F.telp='';toast('Anda sudah keluar');go('')}
 
 init();
 </script>
