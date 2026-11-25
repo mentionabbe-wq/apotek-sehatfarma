@@ -94,7 +94,12 @@ textarea.inp{height:auto;padding:10px 14px;resize:vertical}
 .mcard{background:linear-gradient(120deg,#1d5fe0,#123a8c);color:#fff;border-radius:var(--r);padding:20px}.mcard small{opacity:.85}
 .stat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;cursor:default}.stat small{color:var(--ink2);font-size:12.5px}.stat b{display:block;font-size:20px;font-weight:800;margin-top:2px}
 footer{border-top:1px solid var(--line);background:#fff;padding:20px 0;color:var(--ink2);font-size:13px}
+.two>*,.grid>*{min-width:0}
+@media (min-width:821px) and (max-width:1100px){.two{grid-template-columns:1fr 320px}.grid{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:820px){.inp,.sel,textarea.inp,.unit,.srch .inp{font-size:16px}.sec{padding:16px}.drawer{max-width:100%}.df{padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+  .opt label{min-width:100%}.big{font-size:22px}}
 @media (max-width:820px){.two{grid-template-columns:1fr}.hbtn .t{display:none}.hd{gap:4px}.hbtn{padding:0 9px}.brand small{display:none}.brand b{font-size:15px}.brand img{max-width:90px;max-height:34px}.brand svg{width:30px;height:30px}.grid{grid-template-columns:repeat(2,1fr);gap:10px}.prod{padding:10px}.pic{height:70px}.prod .row{flex-direction:column}.hero{padding:18px}.hero h1{font-size:19px}}
+@media (min-width:600px) and (max-width:820px){.grid{grid-template-columns:repeat(3,1fr)}.prod .row{flex-direction:row}}
 </style>
 </head>
 <body>

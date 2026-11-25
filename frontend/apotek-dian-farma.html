@@ -170,26 +170,71 @@ td.r,th.r{text-align:right}td.c,th.c{text-align:center}
 #loginBox{position:fixed;inset:0;z-index:300;background:linear-gradient(160deg,#e5eeff,#eef3fb 60%);display:none;align-items:center;justify-content:center;padding:16px}
 .lg-card{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 20px 60px rgba(20,50,110,.15);padding:28px 26px;width:100%;max-width:380px}
 @media (max-width:600px){#syncSt .st-t{display:none}}
-@media (max-width:1100px){.g4{grid-template-columns:repeat(2,1fr)}.pos{grid-template-columns:1fr}}
+/* ===== Responsif: laptop kecil, tablet & HP ===== */
+.grid>*,.pos>*{min-width:0}
+.pos-mbar{display:none}
+@media (max-width:1200px){.wrap{grid-template-columns:200px 1fr}main{padding:20px}.pos{grid-template-columns:1fr 290px}}
+@media (max-width:1100px){.g4{grid-template-columns:repeat(2,1fr)}}
 @media (max-width:900px){
   .wrap{grid-template-columns:1fr}
-  .side{position:fixed;left:0;top:64px;z-index:40;width:250px;transform:translateX(-100%);transition:.2s;box-shadow:10px 0 30px rgba(15,30,60,.15)}
+  .side{position:fixed;left:0;top:64px;z-index:40;width:260px;transform:translateX(-100%);transition:.2s;box-shadow:10px 0 30px rgba(15,30,60,.15)}
   body.nav-open .side{transform:none}
   body.nav-open .scrim{display:block;position:fixed;inset:64px 0 0 0;background:rgba(15,30,60,.3);z-index:35}
   .burger{display:grid}
   .g3,.g2{grid-template-columns:1fr}
-  .tiles{grid-template-columns:repeat(2,1fr)}
+  .grid[style*="grid-template-columns"]{grid-template-columns:1fr!important}
+  .tiles{grid-template-columns:repeat(5,1fr)}
+  .ph h1{font-size:20px}
+}
+@media (max-width:820px){
+  .pos{grid-template-columns:1fr}
+  .pos .bayar{display:none}
+  .pos-mbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:25;background:#fff;border-top:1px solid var(--line);box-shadow:0 -6px 20px rgba(20,50,110,.08);padding:10px 16px calc(10px + env(safe-area-inset-bottom));align-items:center;gap:12px}
+  .pos-mbar .t{flex:1;min-width:0}.pos-mbar small{color:var(--ink3);font-size:12px;display:block}.pos-mbar b{font-size:21px;font-weight:800;color:var(--pri)}
+  .pos-mbar .btn{height:48px;padding:0 26px;font-size:16px}
+  body.on-pos main{padding-bottom:100px}
+  body.on-pos #toast{bottom:96px}
+  .tiles{grid-template-columns:repeat(4,1fr)}
 }
 @media (max-width:600px){
-  main{padding:16px}
-  .top{padding:0 12px}
-  .user div{display:none}
-  .logo b{font-size:16px}
-  .g4{grid-template-columns:1fr}
-  .fgrid{grid-template-columns:1fr}
+  main{padding:14px 12px 28px}
+  .top{padding:0 10px;gap:6px;height:58px}
+  .side{top:58px}body.nav-open .scrim{inset:58px 0 0 0}.wrap{min-height:calc(100vh - 58px)}
+  .logo{gap:8px;min-width:0}.logo .cross{width:32px;height:32px}.logo>div{min-width:0}
+  .logo b{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.logo small{display:none}
+  .top .bell{width:36px}.user{padding:0}.user div{display:none}
+  .ph{gap:8px;margin-bottom:12px}.ph h1{flex-basis:100%;font-size:19px}.ph .sp{display:none}
+  .ph .sel{flex:1 1 140px;width:auto!important;min-width:0}.ph .btn{flex:1 1 auto}
+  .card{padding:14px}.card-h{flex-wrap:wrap}
+  .g4{grid-template-columns:1fr 1fr}
+  .fgrid,.fgrid[style]{grid-template-columns:1fr!important}
   .frm{grid-template-columns:1fr;gap:4px}
-  .fkeys{grid-template-columns:repeat(2,1fr)}
+  .tiles{grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+  .tile{padding:12px 4px!important;font-size:11.5px!important;gap:6px;text-align:center;line-height:1.25}
+  .tile svg{width:26px;height:26px}
+  .fkeys{grid-template-columns:repeat(4,1fr);gap:6px}.fkey{font-size:11px;padding:8px 2px}
+  .inp,.sel,textarea.inp{font-size:16px}
+  .btn{height:42px}.btn-sm{height:34px}.ib{width:36px;height:36px}
+  th,td{padding:8px 9px}
+  .tabs{margin-bottom:14px}.tabs button{padding:9px 11px;font-size:13px}
+  .kpi b{font-size:18px}.bigrow{font-size:13.5px}
+  .mbg{padding:0;align-items:flex-end}
+  .modal{max-width:100%!important;border-radius:16px 16px 0 0;max-height:94vh}
+  .mh{padding:14px}.mb{padding:14px}
+  .mf{flex-wrap:wrap;padding:12px 14px calc(12px + env(safe-area-inset-bottom))}.mf .btn,.mf a.btn{flex:1 1 auto}
+  /* keranjang POS ditampilkan sebagai kartu */
+  .ctable thead{display:none}
+  .ctable tr{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:2px 8px;padding:10px 6px;border-bottom:1px solid var(--line2)}
+  .ctable td{padding:0;border:0}
+  .ctable td:nth-child(1),.ctable td:nth-child(4){display:none}
+  .ctable td:nth-child(2){grid-column:1;grid-row:1}
+  .ctable td:nth-child(5){grid-column:2;grid-row:1;font-weight:700}
+  .ctable td:nth-child(6){grid-column:3;grid-row:1}
+  .ctable td:nth-child(3){grid-column:1/-1;grid-row:2;text-align:left!important;margin-top:6px}
+  .ctable td.empty{display:block!important;grid-column:1/-1;padding:36px 8px!important}
+  .pos-bar{flex-wrap:wrap}.pos-bar>b,.pos-bar .kbd{display:none}
 }
+@media (pointer:coarse){.nav a{padding:11px 12px}.ib{min-width:34px;min-height:34px}}
 @media print{.top,.side,.ph .btn{display:none}.wrap{display:block}}
 </style>
 </head>
@@ -401,7 +446,7 @@ const MENU=[
 let PAGE='dashboard';
 function go(p){PAGE=p;location.hash=p;document.body.classList.remove('nav-open');render();window.scrollTo(0,0)}
 function updateChrome(){$('#nav').innerHTML=MENU.map(([k,l,i])=>`<a class="${PAGE===k?'on':''}" onclick="go('${k}')">${ic(i)}${l}${k==='toko'&&SRV.newCount?`<span class="badge b-red" style="margin-left:auto">${SRV.newCount}</span>`:''}</a>`).join('');$('#bellDot').style.display=SRV.newCount||D.obat.some(o=>o.stok<=o.min)?'':'none'}
-function render(){
+function render(){document.body.classList.toggle('on-pos',PAGE==='pos');
   updateChrome();
   $('#brandName').textContent=D.config.nama;$('#brandTag').textContent=D.config.tagline;applyLogo();
   $('#main').innerHTML=(PAGES[PAGE]||PAGES.dashboard)();
@@ -767,7 +812,7 @@ PAGES.pos=()=>{
   <div class="pos"><div>
     <div class="card" style="padding:14px 16px">
       <div class="pos-bar"><b>Penjualan</b><div class="srch">${ic('search')}<input class="inp" id="posq" placeholder="Scan barcode atau cari obat..." autocomplete="off" oninput="SUG=0;posSug()" onkeydown="posKey(event)"><div id="sugg"></div></div><span class="kbd">F2</span></div>
-      <div class="tw"><table><thead><tr><th>No</th><th>Nama Obat</th><th class="c">Jumlah</th><th class="r">Harga</th><th class="r">Subtotal</th><th></th></tr></thead><tbody>
+      <div class="tw"><table class="ctable"><thead><tr><th>No</th><th>Nama Obat</th><th class="c">Jumlah</th><th class="r">Harga</th><th class="r">Subtotal</th><th></th></tr></thead><tbody>
       ${CART.map((x,i)=>`<tr><td>${i+1}</td><td>${esc(x.nama)}<br><small class="muted">stok ${stokTxt(obatBy(x.id))}</small></td><td class="c" style="white-space:nowrap"><button class="ib" onclick="posQty(${i},-1)">${ic('minus')}</button><input class="qty" type="number" value="${x.qty}" min="1" onchange="posSet(${i},this.value)"><button class="ib" onclick="posQty(${i},1)">${ic('plus')}</button> ${unitSel(obatBy(x.id),x.isi||1,`posUnit(${i},+this.value)`)}</td><td class="r num">${nf(x.harga)}</td><td class="r num">${nf(x.qty*x.harga)}</td><td><button class="ib del" onclick="CART.splice(${i},1);render()">${ic('x')}</button></td></tr>`).join('')||`<tr><td colspan="6" class="empty" style="padding:50px">Keranjang kosong — scan barcode atau ketik nama obat</td></tr>`}
       </tbody></table></div>
     </div>
@@ -786,6 +831,7 @@ PAGES.pos=()=>{
       ${(c.off&&PEL!=='Pelanggan Umum')||c.kom||(PEL!=='Pelanggan Umum'&&saldoBonus(PEL))?`<div style="background:#f6f9ff;border:1px solid var(--line);border-radius:9px;padding:9px 12px;margin-bottom:12px;font-size:12.5px">${c.off&&PEL!=='Pelanggan Umum'?`<div class="sum-row" style="padding:2px 0"><span>Bonus off faktur (tidak di faktur)</span><b style="color:var(--green)">${rp(c.off)}</b></div>`:''}${PEL!=='Pelanggan Umum'&&saldoBonus(PEL)?`<div class="sum-row" style="padding:2px 0"><span>Saldo bonus ${esc(PEL)}</span><b>${rp(saldoBonus(PEL))}</b></div>`:''}${c.kom?`<div class="sum-row" style="padding:2px 0"><span>Komisi ${esc(slsBy(SALES).nama)}</span><b>${rp(c.kom)}</b></div>`:''}</div>`:''}
       <button class="btn btn-p bayar" onclick="posPay()">${ic('card')}Bayar</button>
       <div class="muted" style="text-align:center;margin-top:10px;font-size:12px">${CART.length} item · ${sumBy(CART,x=>x.qty)} unit · ${esc(PEL)}</div>
+    </div><div class="pos-mbar"><div class="t"><small>${CART.length} item · ${esc(PEL)}</small><b class="num">${rp(c.total)}</b></div><button class="btn btn-p" onclick="posPay()" ${CART.length?'':'disabled style="opacity:.5"'}>${ic('card')}Bayar</button>
     </div></div>
   </div>`;
 };
