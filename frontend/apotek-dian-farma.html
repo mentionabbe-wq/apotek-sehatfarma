@@ -428,7 +428,7 @@ const obatBy=id=>D.obat.find(o=>o.id==id);
 /* ---------- UI helpers ---------- */
 function toast(m,t='ok'){const el=document.createElement('div');el.className='tst '+t;el.innerHTML=ic(t==='ok'?'check':'alert')+esc(m);$('#toast').appendChild(el);setTimeout(()=>el.remove(),2600)}
 function openModal(title,body,foot,w){$('#modal').style.maxWidth=(w||560)+'px';$('#modal').innerHTML=`<div class="mh"><h3>${title}</h3><button class="ib" onclick="closeModal()">${ic('x')}</button></div><div class="mb">${body}</div>${foot?`<div class="mf">${foot}</div>`:''}`;$('#mbg').classList.add('show');setTimeout(()=>{const f=$('#modal input,#modal select');f&&f.focus()},50)}
-function closeModal(){$('#mbg').classList.remove('show')}
+function closeModal(){$('#mbg').classList.remove('show');PB_NEW=false}
 function download(name,text,type='text/plain'){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 function csv(rows){return rows.map(r=>r.map(v=>{v=String(v??'');return /[",;\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}).join(',')).join('\n')}
 const tabs=(page,list)=>`<div class="tabs">${list.map(t=>`<button class="${(T[page]||list[0])===t?'on':''}" onclick="setTab('${page}','${t}')">${t}</button>`).join('')}</div>`;
@@ -566,7 +566,7 @@ function masterSave(i){
     const o={nama:v('nama'),kategori:v('kategori'),satuan:v('satuan'),satuanBesar:sb,isi:sb?isi:1,jualBesar:sb?(+v('jualBesar')||0):0,barcode:v('barcode'),beli:+v('beli')||0,jual:+v('jual')||0,stok:+v('stok')||0,min:+v('min')||0,batch:v('batch'),ed:v('ed'),hargaMode:v('hargaMode'),margin:+v('margin')||0,online:$('#f_online').checked,resep:$('#f_resep').checked};
     if(o.hargaMode==='persen')o.jual=hitungJual(o.beli,o.margin);
     if(o.jual<o.beli&&!confirm('Harga jual lebih kecil dari harga beli. Tetap simpan?'))return;
-    if(edit)Object.assign(D.obat[i],o);else D.obat.push({id:Math.max(0,...D.obat.map(x=>x.id))+1,...o});}
+    if(edit)Object.assign(D.obat[i],o);else{const nid=Math.max(0,...D.obat.map(x=>x.id))+1;D.obat.push({id:nid,...o});if(PB_NEW)setTimeout(()=>pbAdd(nid),0)}}
   else if(MTAB==='kategori'||MTAB==='satuan'){if(!v('nama'))return toast('Nama wajib diisi','warn');edit?D[MTAB][i]=v('nama'):D[MTAB].push(v('nama'))}
   else{const keys=MCOLS[MTAB].map(c=>c[0]);const x={};keys.forEach(k=>x[k]=NUMK.includes(k)?+v(k)||0:v(k));if(keys.some(k=>k!=='harga'&&NUMK.includes(k)&&(x[k]<0||x[k]>100)))return toast('Persentase harus 0–100%','warn');
     if(MTAB==='pelanggan'){x.tempo=$('#f_tempo').checked;x.termin=Math.max(1,+$('#f_termin').value||30);x.limit=Math.max(0,+$('#f_limit').value||0);x.pin=$('#f_pin').value.trim();if(x.pin&&!/^\d{6}$/.test(x.pin))return toast('PIN harus 6 angka','warn');if(x.nama==='Pelanggan Umum'&&x.tempo)return toast('Pelanggan Umum tidak bisa tempo','warn')}
@@ -606,9 +606,8 @@ PAGES.pembelian=()=>{
         <div class="frm"><label>No. Faktur :</label><input class="inp" value="${esc(PB.faktur)}" onchange="PB.faktur=this.value"></div>
         <div class="frm"><label>Tanggal :</label><input class="inp" type="date" value="${PB.tgl}" onchange="PB.tgl=this.value"></div>
       </div>
-      <div class="tw"><table><thead><tr><th>No</th><th>Nama Obat</th><th>Batch</th><th>ED</th><th class="r">Jumlah</th><th class="r">Harga Beli</th><th class="r">Subtotal</th><th></th></tr></thead><tbody>
-      ${PB.items.map((x,i)=>{const o=obatBy(x.id);return `<tr><td>${i+1}</td><td>${esc(o.nama)}</td><td><input class="inp" style="height:30px;width:110px" value="${esc(x.batch)}" onchange="PB.items[${i}].batch=this.value"></td><td><input class="inp" type="month" style="height:30px;width:140px" value="${x.ed}" onchange="PB.items[${i}].ed=this.value"></td><td class="r" style="white-space:nowrap"><input class="qty" type="number" min="1" value="${x.qty}" onchange="PB.items[${i}].qty=Math.max(1,+this.value);render()"> ${unitSel(o,x.isi||1,`pbUnit(${i},+this.value)`)}${(x.isi||1)>1?`<br><small class="muted">= ${nf(x.qty*x.isi)} ${esc(o.satuan)}</small>`:''}</td><td class="r"><input class="inp num" style="height:30px;width:100px;text-align:right" type="number" value="${x.harga}" onchange="PB.items[${i}].harga=+this.value;render()"><br><small class="muted">per ${esc((x.isi||1)>1?o.satuanBesar:o.satuan)}</small></td><td class="r num">${nf(x.qty*x.harga)}</td><td><button class="ib del" onclick="PB.items.splice(${i},1);render()">${ic('trash')}</button></td></tr>`}).join('')}
-      <tr><td></td><td colspan="7"><select class="sel" style="max-width:340px;height:34px" onchange="if(this.value){pbAdd(+this.value)}"><option value="">+ Tambah obat…</option>${D.obat.map(o=>`<option value="${o.id}">${esc(o.nama)}</option>`).join('')}</select></td></tr>
+      ${pickerHtml('pb','Cari / scan obat untuk ditambahkan (nama, kode, barcode)…')}<div class="tw"><table><thead><tr><th>No</th><th>Nama Obat</th><th>Batch</th><th>ED</th><th class="r">Jumlah</th><th class="r">Harga Beli</th><th class="r">Subtotal</th><th></th></tr></thead><tbody>
+      ${PB.items.length?'':'<tr><td colspan="8" class="empty">Belum ada obat. Cari atau scan barcode di kolom atas.</td></tr>'}${PB.items.map((x,i)=>{const o=obatBy(x.id);return `<tr><td>${i+1}</td><td>${esc(o.nama)}</td><td><input class="inp" style="height:30px;width:110px" value="${esc(x.batch)}" onchange="PB.items[${i}].batch=this.value"></td><td><input class="inp" type="month" style="height:30px;width:140px" value="${x.ed}" onchange="PB.items[${i}].ed=this.value"></td><td class="r" style="white-space:nowrap"><input class="qty" type="number" min="1" value="${x.qty}" onchange="PB.items[${i}].qty=Math.max(1,+this.value);render()"> ${unitSel(o,x.isi||1,`pbUnit(${i},+this.value)`)}${(x.isi||1)>1?`<br><small class="muted">= ${nf(x.qty*x.isi)} ${esc(o.satuan)}</small>`:''}</td><td class="r"><input class="inp num" style="height:30px;width:100px;text-align:right" type="number" value="${x.harga}" onchange="PB.items[${i}].harga=+this.value;render()"><br><small class="muted">per ${esc((x.isi||1)>1?o.satuanBesar:o.satuan)}</small></td><td class="r num">${nf(x.qty*x.harga)}</td><td><button class="ib del" onclick="PB.items.splice(${i},1);render()">${ic('trash')}</button></td></tr>`}).join('')}
       </tbody></table></div>
       <div style="display:flex;justify-content:flex-end;margin:14px 0 18px"><div style="min-width:280px">
         <div class="sum-row"><span>Subtotal</span><b class="num">${rp(sub)}</b></div>
@@ -624,6 +623,22 @@ PAGES.pembelian=()=>{
   }
   return head('Pembelian')+tabs('pembelian',['Pesan Pembelian','Penerimaan Barang','Faktur Supplier'])+b;
 };
+/* --- Pencarian obat (Penerimaan & Retur) --- */
+let PK={i:0,q:''},PB_NEW=false;
+const pickerHtml=(key,ph)=>`<div class="srch" style="max-width:520px;margin-bottom:12px">${ic('search')}<input class="inp" id="pk_${key}" placeholder="${ph}" autocomplete="off" oninput="PK.i=0;pkShow('${key}')" onkeydown="pkKey(event,'${key}')" onfocus="pkShow('${key}')" onblur="setTimeout(()=>{const e=$('#pkl_${key}');if(e)e.innerHTML=''},180)"><div id="pkl_${key}"></div></div>`;
+function pkMatches(key){const q=PK.q=($('#pk_'+key)?$('#pk_'+key).value:'').trim();if(!q)return[];const l=q.toLowerCase();
+  const exact=D.obat.filter(o=>o.barcode===q||(o.kode||'').toLowerCase()===l);if(exact.length)return exact;
+  const w=l.split(/\s+/);return D.obat.filter(o=>{const t=(o.nama+' '+(o.kategori||'')+' '+(o.kode||'')).toLowerCase();return w.every(x=>t.includes(x))}).sort((a,b)=>(b.nama.toLowerCase().startsWith(l))-(a.nama.toLowerCase().startsWith(l))).slice(0,10)}
+function pkShow(key){const m=pkMatches(key),box=$('#pkl_'+key);if(!box)return;if(!PK.q){box.innerHTML='';return}
+  box.innerHTML=`<div class="sugg">${m.map((o,i)=>`<div class="${i===PK.i?'on':''}" onmousedown="pkPick('${key}',${o.id})"><span><b style="font-weight:600">${esc(o.nama)}</b><br><small class="muted">${esc(o.kategori||'')} · stok ${stokTxt(o)}${o.barcode?' · '+esc(o.barcode):''}</small></span><b class="num" style="white-space:nowrap">${key==='pb'?'Beli '+nf(punya2(o)?o.beli*o.isi:o.beli)+(punya2(o)?'/'+esc(o.satuanBesar):''):nf(o.jual)}</b></div>`).join('')||'<div class="muted" style="cursor:default">Obat tidak ditemukan</div>'}${key==='pb'?`<div onmousedown="pkBaru()" style="color:var(--pri);font-weight:600;border-top:1px solid var(--line)">${ic('plus')}Tambah obat baru “${esc(PK.q)}”</div>`:''}</div>`}
+function pkKey(e,key){const m=pkMatches(key);
+  if(e.key==='ArrowDown'){PK.i=Math.min(PK.i+1,m.length-1);pkShow(key);e.preventDefault()}
+  else if(e.key==='ArrowUp'){PK.i=Math.max(PK.i-1,0);pkShow(key);e.preventDefault()}
+  else if(e.key==='Enter'){e.preventDefault();if(m[PK.i])pkPick(key,m[PK.i].id);else if(key==='pb'&&PK.q)pkBaru();else if(PK.q)toast('Obat tidak ditemukan','warn')}
+  else if(e.key==='Escape'){e.target.value='';pkShow(key)}}
+function pkPick(key,id){PK.i=0;PK.q='';if(key==='pb')pbAdd(id);else{const e=RT.items.find(x=>x.id===id);if(e)e.qty++;else RT.items.push({id,qty:1});render()}
+  toast(obatBy(id).nama+' ditambahkan');setTimeout(()=>{const el=$('#pk_'+key);if(el&&innerWidth>900)el.focus()},40)}
+function pkBaru(){const q=PK.q;MTAB='obat';masterForm();PB_NEW=true;setTimeout(()=>{const n=$('#f_nama');if(n&&!/^\d{6,}$/.test(q)){n.value=q}else if(n&&$('#f_barcode')){$('#f_barcode').value=q}},60)}
 function pbAdd(id){const o=obatBy(id);const e=PB.items.find(x=>x.id===id);const isi=punya2(o)?o.isi:1;if(e)e.qty+=1;else PB.items.push({id,batch:o.batch,ed:o.ed,qty:isi>1?1:100,isi,harga:o.beli*isi});render()}
 function pbUnit(i,isi){const x=PB.items[i],per=x.harga/(x.isi||1);x.isi=isi;x.harga=Math.round(per*isi);render()}
 function pbSave(){
@@ -911,9 +926,8 @@ PAGES.retur=()=>{
     <div class="frm"><label>Tanggal :</label><input class="inp" type="date" value="${RT.tgl}" onchange="RT.tgl=this.value"></div>
     <div class="frm"><label>${jual?'Pelanggan':'Supplier'} :</label><select class="sel" onchange="RT.pihak=this.value">${opt(list,RT.pihak)}</select></div>
   </div>
-  <div class="tw"><table><thead><tr><th>No</th><th>Nama Obat</th><th class="c">Jumlah</th><th class="r">Harga</th><th class="r">Subtotal</th><th></th></tr></thead><tbody>
-    ${RT.items.map((x,i)=>{const o=obatBy(x.id),h=jual?o.jual:o.beli;return `<tr><td>${i+1}</td><td>${esc(o.nama)}</td><td class="c"><input class="qty" type="number" min="1" value="${x.qty}" onchange="RT.items[${i}].qty=Math.max(1,+this.value);render()"></td><td class="r num">${nf(h)}</td><td class="r num">${nf(h*x.qty)}</td><td><button class="ib del" onclick="RT.items.splice(${i},1);render()">${ic('x')}</button></td></tr>`}).join('')}
-    <tr><td></td><td colspan="5"><select class="sel" style="max-width:340px;height:34px" onchange="if(this.value){RT.items.push({id:+this.value,qty:1});render()}"><option value="">+ Tambah obat…</option>${D.obat.map(o=>`<option value="${o.id}">${esc(o.nama)}</option>`).join('')}</select></td></tr>
+  ${pickerHtml('rt','Cari / scan obat yang diretur…')}<div class="tw"><table><thead><tr><th>No</th><th>Nama Obat</th><th class="c">Jumlah</th><th class="r">Harga</th><th class="r">Subtotal</th><th></th></tr></thead><tbody>
+    ${RT.items.length?'':'<tr><td colspan="6" class="empty">Belum ada obat. Cari atau scan barcode di kolom atas.</td></tr>'}${RT.items.map((x,i)=>{const o=obatBy(x.id),h=jual?o.jual:o.beli;return `<tr><td>${i+1}</td><td>${esc(o.nama)}</td><td class="c"><input class="qty" type="number" min="1" value="${x.qty}" onchange="RT.items[${i}].qty=Math.max(1,+this.value);render()"></td><td class="r num">${nf(h)}</td><td class="r num">${nf(h*x.qty)}</td><td><button class="ib del" onclick="RT.items.splice(${i},1);render()">${ic('x')}</button></td></tr>`}).join('')}
   </tbody></table></div>
   <div style="display:flex;gap:14px;align-items:center;margin-top:16px;flex-wrap:wrap">
     <span class="lbl">Alasan :</span><select class="sel" style="max-width:260px" onchange="RT.alasan=this.value">${opt(['Produk rusak','Kedaluwarsa','Salah kirim','Salah resep','Lainnya'],RT.alasan)}</select>
