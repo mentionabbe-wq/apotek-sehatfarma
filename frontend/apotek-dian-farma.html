@@ -516,9 +516,9 @@ AFTER.dashboard=()=>{if(innerWidth<900)$('#dashRow').style.gridTemplateColumns='
 
 /* 2. Master Data */
 let MTAB='obat',MQ='';
-const MCOLS={supplier:[['nama','Nama Supplier'],['telp','Telepon'],['alamat','Alamat']],pelanggan:[['nama','Nama Pelanggan'],['kategori','Kategori'],['diskonOff','Diskon Off Faktur / Bonus (%)'],['telp','Telepon'],['alamat','Alamat'],['npwp','NPWP / NIK']],katpel:[['nama','Nama Kategori'],['diskon','Diskon On Faktur (%)']],salesman:[['nama','Nama Salesman'],['telp','Telepon'],['komisi','Komisi (%)']],dokter:[['nama','Nama Dokter'],['sip','No. SIP'],['praktik','Tempat Praktik']],harga:[['pelanggan','Pelanggan'],['margin','Margin dari harga beli (%)'],['ket','Keterangan']]};
-const NUMK=['harga','diskon','diskonOff','komisi','margin'];
-const mCell=(k,x)=>k==='harga'?rp(x[k]):k==='diskon'||k==='komisi'?`<span class="badge b-blue">${x[k]}%</span>`:k==='margin'?`<span class="badge b-blue">harga beli +${x[k]}%</span>`:k==='diskonOff'?`<span class="badge b-green">${x[k]||0}%</span>`:k==='kategori'&&MTAB==='pelanggan'?`${marginOf(x.nama)!=null?`<span class="badge b-blue">Harga khusus: beli +${marginOf(x.nama)}%</span>`:`<span class="badge b-gray">${esc(x[k])} · ${katOf(x.nama).diskon}%</span>`}`:esc(x[k]);
+const MCOLS={supplier:[['nama','Nama Supplier'],['telp','Telepon'],['alamat','Alamat'],['termin','Termin bayar (hari)']],pelanggan:[['nama','Nama Pelanggan'],['kategori','Kategori'],['diskonOff','Diskon Off Faktur / Bonus (%)'],['telp','Telepon'],['alamat','Alamat'],['npwp','NPWP / NIK']],katpel:[['nama','Nama Kategori'],['diskon','Diskon On Faktur (%)']],salesman:[['nama','Nama Salesman'],['telp','Telepon'],['komisi','Komisi (%)']],dokter:[['nama','Nama Dokter'],['sip','No. SIP'],['praktik','Tempat Praktik']],harga:[['pelanggan','Pelanggan'],['margin','Margin dari harga beli (%)'],['ket','Keterangan']]};
+const NUMK=['harga','diskon','diskonOff','komisi','margin','termin'];
+const mCell=(k,x)=>k==='harga'?rp(x[k]):k==='diskon'||k==='komisi'?`<span class="badge b-blue">${x[k]}%</span>`:k==='termin'?(x[k]?x[k]+' hari':'<span class="muted">30 hari (bawaan)</span>'):k==='margin'?`<span class="badge b-blue">harga beli +${x[k]}%</span>`:k==='diskonOff'?`<span class="badge b-green">${x[k]||0}%</span>`:k==='kategori'&&MTAB==='pelanggan'?`${marginOf(x.nama)!=null?`<span class="badge b-blue">Harga khusus: beli +${marginOf(x.nama)}%</span>`:`<span class="badge b-gray">${esc(x[k])} · ${katOf(x.nama).diskon}%</span>`}`:esc(x[k]);
 const MTILES=[['obat','Data Obat','pill'],['kategori','Kategori','grid'],['satuan','Satuan','scale'],['barcode','Barcode','barcode'],['supplier','Supplier','truck'],['pelanggan','Pelanggan','users'],['katpel','Kategori & Diskon','percent'],['salesman','Salesman','user'],['dokter','Data Dokter','hosp'],['harga','Harga Khusus','tag']];
 PAGES.master=()=>{
   let body='';
@@ -571,7 +571,7 @@ function masterSave(i){
     if(o.jual<o.beli&&!confirm('Harga jual lebih kecil dari harga beli. Tetap simpan?'))return;
     if(edit)Object.assign(D.obat[i],o);else{const nid=Math.max(0,...D.obat.map(x=>x.id))+1;D.obat.push({id:nid,...o});if(PB_NEW)setTimeout(()=>pbAdd(nid),0)}}
   else if(MTAB==='kategori'||MTAB==='satuan'){if(!v('nama'))return toast('Nama wajib diisi','warn');edit?D[MTAB][i]=v('nama'):D[MTAB].push(v('nama'))}
-  else{const keys=MCOLS[MTAB].map(c=>c[0]);const x={};keys.forEach(k=>x[k]=NUMK.includes(k)?+v(k)||0:v(k));if(keys.some(k=>k!=='harga'&&NUMK.includes(k)&&(x[k]<0||x[k]>100)))return toast('Persentase harus 0–100%','warn');
+  else{const keys=MCOLS[MTAB].map(c=>c[0]);const x={};keys.forEach(k=>x[k]=NUMK.includes(k)?+v(k)||0:v(k));if(keys.some(k=>k!=='harga'&&k!=='termin'&&NUMK.includes(k)&&(x[k]<0||x[k]>100)))return toast('Persentase harus 0–100%','warn');
     if(MTAB==='pelanggan'){x.tempo=$('#f_tempo').checked;x.termin=Math.max(1,+$('#f_termin').value||30);x.limit=Math.max(0,+$('#f_limit').value||0);x.pin=$('#f_pin').value.trim();if(x.pin&&!/^\d{6}$/.test(x.pin))return toast('PIN harus 6 angka','warn');if(x.nama==='Pelanggan Umum'&&x.tempo)return toast('Pelanggan Umum tidak bisa tempo','warn')}
     if(MTAB==='pelanggan'&&x.nama==='Pelanggan Umum'&&x.diskonOff)return toast('Pelanggan Umum tidak bisa diberi diskon off faktur','warn');
     if(MTAB==='harga'){if(!x.pelanggan)return toast('Pilih pelanggan','warn');if(D.harga.some((h,j)=>h.pelanggan===x.pelanggan&&j!==i))return toast(x.pelanggan+' sudah ada di daftar harga khusus','warn')}
@@ -594,22 +594,27 @@ function masterDel(i){
 }
 
 /* 3. Pembelian */
-let PB={supplier:'PT Sejahtera Farma',faktur:'',tgl:today(),items:[],ppn:true};
+let PB={supplier:'PT Sejahtera Farma',faktur:'',tgl:today(),items:[],ppn:true,bayar:'Tempo',jt:''};
+const addHari=(t,n)=>{const d=new Date(t+'T00:00:00');d.setDate(d.getDate()+n);return iso(d)};
+const supTermin=n=>{const x=D.supplier.find(s=>s.nama===n);return x&&+x.termin>0?+x.termin:30};
+const pbJt=()=>PB.jt||addHari(PB.tgl,supTermin(PB.supplier));
 PAGES.pembelian=()=>{
   const t=T.pembelian||'Penerimaan Barang';let b='';
   if(t==='Pesan Pembelian'){
     b=`<div class="card"><div class="card-h"><h3>Surat Pesanan (SP)</h3><div class="sp"></div><button class="btn btn-p" onclick="spForm()">${ic('plus')}Buat SP</button></div>
     <div class="tw"><table><thead><tr><th>No. SP</th><th>Tanggal</th><th>Distributor</th><th>Jenis</th><th>Item</th><th>Status</th><th class="c">Aksi</th></tr></thead><tbody>${D.sp.map((s,i)=>`<tr><td><b style="font-weight:600">${esc(s.no)}</b></td><td>${tgl(s.tgl)}</td><td>${esc(s.supplier)}</td><td>${esc(s.jenis||'Reguler')}</td><td style="max-width:320px">${s.items.map(x=>esc(x.nama)+(x.jumlah?` <span class="muted">(${x.jumlah} ${esc(x.satuan.split(' ')[0])})</span>`:'')).join(', ')}</td><td><span class="badge ${s.status==='Diterima'?'b-green':s.status==='Dipesan'?'b-blue':'b-gray'}">${s.status}</span></td><td class="c" style="white-space:nowrap"><button class="ib" onclick="spPrintDlg(${i})" title="Cetak SP">${ic('print')}</button><button class="ib" onclick="spForm(${i})" title="Ubah">${ic('edit')}</button>${s.status!=='Diterima'?`<button class="ib" onclick="spTerima(${i})" title="Terima barang (isi Penerimaan)">${ic('box')}</button>`:''}<button class="ib del" onclick="spDel(${i})" title="Hapus">${ic('trash')}</button></td></tr>`).join('')||'<tr><td colspan="7" class="empty">Belum ada SP</td></tr>'}</tbody></table></div></div>`;
   }else if(t==='Faktur Supplier'){
-    b=`<div class="card"><h3>Faktur Supplier</h3><div class="tw"><table><thead><tr><th>No. Faktur</th><th>Tanggal</th><th>Supplier</th><th class="r">Total</th><th>Status</th></tr></thead><tbody>${D.purch.slice().reverse().map(p=>`<tr><td><b style="font-weight:600">${p.no}</b></td><td>${tgl(p.tgl)}</td><td>${esc(p.supplier)}</td><td class="r num">${rp(p.total)}</td><td><span class="badge ${p.status==='Lunas'?'b-green':'b-amber'}">${p.status}</span></td></tr>`).join('')}</tbody></table></div></div>`;
+    b=`<div class="card"><h3>Faktur Supplier</h3><div class="tw"><table><thead><tr><th>No. Faktur</th><th>Tanggal</th><th>Supplier</th><th>Jatuh Tempo</th><th class="r">Total</th><th>Status</th></tr></thead><tbody>${D.purch.slice().reverse().map(p=>{const h=D.hutang.find(x=>x.ref===p.no),lunas=h?h.status==='Lunas':p.status==='Lunas',jt=(h&&h.jt)||p.jt,lewat=!lunas&&jt&&jt<today();return `<tr><td><b style="font-weight:600">${esc(p.no)}</b></td><td>${tgl(p.tgl)}</td><td>${esc(p.supplier)}</td><td>${jt?tgl(jt):'-'}</td><td class="r num">${rp(p.total)}</td><td><span class="badge ${lunas?'b-green':lewat?'b-red':'b-amber'}">${lunas?'Lunas':lewat?'Lewat jatuh tempo':'Belum Lunas'}</span></td></tr>`}).join('')}</tbody></table></div></div>`;
   }else{
     if(!PB.faktur)PB.faktur='PB-'+today().replace(/-/g,'').slice(0,4)+'-'+today().slice(5).replace('-','')+'-'+String(D.seq.pb).padStart(3,'0');
     const pc=pbCalc();
     b=`<div class="card"><h3 style="font-size:16px">Penerimaan Barang</h3>
       <div class="grid g2" style="gap:12px 26px;margin-bottom:16px">
-        <div class="frm"><label>Supplier :</label><select class="sel" onchange="PB.supplier=this.value">${opt(D.supplier.map(s=>s.nama),PB.supplier)}</select></div><div></div>
+        <div class="frm"><label>Supplier :</label><select class="sel" onchange="PB.supplier=this.value;PB.jt='';render()">${opt(D.supplier.map(s=>s.nama),PB.supplier)}</select></div><div></div>
         <div class="frm"><label>No. Faktur :</label><input class="inp" value="${esc(PB.faktur)}" onchange="PB.faktur=this.value"></div>
-        <div class="frm"><label>Tanggal :</label><input class="inp" type="date" value="${PB.tgl}" onchange="PB.tgl=this.value"></div>
+        <div class="frm"><label>Tanggal :</label><input class="inp" type="date" value="${PB.tgl}" onchange="PB.tgl=this.value;PB.jt='';render()"></div>
+        <div class="frm"><label>Pembayaran :</label><select class="sel" onchange="PB.bayar=this.value;render()">${[['Tempo','Tempo (hutang ke supplier)'],['Kas','Tunai — lunas dari Kas'],['Bank BCA','Transfer — lunas dari Bank']].map(([v,l])=>`<option value="${v}" ${PB.bayar===v?'selected':''}>${l}</option>`).join('')}</select></div>
+        ${PB.bayar==='Tempo'?`<div class="frm"><label>Jatuh Tempo :</label><div><input class="inp" type="date" value="${pbJt()}" min="${PB.tgl}" onchange="PB.jt=this.value;render()"><div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">${[7,14,30,45,60].map(n=>`<button class="btn btn-sm ${pbJt()===addHari(PB.tgl,n)?'btn-p':'btn-o'}" onclick="PB.jt=addHari(PB.tgl,${n});render()">${n} hari</button>`).join('')}</div><small class="muted">Termin ${esc(PB.supplier)}: ${supTermin(PB.supplier)} hari (atur di Master Data → Supplier)</small></div></div>`:'<div></div>'}
       </div>
       ${pickerHtml('pb','Cari / scan obat untuk ditambahkan (nama, kode, barcode)…')}<div class="tw"><table><thead><tr><th>No</th><th>Nama Obat</th><th>Batch</th><th>ED</th><th class="r">Jumlah</th><th class="r">Harga Beli</th><th class="r">Disc %</th><th class="r">Subtotal</th><th></th></tr></thead><tbody>
       ${PB.items.length?'':'<tr><td colspan="9" class="empty">Belum ada obat. Cari atau scan barcode di kolom atas.</td></tr>'}${PB.items.map((x,i)=>{const o=obatBy(x.id);return `<tr><td>${i+1}</td><td>${esc(o.nama)}</td><td><input class="inp" style="height:30px;width:110px" value="${esc(x.batch)}" onchange="PB.items[${i}].batch=this.value"></td><td><input class="inp" type="month" style="height:30px;width:140px" value="${x.ed}" onchange="PB.items[${i}].ed=this.value"></td><td class="r" style="white-space:nowrap"><input class="qty" type="number" min="1" value="${x.qty}" onchange="PB.items[${i}].qty=Math.max(1,+this.value);render()"> ${unitSel(o,x.isi||1,`pbUnit(${i},+this.value)`)}${(x.isi||1)>1?`<br><small class="muted">= ${nf(x.qty*x.isi)} ${esc(o.satuan)}</small>`:''}</td><td class="r"><input class="inp num" style="height:30px;width:100px;text-align:right" type="number" value="${x.harga}" onchange="PB.items[${i}].harga=+this.value;render()"><br><small class="muted">per ${esc((x.isi||1)>1?o.satuanBesar:o.satuan)}</small></td><td class="r"><input class="inp num" style="height:30px;width:64px;text-align:right" type="number" min="0" max="100" step="0.5" value="${x.disc||''}" placeholder="0" onchange="PB.items[${i}].disc=Math.min(100,Math.max(0,+this.value||0));render()"></td><td class="r num">${nf(Math.round(x.qty*x.harga*(1-(+x.disc||0)/100)))}${x.disc?`<br><small class="muted" style="text-decoration:line-through">${nf(x.qty*x.harga)}</small>`:''}</td><td><button class="ib del" onclick="PB.items.splice(${i},1);render()">${ic('trash')}</button></td></tr>`}).join('')}
@@ -657,13 +662,16 @@ function pbUnit(i,isi){const x=PB.items[i],per=x.harga/(x.isi||1);x.isi=isi;x.ha
 function pbSave(){
   if(!PB.items.length)return toast('Tambahkan minimal 1 obat','warn');
   if(!PB.faktur)return toast('Isi nomor faktur supplier','warn');
+  if(PB.bayar==='Tempo'&&pbJt()<PB.tgl)return toast('Jatuh tempo tidak boleh sebelum tanggal faktur','warn');
   const pc=pbCalc(),sub=pc.dpp,pajak=pc.pajak,total=pc.total;
   let nUp=0;PB.items.forEach(x=>{const o=obatBy(x.id),isi=x.isi||1,n=x.qty*isi;o.stok+=n;o.batch=x.batch;o.ed=x.ed;o.beli=Math.round(x.harga*(1-(+x.disc||0)/100)*pc.faktor/isi);if(o.hargaMode==='persen'){const j=hitungJual(o.beli,o.margin);if(j!==o.jual){o.jual=j;nUp++}}addMutasi(x.id,'Pembelian',PB.faktur,n,0)});
-  D.purch.push({no:PB.faktur,tgl:PB.tgl,supplier:PB.supplier,items:PB.items,bruto:pc.bruto,diskonItem:pc.dItem,diskonFaktur:pc.dF,dpp:pc.dpp,total,pajak,status:'Belum Lunas'});
-  D.hutang.push({pihak:PB.supplier,ref:PB.faktur,jumlah:total,jt:iso(new Date(Date.now()+30*864e5)),status:'Belum Lunas'});
-  jurnal('Pembelian '+PB.faktur,[['121','Persediaan',sub,0],['117','PPN Masukan',pajak,0],['211','Utang Supplier',0,total]]);
+  const tempo=PB.bayar==='Tempo',jt=tempo?pbJt():PB.tgl;
+  D.purch.push({no:PB.faktur,tgl:PB.tgl,supplier:PB.supplier,items:PB.items,bruto:pc.bruto,diskonItem:pc.dItem,diskonFaktur:pc.dF,dpp:pc.dpp,total,pajak,bayar:PB.bayar,jt,status:tempo?'Belum Lunas':'Lunas'});
+  if(tempo)D.hutang.push({pihak:PB.supplier,ref:PB.faktur,tgl:PB.tgl,jumlah:total,jt,status:'Belum Lunas'});
+  else D.kas.push({tgl:PB.tgl,uraian:'Pembelian '+PB.faktur+' ('+PB.supplier+')',jenis:'Pengeluaran',akun:PB.bayar,jumlah:total});
+  jurnal('Pembelian '+PB.faktur,[['121','Persediaan',sub,0],['117','PPN Masukan',pajak,0],tempo?['211','Utang Supplier',0,total]:[PB.bayar==='Kas'?'111':'112',PB.bayar,0,total]].filter(l=>l[2]||l[3]));
   if(PB.sp!==undefined&&D.sp[PB.sp]){D.sp[PB.sp].status='Diterima';D.sp[PB.sp].faktur=PB.faktur}
-  log('Penerimaan barang '+PB.faktur);D.seq.pb++;PB.items=[];PB.faktur='';PB.df=0;delete PB.sp;save();render();toast('Penerimaan barang tersimpan, stok bertambah'+(nUp?` · harga jual ${nUp} obat ikut diperbarui`:''));
+  log('Penerimaan barang '+PB.faktur);D.seq.pb++;PB.items=[];PB.faktur='';PB.df=0;PB.jt='';delete PB.sp;save();render();toast('Penerimaan barang tersimpan, stok bertambah'+(nUp?` · harga jual ${nUp} obat ikut diperbarui`:''));
 }
 function pbLabel(){if(!PB.items.length)return toast('Belum ada obat','warn');BC.obat=PB.items[0].id;BC.jumlah=PB.items[0].qty*(PB.items[0].isi||1);go('barcode')}
 /* --- Surat Pesanan (SP) --- */
@@ -706,7 +714,7 @@ function spSave(cetak){
 }
 function spDel(i){openModal('Hapus SP?',`<p>Surat pesanan <b>${esc(D.sp[i].no)}</b> akan dihapus.</p>`,`<button class="btn btn-g" onclick="closeModal()">Batal</button><button class="btn btn-red" onclick="log('Hapus SP '+D.sp[${i}].no);D.sp.splice(${i},1);save();closeModal();render()">${ic('trash')}Hapus</button>`,420)}
 function spTerima(i){const s=D.sp[i];const ok=s.items.filter(x=>x.id&&obatBy(x.id));if(!ok.length)return toast('Obat di SP ini belum ada di Master Data','warn');
-  PB={supplier:s.supplier,faktur:'',tgl:today(),ppn:true,sp:i,items:ok.map(x=>{const o=obatBy(x.id);const isi=punya2(o)&&String(x.satuan).toUpperCase().startsWith(o.satuanBesar.toUpperCase())?o.isi:1;return {id:o.id,batch:o.batch,ed:o.ed,qty:+x.jumlah||1,isi,harga:o.beli*isi,disc:0}})};
+  PB={supplier:s.supplier,faktur:'',tgl:today(),ppn:true,bayar:'Tempo',jt:'',sp:i,items:ok.map(x=>{const o=obatBy(x.id);const isi=punya2(o)&&String(x.satuan).toUpperCase().startsWith(o.satuanBesar.toUpperCase())?o.isi:1;return {id:o.id,batch:o.batch,ed:o.ed,qty:+x.jumlah||1,isi,harga:o.beli*isi,disc:0}})};
   T.pembelian='Penerimaan Barang';go('pembelian');toast('Item SP dimasukkan ke Penerimaan Barang — periksa batch, ED & harga')}
 const tglPanjang=s=>{const [y,m,d]=s.split('-');return `${+d} ${['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][m-1]} ${y}`};
 /* --- Printer & cetak SP --- */
