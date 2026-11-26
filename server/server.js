@@ -129,13 +129,24 @@ function reserved() {
   }
   return m;
 }
-function produkList(d) {
+// Harga khusus pelanggan: Master Data → Harga Khusus berisi {pelanggan, margin}.
+// Harga = harga beli + margin (dibulatkan), tidak melebihi harga normal; diskon kategori tidak dipakai.
+const marginOf = pel => { const h = pel && (getState().data.harga || []).find(h => h.pelanggan === pel.nama && h.margin != null); return h ? +h.margin : null; };
+const punyaMargin = pel => marginOf(pel) != null;
+function hargaUntuk(d, o, isi, pel) {
+  const normal = isi > 1 ? (o.jualBesar || (o.jual || 0) * isi) : (o.jual || 0);
+  const m = marginOf(pel);
+  if (m == null || !(o.beli > 0)) return normal;
+  const b = Math.max(1, +(d.config && d.config.bulat) || 1);
+  return Math.min(normal, Math.ceil(Math.round(o.beli * isi * (1 + m / 100)) / b) * b);
+}
+function produkList(d, pel) {
   const res = reserved();
   return (d.obat || []).filter(o => o.online !== false).map(o => {
     const avail = Math.max(0, (o.stok || 0) - (res[o.id] || 0));
     return {
-      id: o.id, nama: o.nama, kategori: o.kategori || 'Umum', satuan: o.satuan, harga: o.jual || 0,
-      besar: punya2(o) ? { nama: o.satuanBesar, isi: o.isi, harga: o.jualBesar || (o.jual || 0) * o.isi } : null,
+      id: o.id, nama: o.nama, kategori: o.kategori || 'Umum', satuan: o.satuan, harga: hargaUntuk(d, o, 1, pel),
+      besar: punya2(o) ? { nama: o.satuanBesar, isi: o.isi, harga: hargaUntuk(d, o, o.isi, pel) } : null,
       resep: !!o.resep, tersedia: avail,
     };
   });
@@ -182,7 +193,7 @@ function akunData(row) {
   let member = null;
   if (pel) {
     const ds = diskonFor(d, row.telp);
-    member = { ...tagihanFor(d, pel), kategori: ds.kategori, diskon: ds.diskon,
+    member = { ...tagihanFor(d, pel), kategori: ds.kategori, diskon: punyaMargin(pel) ? 0 : ds.diskon, hargaKhusus: marginOf(pel),
       belanja: (d.sales || []).filter(x => x.pelanggan === pel.nama && !x.rekap).slice(-15).reverse()
         .map(x => ({ no: x.no, tgl: x.tgl, total: x.total, metode: x.metode, items: (x.items || []).map(i => i.qty + ' ' + (i.unit || '') + ' ' + i.nama) })) };
   }
@@ -222,7 +233,8 @@ async function api(req, res, url) {
   if (p === '/api/toko/produk' && m === 'GET') {
     const d = getState().data;
     if (!d) return send(res, 200, { success: true, items: [] });
-    return send(res, 200, { success: true, items: produkList(d) });
+    const acc = custFromReq(req), pel = acc && acc.verified ? findPel(d, acc.telp) : null;
+    return send(res, 200, { success: true, items: produkList(d, pel), khusus: !!pel && punyaMargin(pel) });
   }
   if (p === '/api/toko/tagihan' && m === 'POST') {
     if (rateLimited(ip, 'tagihan', 8, 600e3)) return fail(res, 429, 'Terlalu banyak percobaan, coba lagi 10 menit lagi');
@@ -295,7 +307,7 @@ async function api(req, res, url) {
     if (!d) return fail(res, 503, 'Toko belum siap');
     const t = tokoCfg(d);
     if (!t.buka) return fail(res, 400, 'Maaf, toko sedang tutup');
-    const akun = custFromReq(req);
+    const akun = custFromReq(req), pelAkun = akun && akun.verified ? findPel(d, akun.telp) : null;
     const nama = str(b.nama, 80), telp = akun ? akun.telp : normTelp(b.telp), alamat = str(b.alamat, 300), catatan = str(b.catatan, 300);
     const kirim = b.kirim === 'antar' ? 'antar' : 'ambil', bayar = String(b.bayar || '');
     if (nama.length < 2) return fail(res, 400, 'Nama wajib diisi');
@@ -311,7 +323,7 @@ async function api(req, res, url) {
       const qty = Math.floor(+it.qty);
       if (!(qty >= 1 && qty <= 999)) return fail(res, 400, 'Jumlah tidak valid');
       const besar = punya2(o) && +it.isi === o.isi, isi = besar ? o.isi : 1;
-      const harga = besar ? (o.jualBesar || o.jual * o.isi) : o.jual;
+      const harga = hargaUntuk(d, o, isi, pelAkun);
       pakai[o.id] = (pakai[o.id] || 0) + qty * isi;
       if (pakai[o.id] > (o.stok || 0) - (res0[o.id] || 0)) return fail(res, 400, `Stok ${o.nama} tidak cukup`);
       items.push({ id: o.id, nama: o.nama, isi, unit: besar ? o.satuanBesar : o.satuan, qty, harga, sub: qty * harga, resep: !!o.resep });
@@ -320,7 +332,7 @@ async function api(req, res, url) {
     if (perluResep && !isImg(b.resep)) return fail(res, 400, 'Pesanan berisi obat keras — unggah foto resep dokter');
     const subtotal = items.reduce((s, i) => s + i.sub, 0);
     if (t.minBelanja && subtotal < t.minBelanja) return fail(res, 400, 'Minimal belanja Rp ' + Number(t.minBelanja).toLocaleString('id-ID'));
-    const ds = akun && akun.verified ? diskonFor(d, telp) : null, diskonPct = ds ? ds.diskon : 0, diskon = Math.round(subtotal * diskonPct / 100);
+    const ds = pelAkun && !punyaMargin(pelAkun) ? diskonFor(d, telp) : null, diskonPct = ds ? ds.diskon : 0, diskon = Math.round(subtotal * diskonPct / 100);
     const ongkir = kirim === 'antar' && !(t.gratisOngkir && subtotal - diskon >= t.gratisOngkir) ? (+t.ongkir || 0) : 0;
     let kode; do { kode = newKode(); } while (db.prepare('SELECT 1 FROM orders WHERE kode=?').get(kode));
     const order = { kode, nama, telp, alamat, kirim, bayar, bayarLabel: BAYAR_LABEL[bayar], catatan, items, subtotal, diskonPct,

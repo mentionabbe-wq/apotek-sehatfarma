@@ -134,7 +134,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const rp=n=>'Rp '+Math.round(n||0).toLocaleString('id-ID');
 const ICON_PILL='<svg class="i" viewBox="0 0 24 24"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7z"/><path d="m8.5 8.5 7 7"/></svg>';
 const CROSS='<svg viewBox="0 0 40 40" width="36" height="36"><path d="M14 3h12v11h11v12H26v11H14V26H3V14h11z" fill="#22b573"/><path d="M20 12v16M12 20h16" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/></svg>';
-let AKUN=null,CT=null,INFO=null,PROD=[],KATS=[],KAT='Semua',Q='',CART=[],DISKON=0,RESEP='',LAST=null;
+let KHUSUS=false,AKUN=null,CT=null,INFO=null,PROD=[],KATS=[],KAT='Semua',Q='',CART=[],DISKON=0,RESEP='',LAST=null;
 const ls={get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 CART=ls.get('toko-cart',[]);
 function toast(m,t){const e=document.createElement('div');e.className='tst '+(t||'');e.textContent=m;$('#toast').appendChild(e);setTimeout(()=>e.remove(),3000)}
@@ -168,7 +168,7 @@ async function init(){
     if(CT){try{setAkun((await api('/api/akun/saya')).data)}catch(e){}}
   }catch(e){$('#p-home').innerHTML=`<div class="empty" style="padding:80px 16px"><h2>Tidak bisa terhubung</h2><p>${esc(e.message)}</p><button class="btn btn-p" style="margin-top:14px" onclick="init()">Coba lagi</button></div>`;return}
   updCnt();route()}
-async function loadProduk(){const j=await api('/api/toko/produk');PROD=j.items;
+async function loadProduk(){const j=await api('/api/toko/produk');PROD=j.items;KHUSUS=!!j.khusus;
   CART=CART.filter(c=>PROD.some(p=>p.id===c.id));saveCart()}
 const prodBy=id=>PROD.find(p=>p.id===id);
 const unitOf=(p,isi)=>isi>1&&p.besar?{nama:p.besar.nama,isi:p.besar.isi,harga:p.besar.harga}:{nama:p.satuan,isi:1,harga:p.harga};
@@ -177,7 +177,7 @@ const unitOf=(p,isi)=>isi>1&&p.besar?{nama:p.besar.nama,isi:p.besar.isi,harga:p.
 function renderHome(){if(!INFO)return;
   const kats=KATS=['Semua',...[...new Set(PROD.map(p=>p.kategori))].sort()];
   $('#p-home').innerHTML=`<div class="hero"><div style="flex:1;min-width:220px"><h1>Pesan obat dari rumah</h1><p>${esc(INFO.tagline||'Diantar atau ambil di apotek')}</p></div>${INFO.wa?`<a class="btn" style="background:#fff;color:var(--pri)" href="https://wa.me/${esc(INFO.wa.replace(/^0/,'62'))}" target="_blank" rel="noopener">Tanya Apoteker via WhatsApp</a>`:''}</div>
-   ${!INFO.buka?'<div class="note err">Toko sedang tutup — pesanan belum bisa dibuat.</div>':''}${INFO.info?`<div class="note info">${esc(INFO.info)}</div>`:''}
+   ${!INFO.buka?'<div class="note err">Toko sedang tutup — pesanan belum bisa dibuat.</div>':''}${KHUSUS?'<div class="note info">Harga yang tampil sudah harga khusus untuk Anda.</div>':''}${INFO.info?`<div class="note info">${esc(INFO.info)}</div>`:''}
    <div class="srch"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input class="inp" id="q" placeholder="Cari obat, vitamin, atau kategori…" value="${esc(Q)}" oninput="Q=this.value;renderGrid()"></div>
    <div class="chips">${kats.map((k,i)=>`<button class="chip ${k===KAT?'on':''}" onclick="KAT=KATS[${i}];renderHome()">${esc(k)}</button>`).join('')}</div>
    <div class="grid" id="grid"></div>`;
@@ -218,7 +218,7 @@ function renderCheckout(){const st=subtotal(),dis=Math.round(st*DISKON/100),og=o
    <div class="card sec"><h2>Data Pemesan</h2>
     <div class="fld"><label>Nama lengkap</label><input class="inp" id="c_nama" value="${esc(F.nama)}" oninput="F.nama=this.value" autocomplete="name"></div>
     <div class="fld"><label>Nomor HP / WhatsApp</label><input class="inp" id="c_telp" inputmode="tel" value="${esc(F.telp)}" oninput="F.telp=this.value" autocomplete="tel" placeholder="08xxxxxxxxxx" ${AKUN?'readonly style="background:#f4f7fc"':''}></div>
-    ${AKUN?(DISKON?`<div class="note info" style="font-weight:500">Member ${esc(AKUN.member.kategori)} — diskon ${DISKON}% diterapkan.</div>`:(AKUN.bisaVerifikasi?`<div class="note warn" style="font-weight:500">Hubungkan akun dengan PIN dari apotek untuk mendapat harga member. <a href="#akun">Hubungkan</a></div>`:'')):`<div class="note info" style="font-weight:500">Sudah punya akun? <a href="#masuk">Masuk</a> agar data terisi otomatis dan dapat harga member.</div>`}</div>
+    ${AKUN&&KHUSUS?`<div class="note info" style="font-weight:500">Harga khusus Anda sudah diterapkan pada setiap produk.</div>`:AKUN?(DISKON?`<div class="note info" style="font-weight:500">Member ${esc(AKUN.member.kategori)} — diskon ${DISKON}% diterapkan.</div>`:(AKUN.bisaVerifikasi?`<div class="note warn" style="font-weight:500">Hubungkan akun dengan PIN dari apotek untuk mendapat harga member. <a href="#akun">Hubungkan</a></div>`:'')):`<div class="note info" style="font-weight:500">Sudah punya akun? <a href="#masuk">Masuk</a> agar data terisi otomatis dan dapat harga member.</div>`}</div>
    <div class="card sec"><h2>Pengiriman</h2><div class="opt">
     <label><input type="radio" name="kirim" value="ambil" ${F.kirim==='ambil'?'checked':''} onchange="F.kirim='ambil';renderCheckout()"><span>Ambil di apotek<small>Gratis</small></span></label>
     <label><input type="radio" name="kirim" value="antar" ${F.kirim==='antar'?'checked':''} onchange="F.kirim='antar';renderCheckout()"><span>Diantar<small>Ongkir ${rp(INFO.ongkir)}${INFO.gratisOngkir?` · gratis mulai ${rp(INFO.gratisOngkir)}`:''}</small></span></label></div>
@@ -326,7 +326,7 @@ function renderMasuk(){const f=ls.get('toko-pembeli',{});
   $('#p-masuk').innerHTML=`<div style="max-width:440px;margin:10px auto"><div class="card sec"><h1 style="font-size:20px;margin-bottom:4px">${MTAB==='reset'?'Lupa Password':'Akun Pelanggan'}</h1><p style="color:var(--ink2);margin-bottom:14px;font-size:13.5px">Belanja lebih cepat, pantau pesanan, tagihan &amp; bonus Anda.</p>
    ${MTAB!=='reset'?`<div class="tabs2">${T('masuk','Masuk')}${T('daftar','Daftar')}</div>`:''}${b}<div id="a_err" style="color:var(--red);font-size:13px;margin-top:10px;min-height:18px"></div></div></div>`}
 async function akunKirim(path,body){const b=$('#a_btn'),t=b.textContent;b.disabled=true;b.textContent='Memproses…';$('#a_err').textContent='';
-  try{const j=await api(path,{method:'POST',body});setAkun(j.data,j.token);ls.set('toko-pembeli',{...ls.get('toko-pembeli',{}),nama:j.data.nama,telp:j.data.telp,alamat:j.data.alamat||ls.get('toko-pembeli',{}).alamat||''});toast('Selamat datang, '+j.data.nama.split(' ')[0]+'!');go(CART.length?'checkout':'akun')}
+  try{const j=await api(path,{method:'POST',body});setAkun(j.data,j.token);ls.set('toko-pembeli',{...ls.get('toko-pembeli',{}),nama:j.data.nama,telp:j.data.telp,alamat:j.data.alamat||ls.get('toko-pembeli',{}).alamat||''});toast('Selamat datang, '+j.data.nama.split(' ')[0]+'!');try{await loadProduk()}catch(e){}go(CART.length?'checkout':'akun')}
   catch(e){$('#a_err').textContent=e.message;b.disabled=false;b.textContent=t}}
 const akunMasuk=()=>akunKirim('/api/akun/masuk',{telp:$('#a_telp').value,password:$('#a_pw').value});
 const akunDaftar=()=>akunKirim('/api/akun/daftar',{nama:$('#a_nama').value,telp:$('#a_telp').value,alamat:$('#a_alamat').value,password:$('#a_pw').value,pin:$('#a_pin').value.trim()||undefined});
@@ -335,7 +335,7 @@ const STB={baru:['Menunggu konfirmasi','b-amber'],diproses:['Disiapkan','b-blue'
 function renderAkun(){const a=AKUN;if(!a)return;const m=a.member;
   $('#p-akun').innerHTML=`<div style="max-width:760px;margin:0 auto">
    <div class="mcard"><small>Halo,</small><div style="font-size:22px;font-weight:800">${esc(a.nama)}</div><small>${esc(a.telp)}</small>
-    <div style="margin-top:10px">${m?`<span class="badge" style="background:rgba(255,255,255,.2);color:#fff;font-size:12.5px;padding:4px 12px">Member ${esc(m.kategori)}${m.diskon?' · diskon '+m.diskon+'%':''}</span>`:'<span class="badge" style="background:rgba(255,255,255,.2);color:#fff;font-size:12.5px;padding:4px 12px">Akun belum terhubung ke data apotek</span>'}</div></div>
+    <div style="margin-top:10px">${m?`<span class="badge" style="background:rgba(255,255,255,.2);color:#fff;font-size:12.5px;padding:4px 12px">${m.hargaKhusus!=null?'Pelanggan harga khusus':'Member '+esc(m.kategori)+(m.diskon?' · diskon '+m.diskon+'%':'')}</span>`:'<span class="badge" style="background:rgba(255,255,255,.2);color:#fff;font-size:12.5px;padding:4px 12px">Akun belum terhubung ke data apotek</span>'}</div></div>
    ${!m&&a.bisaVerifikasi?`<div class="card sec" style="margin-top:14px;border-color:#fbdc9c;background:var(--amber-s)"><h2>Hubungkan dengan data pelanggan apotek</h2><p style="color:#8a4d00;font-size:13.5px;margin-bottom:10px">Nomor Anda terdaftar sebagai pelanggan apotek. Masukkan PIN dari apotek untuk melihat harga member, saldo bonus, dan tagihan.</p><div style="display:flex;gap:8px"><input class="inp" id="v_pin" inputmode="numeric" maxlength="6" placeholder="PIN 6 angka" style="max-width:180px"><button class="btn btn-p" onclick="akunVerif()">Hubungkan</button></div></div>`:''}
    ${m?`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:14px">
      <a class="stat" href="#tagihan" style="text-decoration:none;color:inherit;cursor:pointer"><small>Sisa hutang</small><b style="color:${m.total?'var(--red)':'var(--green)'}">${rp(m.total)}</b>${m.lewat?`<span class="badge b-red">Lewat tempo ${rp(m.lewat)}</span>`:'<small>Lihat rincian →</small>'}</a>
@@ -345,11 +345,11 @@ function renderAkun(){const a=AKUN;if(!a)return;const m=a.member;
    ${m&&m.belanja.length?`<div class="card sec"><h2>Riwayat Belanja di Apotek</h2>${m.belanja.map(x=>`<div class="ci"><div class="n"><b>${esc(x.no)}</b><small>${esc(x.tgl)} · ${esc(x.metode||'')}</small><small style="display:block">${esc(x.items.slice(0,3).join(', '))}${x.items.length>3?' …':''}</small></div><b>${rp(x.total)}</b></div>`).join('')}</div>`:''}
    <div class="card sec"><h2>Profil</h2><div class="fld"><label>Nama</label><input class="inp" id="pf_nama" value="${esc(a.nama)}"></div><div class="fld"><label>Alamat pengiriman</label><textarea class="inp" id="pf_alamat" rows="2">${esc(a.alamat)}</textarea></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-p" onclick="akunProfil()">Simpan Profil</button><button class="btn btn-o" onclick="akunPwForm()">Ganti Password</button><button class="btn btn-o" style="color:var(--red)" onclick="akunKeluar()">Keluar</button></div><div id="pwBox"></div></div></div>`}
-async function akunVerif(){try{setAkun((await api('/api/akun/verifikasi',{method:'POST',body:{pin:$('#v_pin').value.trim()}})).data);toast('Akun terhubung dengan data apotek');renderAkun()}catch(e){toast(e.message,'err')}}
+async function akunVerif(){try{setAkun((await api('/api/akun/verifikasi',{method:'POST',body:{pin:$('#v_pin').value.trim()}})).data);await loadProduk();toast('Akun terhubung dengan data apotek');renderAkun()}catch(e){toast(e.message,'err')}}
 async function akunProfil(){try{setAkun((await api('/api/akun/profil',{method:'PUT',body:{nama:$('#pf_nama').value,alamat:$('#pf_alamat').value}})).data);F.alamat=AKUN.alamat;toast('Profil disimpan');renderAkun()}catch(e){toast(e.message,'err')}}
 function akunPwForm(){$('#pwBox').innerHTML=`<div style="margin-top:14px;border-top:1px solid var(--line);padding-top:14px"><div class="fld"><label>Password lama</label><input class="inp" id="pw_l" type="password" autocomplete="current-password"></div><div class="fld"><label>Password baru (min. 6)</label><input class="inp" id="pw_b" type="password" autocomplete="new-password"></div><button class="btn btn-p" onclick="akunPw()">Simpan Password</button></div>`}
 async function akunPw(){try{const j=await api('/api/akun/password',{method:'POST',body:{lama:$('#pw_l').value,baru:$('#pw_b').value}});setAkun(AKUN,j.token);$('#pwBox').innerHTML='';toast('Password diganti')}catch(e){toast(e.message,'err')}}
-function akunKeluar(){setAkun(null,null);F.nama='';F.telp='';toast('Anda sudah keluar');go('')}
+function akunKeluar(){setAkun(null,null);F.nama='';F.telp='';toast('Anda sudah keluar');go('');loadProduk().then(route).catch(()=>{})}
 
 init();
 </script>
