@@ -398,6 +398,22 @@ async function api(req, res, url) {
     return send(res, 200, { success: true, items: db.prepare('SELECT telp,nama,alamat,verified,created_at,last_login FROM customers ORDER BY created_at DESC').all()
       .map(r => ({ ...r, verified: !!r.verified, pelanggan: (r.verified && (findPel(d, r.telp) || {}).nama) || null })) });
   }
+  // Admin membuatkan akun pelanggan (otomatis terhubung), atau menghubungkan akun yang sudah ada
+  if (p === '/api/admin/akun' && m === 'POST') {
+    const b = await readBody(req, 4e3), telp = normTelp(b.telp), nama = str(b.nama, 80);
+    if (telp.length < 9 || telp.length > 15) return fail(res, 400, 'Nomor HP pelanggan belum diisi / tidak valid');
+    const ada = custBy(telp);
+    if (b.hubungkan) {
+      if (!ada) return fail(res, 404, 'Akun belum ada');
+      db.prepare('UPDATE customers SET verified=1 WHERE telp=?').run(telp);
+      return send(res, 200, { success: true });
+    }
+    if (ada) return fail(res, 409, 'Akun sudah ada — gunakan Reset password');
+    const A = 'abcdefghjkmnpqrstuvwxyz23456789'; let pw = ''; for (const x of crypto.randomBytes(8)) pw += A[x % A.length];
+    db.prepare('INSERT INTO customers (telp,nama,alamat,salt,hash,verified,created_at,last_login) VALUES (?,?,?,?,?,?,?,?)').run(telp, nama || telp, str(b.alamat, 300), '', '', 1, now(), null);
+    custSetPw(telp, pw);
+    return send(res, 201, { success: true, telp, password: pw });
+  }
   mm = p.match(/^\/api\/admin\/akun\/(\d{9,15})(\/reset)?$/);
   if (mm && m === 'POST' && mm[2]) {
     if (!custBy(mm[1])) return fail(res, 404, 'Akun tidak ditemukan');

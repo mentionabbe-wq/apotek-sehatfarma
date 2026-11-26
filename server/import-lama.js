@@ -104,7 +104,7 @@ function konversi({ store, supplier: supRows }) {
   });
 
   /* --- pengeluaran --- */
-  for (const p of PENG) kas.push({ tgl: day(p.time) || today, uraian: [p.kategori, p.keterangan, p.penerima].filter(Boolean).join(' · ') || 'Pengeluaran', jenis: 'Pengeluaran', akun: 'Kas', jumlah: num(p.nominal) });
+  for (const p of PENG) kas.push({ tgl: day(p.time) || today, uraian: [p.kategori, p.keterangan, p.penerima].filter(Boolean).join(' · ') || 'Pengeluaran', jenis: 'Pengeluaran', akun: 'Kas', jumlah: num(p.nominal), beban: true });
   kas.sort((a, b) => (a.tgl < b.tgl ? -1 : a.tgl > b.tgl ? 1 : 0));
 
   /* --- surat pesanan --- */
