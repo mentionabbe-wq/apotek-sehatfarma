@@ -163,6 +163,14 @@ function diskonFor(d, telp) {
   return { nama: p.nama, kategori: (k && k.nama) || 'Umum', diskon: (k && +k.diskon) || 0 };
 }
 const pinCocok = (pel, pin) => { pin = String(pin || '').trim(); return !!(pel && pel.pin && /^\d{6}$/.test(pin) && pel.pin.length === pin.length && crypto.timingSafeEqual(Buffer.from(pel.pin), Buffer.from(pin))); };
+// Status pembayaran faktur tempo (piutang) sebuah penjualan
+function fakturStatus(d, sale) {
+  const h = (d.piutang || []).find(h => h.ref === sale.no || (sale.online && h.ref === sale.online));
+  if (!h) return null;
+  const dibayar = (h.bayar || []).reduce((a, x) => a + (+x.jumlah || 0), 0), sisa = h.status === 'Lunas' ? 0 : Math.max(0, h.jumlah - dibayar);
+  const tglLunas = sisa <= 0 ? ((h.bayar || []).map(x => x.tgl).sort().pop() || h.jt) : null;
+  return { jt: h.jt, tagihan: h.jumlah, dibayar, sisa, lunas: sisa <= 0, tglLunas, lewat: sisa > 0 && h.jt < new Date().toISOString().slice(0, 10) };
+}
 function tagihanFor(d, pel) {
   const dib = h => (h.bayar || []).reduce((s, x) => s + (+x.jumlah || 0), 0);
   const sisa = h => h.status === 'Lunas' ? 0 : Math.max(0, h.jumlah - dib(h));
@@ -195,7 +203,10 @@ function akunData(row) {
     const ds = diskonFor(d, row.telp);
     member = { ...tagihanFor(d, pel), kategori: ds.kategori, diskon: punyaMargin(pel) ? 0 : ds.diskon, hargaKhusus: marginOf(pel),
       belanja: (d.sales || []).filter(x => x.pelanggan === pel.nama && !x.rekap).slice(-15).reverse()
-        .map(x => ({ no: x.no, tgl: x.tgl, total: x.total, metode: x.metode, items: (x.items || []).map(i => i.qty + ' ' + (i.unit || '') + ' ' + i.nama) })) };
+        .map(x => ({ no: x.no, tgl: x.tgl, total: x.total, metode: x.metode, items: (x.items || []).map(i => i.qty + ' ' + (i.unit || '') + ' ' + i.nama) })),
+      faktur: (d.sales || []).filter(x => x.pelanggan === pel.nama && !x.rekap && (x.items || []).length)
+        .map(x => { const st = fakturStatus(d, x); return st && { no: x.no, tgl: x.tgl, total: x.total + (x.ongkir || 0), ...st }; })
+        .filter(Boolean).sort((a, b) => (a.lunas - b.lunas) || (a.tgl < b.tgl ? 1 : -1)).slice(0, 40) };
   }
   const adaDiApotek = !!findPel(d, row.telp);
   return { nama: row.nama, telp: row.telp, alamat: row.alamat || '', verified: !!row.verified, bisaVerifikasi: !row.verified && adaDiApotek, member, pesanan };
@@ -279,6 +290,22 @@ async function api(req, res, url) {
     const row = custFromReq(req);
     if (!row) return fail(res, 401, 'Silakan masuk lagi');
     if (p === '/api/akun/saya' && m === 'GET') return send(res, 200, { success: true, data: akunData(row) });
+    const fm = p.match(/^\/api\/akun\/faktur\/([A-Za-z0-9-]{4,40})$/);
+    if (fm && m === 'GET') {
+      const d = getState().data, pel = row.verified ? findPel(d, row.telp) : null;
+      if (!pel) return fail(res, 403, 'Akun belum terhubung ke data pelanggan apotek');
+      const sale = (d.sales || []).find(x => x.no === fm[1] && x.pelanggan === pel.nama);
+      if (!sale) return fail(res, 404, 'Faktur tidak ditemukan');
+      const c = d.config || {}, ob = id => (d.obat || []).find(o => o.id == id) || {};
+      return send(res, 200, { success: true, data: {
+        toko: { nama: c.nama, alamat: c.alamat, telp: c.telp, npwp: c.npwp, nib: c.nib, logo: c.logoCetak !== false ? (c.logo || '') : '', apoteker: c.apoteker, sipa: c.sipa, ppn: c.ppn, catatan: c.fjCatatan || '',
+          rekening: c.fjRekening !== false ? String((c.toko && c.toko.rekening) || '').split('\n').map(x => x.trim()).filter(Boolean) : [] },
+        pel: { nama: pel.nama, alamat: pel.alamat, telp: pel.telp, npwp: pel.npwp },
+        sale: { no: sale.no, tgl: sale.tgl, metode: sale.metode, salesman: sale.salesman, subtotal: sale.subtotal, diskon: sale.diskon, diskonPct: sale.diskonPct, pajak: sale.pajak, ppnMode: sale.ppnMode, ppnRate: sale.ppnRate,
+          total: sale.total, ongkir: sale.ongkir || 0, bonusPakai: sale.bonusPakai || 0, dp: (sale.tempo && sale.tempo.dp) || 0,
+          items: (sale.items || []).map(i => { const o = ob(i.id); return { nama: i.nama, qty: i.qty, isi: i.isi || 1, unit: i.unit || '', harga: i.harga, kode: o.kode || '', batch: o.batch || '', ed: o.ed || '' }; }) },
+        status: fakturStatus(d, sale) } });
+    }
     if (p === '/api/akun/profil' && m === 'PUT') {
       const b = await readBody(req, 4e3), nama = str(b.nama, 80);
       if (nama.length < 2) return fail(res, 400, 'Nama wajib diisi');
