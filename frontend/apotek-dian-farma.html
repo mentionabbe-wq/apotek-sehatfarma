@@ -322,7 +322,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const iso=d=>{const x=new Date(d);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0')};
 const dAgo=n=>{const d=new Date();d.setDate(d.getDate()-n);return iso(d)};
 const tgl=s=>{const [y,m,d]=String(s).slice(0,10).split('-');return `${d}/${m}/${y}`};
-const ed=s=>{const [y,m]=String(s).split('-');return `${m}/${y}`};
+const ed=s=>{if(!s)return '-';const [y,m]=String(s).split('-');return `${m}/${y}`};
 const today=()=>iso(new Date());
 const BLN=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
 
@@ -495,7 +495,7 @@ const PAGES={},AFTER={};
 /* 1. Dashboard */
 PAGES.dashboard=()=>{
   const s=stats(PERIODE),low=D.obat.filter(o=>o.stok<=o.min);
-  const lim=iso(new Date(Date.now()+30*864e5)).slice(0,7),exp=D.obat.filter(o=>o.ed<=lim);
+  const lim=iso(new Date(Date.now()+30*864e5)).slice(0,7),exp=D.obat.filter(o=>o.ed&&o.stok>0&&o.ed<=lim);
   return head('Dashboard',`<span class="lbl">Periode:</span><select class="sel" style="width:150px" onchange="PERIODE=+this.value;render()">${[[1,'Hari ini'],[7,'7 hari'],[30,'30 hari'],[90,'90 hari']].map(([v,l])=>`<option value="${v}" ${v==PERIODE?'selected':''}>${l}</option>`).join('')}</select>`)+`
   <div class="grid g3" style="margin-bottom:16px">
     <div class="card kpi"><div class="ic" style="background:var(--green-s);color:var(--green)">${ic('cart')}</div><div><small>Penjualan</small><b class="num">${rp(s.jual)}</b>${growth(s.gj)}</div></div>
@@ -510,7 +510,7 @@ PAGES.dashboard=()=>{
     </div>
   </div>
   <div class="grid g3">
-    <div class="card mini" style="cursor:pointer" onclick="go('persediaan')"><div class="ic" style="background:var(--amber-s);color:var(--amber)">${ic('cal')}</div><div><small class="muted">Obat Kedaluwarsa<br>Dalam 30 Hari</small><br><b>${exp.length} Item</b></div></div>
+    <div class="card mini" style="cursor:pointer" onclick="go('persediaan')"><div class="ic" style="background:var(--amber-s);color:var(--amber)">${ic('cal')}</div><div><small class="muted">Obat Kedaluwarsa /<br>ED ≤ 30 Hari (ada stok)</small><br><b>${exp.length} Item</b></div></div>
     <div class="card mini"><div class="ic" style="background:var(--green-s);color:var(--green)">${ic('users')}</div><div><small class="muted">Pelanggan Aktif (periode)</small><br><b>${nf(new Set(D.sales.filter(x=>inP(x.tgl,PERIODE)&&x.pelanggan&&x.pelanggan!=='Pelanggan Umum'&&!x.rekap).map(x=>x.pelanggan)).size)} Orang</b></div></div>
     <div class="card mini"><div class="ic" style="background:var(--pri-s);color:var(--pri)">${ic('receipt')}</div><div><small class="muted">Jumlah Transaksi</small><br><b>${nf(s.trx)}</b></div></div>
   </div>`;
@@ -815,7 +815,7 @@ PAGES.persediaan=()=>{
       <span class="lbl">Cari :</span><div class="srch" style="flex:1;min-width:180px;max-width:300px">${ic('search')}<input class="inp" id="stq" placeholder="nama obat..." value="${esc(STOKF==='menipis'?'':STOKF)}" onkeydown="if(event.key==='Enter'){STOKF=this.value;render()}"></div>
       <button class="btn btn-p" onclick="STOKF=$('#stq').value;render()">Cari</button>
       ${STOKF==='menipis'?`<span class="badge b-red">Filter: stok menipis <a style="cursor:pointer;margin-left:6px" onclick="STOKF='';render()">✕</a></span>`:''}</div>
-      <div class="tw"><table><thead><tr><th>No</th><th>Nama Obat</th><th class="r">Stok</th><th>Satuan</th><th>Batch</th><th>ED</th><th class="r">Nilai Stok</th></tr></thead><tbody>${D.obat.filter(o=>(STOKK==='Semua'||o.kategori===STOKK)&&(STOKF==='menipis'?o.stok<=o.min:o.nama.toLowerCase().includes(STOKF.toLowerCase()))).map((o,i)=>`<tr><td>${i+1}</td><td>${esc(o.nama)}</td><td class="r num">${o.stok<=o.min?`<span class="badge b-red">${o.stok}</span>`:o.stok}${punya2(o)?`<br><small class="muted">${stokTxt(o)}</small>`:''}</td><td>${esc(o.satuan)}${punya2(o)?`<br><small class="muted">${kemasan(o)}</small>`:''}</td><td>${o.batch}</td><td>${o.ed<=iso(new Date(Date.now()+30*864e5)).slice(0,7)?`<span class="badge b-amber">${ed(o.ed)}</span>`:ed(o.ed)}</td><td class="r num">${rp(o.stok*o.beli)}</td></tr>`).join('')||'<tr><td colspan="7" class="empty">Tidak ada data</td></tr>'}</tbody></table></div>
+      <div class="tw"><table><thead><tr><th>No</th><th>Nama Obat</th><th class="r">Stok</th><th>Satuan</th><th>Batch</th><th>ED</th><th class="r">Nilai Stok</th></tr></thead><tbody>${D.obat.filter(o=>(STOKK==='Semua'||o.kategori===STOKK)&&(STOKF==='menipis'?o.stok<=o.min:o.nama.toLowerCase().includes(STOKF.toLowerCase()))).map((o,i)=>`<tr><td>${i+1}</td><td>${esc(o.nama)}</td><td class="r num">${o.stok<=o.min?`<span class="badge b-red">${o.stok}</span>`:o.stok}${punya2(o)?`<br><small class="muted">${stokTxt(o)}</small>`:''}</td><td>${esc(o.satuan)}${punya2(o)?`<br><small class="muted">${kemasan(o)}</small>`:''}</td><td>${o.batch}</td><td>${o.ed&&o.ed<=iso(new Date(Date.now()+30*864e5)).slice(0,7)?`<span class="badge b-amber">${ed(o.ed)}</span>`:ed(o.ed)}</td><td class="r num">${rp(o.stok*o.beli)}</td></tr>`).join('')||'<tr><td colspan="7" class="empty">Tidak ada data</td></tr>'}</tbody></table></div>
       ${low?`<div class="alert alert-amber" style="margin-top:14px;max-width:340px">${ic('alert')}Stok Menipis : ${low} Item</div>`:''}</div>`;
   }else if(t==='Kartu Stok'){
     const m=D.mutasi.filter(x=>x.id==KSID);
