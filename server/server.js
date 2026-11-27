@@ -187,6 +187,8 @@ function tagihanFor(d, pel) {
 /* ---- akun pelanggan ---- */
 const custBy = telp => db.prepare('SELECT * FROM customers WHERE telp=?').get(telp);
 function custSetPw(telp, pw) { const salt = crypto.randomBytes(16).toString('hex'); db.prepare('UPDATE customers SET salt=?, hash=? WHERE telp=?').run(salt, hashPw(pw, salt), telp); return custBy(telp); }
+// Password dari admin: kosong = dibuat acak; diisi = minimal 6 karakter (null = tidak valid)
+function pwPilihan(v) { const p = String(v || '').trim(); if (!p) { const A = 'abcdefghjkmnpqrstuvwxyz23456789'; let r = ''; for (const x of crypto.randomBytes(8)) r += A[x % A.length]; return r; } return p.length >= 6 && p.length <= 64 ? p : null; }
 const custToken = row => makeCustToken(row.telp, row.hash.slice(0, 10));
 function custFromReq(req) {
   const t = readToken((req.headers.authorization || '').replace(/^Bearer /, ''));
@@ -436,7 +438,7 @@ async function api(req, res, url) {
       return send(res, 200, { success: true });
     }
     if (ada) return fail(res, 409, 'Akun sudah ada — gunakan Reset password');
-    const A = 'abcdefghjkmnpqrstuvwxyz23456789'; let pw = ''; for (const x of crypto.randomBytes(8)) pw += A[x % A.length];
+    const pw = pwPilihan(b.password); if (pw === null) return fail(res, 400, 'Password minimal 6 karakter');
     db.prepare('INSERT INTO customers (telp,nama,alamat,salt,hash,verified,created_at,last_login) VALUES (?,?,?,?,?,?,?,?)').run(telp, nama || telp, str(b.alamat, 300), '', '', 1, now(), null);
     custSetPw(telp, pw);
     return send(res, 201, { success: true, telp, password: pw });
@@ -444,7 +446,7 @@ async function api(req, res, url) {
   mm = p.match(/^\/api\/admin\/akun\/(\d{9,15})(\/reset)?$/);
   if (mm && m === 'POST' && mm[2]) {
     if (!custBy(mm[1])) return fail(res, 404, 'Akun tidak ditemukan');
-    const A = 'abcdefghjkmnpqrstuvwxyz23456789'; let pw = ''; for (const x of crypto.randomBytes(8)) pw += A[x % A.length];
+    const b = await readBody(req, 4e3), pw = pwPilihan(b.password); if (pw === null) return fail(res, 400, 'Password minimal 6 karakter');
     custSetPw(mm[1], pw);
     return send(res, 200, { success: true, password: pw });
   }
